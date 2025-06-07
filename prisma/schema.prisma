@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  otps      OTP[]
+}
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  code      String
+  type      OTPType
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  userId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DeliveryOrder {
+  id           String   @id @default(uuid())
+  projectId    String?
+  number       String
+  date         DateTime
+  fileUrl      String?
+  client       String
+  site         String
+  orderDate    DateTime
+  deliveryDate DateTime
+  poReference  String
+  status       String
+  amount       String
+  items        Int
+  project      Project? @relation(fields: [projectId], references: [id])
+}
+
+model Project {
+  id               String          @id @default(uuid())
+  client           String
+  site             String
+  created          DateTime
+  status           String
+  endDate          DateTime?
+  projectName      String?         @db.VarChar(255)
+  projectManagerId Int?
+  deliveryOrders   DeliveryOrder[]
+  documents        Document[]
+  gondolas         Gondola[]
+  projectManager   ProjectManager? @relation("Project_projectManagerId", fields: [projectManagerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Gondola {
+  photos Photo[]
+  id             String         @id @default(uuid())
+  serialNumber   String
+  location       String
+  locationDetail String
+  lastInspection DateTime
+  nextInspection DateTime
+  status         String
+  photoName      String?
+  photoData      Bytes?
+  projectId      String?
+  certificates   Certificate[]
+  documents      Document[]
+  project        Project?       @relation(fields: [projectId], references: [id])
+  inspections    Inspection[]
+  shiftHistory   ShiftHistory[]
+  repairLogs     RepairLog[]
+}
+
+model RepairLog {
+  id           String   @id @default(uuid())
+  gondolaId    String
+  date         DateTime
+  type         String
+  description  String
+  partName     String?
+  cost         Float
+  isChargeable Boolean
+  technician   String
+  status       String
+  gondola      Gondola  @relation(fields: [gondolaId], references: [id])
+}
+
+model Document {
+  id        String    @id @default(uuid())
+  gondolaId String?
+  type      String
+  name      String
+  uploaded  DateTime
+  expiry    DateTime?
+  status    String?
+  filePath  String?
+  fileData  Bytes?
+  projectId String?
+  fileUrl   String?
+  category  String?
+  title     String?
+  gondola   Gondola?  @relation(fields: [gondolaId], references: [id])
+  project   Project?  @relation(fields: [projectId], references: [id])
+}
+
+model ShiftHistory {
+  id                 String   @id @default(uuid())
+  gondolaId          String
+  fromLocation       String
+  fromLocationDetail String
+  toLocation         String
+  toLocationDetail   String
+  shiftDate          DateTime
+  reason             String
+  notes              String?
+  shiftedBy          String
+  createdAt          DateTime
+  gondola            Gondola  @relation(fields: [gondolaId], references: [id])
+}
+
+model Certificate {
+  id         String   @id @default(uuid())
+  gondolaId  String
+  title      String
+  status     String
+  expiryDate DateTime
+  gondola    Gondola  @relation(fields: [gondolaId], references: [id])
+}
+
+model Inspection {
+  id           String   @id @default(uuid())
+  gondolaId    String
+  type         String
+  date         DateTime
+  inspector    String
+  priority     String?
+  notes        String?
+  notifyClient String?
+  createdAt    DateTime @default(now())
+  gondola      Gondola  @relation(fields: [gondolaId], references: [id])
+}
+
+model ProjectManager {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  email           String?   @unique @db.VarChar(255)
+  phone           String?   @db.VarChar(50)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  projectsManaged Project[] @relation("Project_projectManagerId")
+}
+
+model Photo {
+  id         String   @id @default(uuid())
+  gondolaId  String
+  fileName   String
+  mimeType   String
+  uploaded   DateTime @default(now())
+  fileData   Bytes
+  description String?
+  category   String?
+  gondola    Gondola  @relation(fields: [gondolaId], references: [id])
+}
+
+enum OTPType {
+  SIGNUP
+  LOGIN
+  FORGOT_PASSWORD
+  RESET_PASSWORD
+}
