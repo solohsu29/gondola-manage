@@ -161,7 +161,7 @@ export default function PhotosTab({ gondolaId }: { gondolaId: string }) {
             photos.map(photo => (
               <div key={photo.id} className="border rounded-md overflow-hidden">
                 <Image
-                  src={`/api/gondola/photo/${photo.id}/serve`}
+                  src={photo.fileDataBase64 ? `data:${photo.mimeType || 'image/jpeg'};base64,${photo.fileDataBase64}` : `/api/gondola/photo/${photo.id}/serve`}
                   alt={photo.fileName || "Gondola Photo"}
                   width={300}
                   height={200}

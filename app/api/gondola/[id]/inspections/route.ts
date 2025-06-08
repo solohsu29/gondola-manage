@@ -5,7 +5,7 @@ import pool from '@/lib/db';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id: gondolaId } = params;
-    const query = `SELECT id, "gondolaId", type, date, inspector, priority, notes, "notifyClient", "createdAt" FROM "Inspection" WHERE "gondolaId" = $1 ORDER BY date DESC`;
+    const query = `SELECT id, "gondolaId", type, date, inspector, priority, notes, "notifyClient", "createdAt","time" FROM "Inspection" WHERE "gondolaId" = $1 ORDER BY date DESC`;
     const result = await pool.query(query, [gondolaId]);
     // Convert date fields to ISO strings for frontend
     const inspections = result.rows.map((row: any) => ({

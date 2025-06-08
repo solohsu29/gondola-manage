@@ -5,18 +5,58 @@ import pool from '@/lib/db';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = await params;
-    const query = `
-      SELECT g.*, p."projectManagerId", u.name as "projectManagerName", u.email as "projectManagerEmail"
+    // Fetch gondola (no project join, just the gondola)
+    const gondolaQuery = `
+      SELECT 
+        g.id,
+        g."serialNumber",
+        g."location",
+        g."locationDetail",
+        g.status,
+        g."lastInspection",
+        g."nextInspection",
+        g."photoData",
+        g."photoName",
+        g."projectId"
       FROM "Gondola" g
-      LEFT JOIN "Project" p ON g."projectId" = p.id
-      LEFT JOIN "User" u ON p."projectManagerId" = u.id
       WHERE g.id = $1
     `;
-    const result = await pool.query(query, [id]);
-    if (result.rows.length === 0) {
+    const gondolaResult = await pool.query(gondolaQuery, [id]);
+    const gondola = gondolaResult.rows[0] || null;
+    if (!gondola) {
       return NextResponse.json({ error: 'Gondola not found' }, { status: 404 });
     }
-    return NextResponse.json(result.rows[0]);
+    // Convert date fields to ISO strings for frontend
+    if (gondola.lastInspection) gondola.lastInspection = new Date(gondola.lastInspection).toISOString();
+    if (gondola.nextInspection) gondola.nextInspection = new Date(gondola.nextInspection).toISOString();
+
+    // Fetch all related projects via ProjectGondola (many-to-many)
+    const projectIdsResult = await pool.query(
+      `SELECT pg."projectId" FROM "ProjectGondola" pg WHERE pg."gondolaId" = $1`,
+      [id]
+    );
+    const projectIds = projectIdsResult.rows.map((row: any) => row.projectId);
+    let projects = [];
+    if (projectIds.length > 0) {
+      const projectsResult = await pool.query(
+        `SELECT * FROM "Project" WHERE id = ANY($1)`,
+        [projectIds]
+      );
+      projects = projectsResult.rows;
+    }
+
+    // Fetch all inspections for this gondola
+    const inspectionsResult = await pool.query(
+      `SELECT id, "gondolaId", type, date, inspector, priority, notes, "notifyClient", "createdAt", "time" FROM "Inspection" WHERE "gondolaId" = $1 ORDER BY date DESC`,
+      [id]
+    );
+    const inspections = inspectionsResult.rows.map((row: any) => ({
+      ...row,
+      date: row.date ? new Date(row.date).toISOString() : null,
+      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : null,
+    }));
+
+    return NextResponse.json({ gondola, projects, inspections });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch gondola' }, { status: 500 });
   }
@@ -60,6 +100,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     await pool.query('DELETE FROM "Certificate" WHERE "gondolaId" = $1', [id]);
     await pool.query('DELETE FROM "ShiftHistory" WHERE "gondolaId" = $1', [id]);
     await pool.query('UPDATE "Document" SET "gondolaId" = NULL WHERE "gondolaId" = $1', [id]); // ON DELETE SET NULL for Document
+    await pool.query('DELETE FROM "ProjectGondola" WHERE "gondolaId" = $1', [id]);
+    await pool.query('DELETE FROM "Photo" WHERE "gondolaId" = $1', [id]);
 
     const result = await pool.query('DELETE FROM "Gondola" WHERE id = $1 RETURNING *', [id]);
     if (result.rows.length === 0) {

@@ -67,6 +67,7 @@ export default function InspectionsTab({ gondolaId }: { gondolaId: string }) {
           inspectionType: form.inspectionType,
           inspectionDate: form.inspectionDate,
           inspectionTime: form.inspectionTime,
+          time: form.inspectionTime, // send time field
           inspector: form.inspector,
           priority: form.priority,
           notes: form.notes,
@@ -171,7 +172,7 @@ const columns: ColumnDef<Inspection>[] = [
                 setEditForm({
                   type: insp.type || '',
                   date: insp.date ? insp.date.split('T')[0] : '',
-                  time: insp.date && insp.date.includes('T') ? insp.date.split('T')[1].slice(0,5) : (insp.time || ''),
+                  time: insp.time || (insp.date && insp.date.includes('T') ? insp.date.split('T')[1].slice(0,5) : ''),
                   inspector: insp.inspector || '',
                   priority: insp.priority || '',
                   notes: insp.notes || '',
@@ -191,25 +192,16 @@ const columns: ColumnDef<Inspection>[] = [
   },
 ];
 
-function getLocalOffset() {
-  const offset = -new Date().getTimezoneOffset();
-  const sign = offset >= 0 ? '+' : '-';
-  const absOffset = Math.abs(offset);
-  const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
-  const minutes = String(absOffset % 60).padStart(2, '0');
-  return `${sign}${hours}:${minutes}`;
-}
 
+console.log('edit from',editForm)
 const handleEditInspection = async () => {
   // Compose ISO string for date+time
-  let isoDate = editForm.date;
-  if (editForm.date && editForm.time) {
-    isoDate = `${editForm.date}T${editForm.time}:00${getLocalOffset()}`;
-  }
+  
   // Only send allowed fields
   const payload = {
     type: editForm.type,
-    date: isoDate,
+    date: editForm.date,
+    time: editForm.time, // send time field
     inspector: editForm.inspector,
     priority: editForm.priority,
     notes: editForm.notes,
@@ -235,7 +227,7 @@ const handleEditInspection = async () => {
 };
 
 
-
+console.log('inspect',inspections)
   return (
     <Card>
       <CardContent className="p-0">
@@ -286,10 +278,10 @@ const handleEditInspection = async () => {
                       <SelectValue placeholder="Select inspector" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="john_smith">John Smith</SelectItem>
-                      <SelectItem value="jane_doe">Jane Doe</SelectItem>
-                      <SelectItem value="mike_johnson">Mike Johnson</SelectItem>
-                      <SelectItem value="sarah_wilson">Sarah Wilson</SelectItem>
+                      <SelectItem value="John Smith">John Smith</SelectItem>
+                      <SelectItem value="Jane Doe">Jane Doe</SelectItem>
+                      <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
+                      <SelectItem value="Sarah Wilson">Sarah Wilson</SelectItem>
                       <SelectItem value="unassigned">To be assigned</SelectItem>
                     </SelectContent>
                   </Select>
@@ -360,13 +352,13 @@ const handleEditInspection = async () => {
           <SelectValue placeholder="Select inspection type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="monthly">Monthly Inspection</SelectItem>
-          <SelectItem value="quarterly">Quarterly Inspection</SelectItem>
-          <SelectItem value="annual">Annual Inspection</SelectItem>
-          <SelectItem value="maintenance">Maintenance Inspection</SelectItem>
-          <SelectItem value="safety">Safety Inspection</SelectItem>
-          <SelectItem value="pre_deployment">Pre-Deployment Inspection</SelectItem>
-          <SelectItem value="post_deployment">Post-Deployment Inspection</SelectItem>
+          <SelectItem value="Monthly">Monthly Inspection</SelectItem>
+          <SelectItem value="Quarterly">Quarterly Inspection</SelectItem>
+          <SelectItem value="Annual">Annual Inspection</SelectItem>
+          <SelectItem value="Maintenance">Maintenance Inspection</SelectItem>
+          <SelectItem value="Safety">Safety Inspection</SelectItem>
+          <SelectItem value="Pre Deployment">Pre-Deployment Inspection</SelectItem>
+          <SelectItem value="Post Deployment">Post-Deployment Inspection</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -382,9 +374,9 @@ const handleEditInspection = async () => {
       />
     </div>
     <div className="space-y-2">
-      <Label htmlFor="editInspectionTime">Inspection Time *</Label>
+      <Label htmlFor="time">Inspection Time *</Label>
       <Input
-        id="editInspectionTime"
+        id="time"
         type="time"
         value={editForm.time}
         onChange={e => setEditForm(f => ({ ...f, time: e.target.value }))}
@@ -398,10 +390,10 @@ const handleEditInspection = async () => {
                       <SelectValue placeholder="Select inspector" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="john_smith">John Smith</SelectItem>
-                      <SelectItem value="jane_doe">Jane Doe</SelectItem>
-                      <SelectItem value="mike_johnson">Mike Johnson</SelectItem>
-                      <SelectItem value="sarah_wilson">Sarah Wilson</SelectItem>
+                      <SelectItem value="John Smith">John Smith</SelectItem>
+                      <SelectItem value="Jane Doe">Jane Doe</SelectItem>
+                      <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
+                      <SelectItem value="Sarah Wilson">Sarah Wilson</SelectItem>
                       <SelectItem value="unassigned">To be assigned</SelectItem>
                     </SelectContent>
                   </Select>
@@ -492,20 +484,7 @@ const handleEditInspection = async () => {
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-500">Scheduled Time</Label>
                     <p className="font-medium">{
-  (() => {
-    if (viewInspection.time) {
-      return viewInspection.time;
-    } else if (viewInspection.date) {
-      const dateObj = new Date(viewInspection.date);
-      if (!isNaN(dateObj.getTime())) {
-        // Show time in user's local time zone, in HH:mm format
-        return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      }
-      return '-';
-    } else {
-      return '-';
-    }
-  })()
+  viewInspection?.time || (viewInspection?.date && viewInspection.date.includes('T') ? viewInspection.date.split('T')[1].slice(0,5) : '-')
 }</p>
                   </div>
                   <div className="space-y-2">

@@ -7,4 +7,5 @@ export interface Photo {
   fileData?: ArrayBuffer; // Only used if fetching the binary
   description?: string;
   category?: string;
+  fileDataBase64?:string;
 }

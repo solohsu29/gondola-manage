@@ -39,6 +39,8 @@ interface RentalDetail {
   paymentStatus?: string;
   securityDeposit?: number;
   depositStatus?: string;
+  gondola?:Gondola[]
+  projects?:Project[]
 
 }
 
@@ -65,6 +67,7 @@ interface OrientationSession {
 }
 
 interface AppState {
+  updateOrientationSession: (gondolaId: string, sessionId: string, session: Partial<OrientationSession>) => Promise<boolean>; // ADDED
   createOrientationSession: (gondolaId: string, session: Omit<OrientationSession, 'id' | 'gondola_id'>) => Promise<boolean>;
   fetchShiftHistoryByGondolaId: (gondolaId: string) => Promise<void>;
   fetchRentalDetailsByGondolaId: (gondolaId: string) => Promise<void>;
@@ -85,6 +88,8 @@ interface AppState {
   rentalDetails: {
     rentalDetail: RentalDetail | null;
     billingHistory: BillingHistory[];
+    gondola:Gondola[];
+    projects:Project[]
   } | null;
   rentalDetailsLoading: boolean;
   rentalDetailsError: string | null;
@@ -140,6 +145,23 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  updateOrientationSession: async (gondolaId, sessionId, session) => {
+    set({ orientationSessionsLoading: true, orientationSessionsError: null });
+    try {
+      const res = await fetch(`/api/gondola/${gondolaId}/orientation-sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({gondolaId,sessionId,...session}),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to update orientation session');
+      await get().fetchOrientationSessionsByGondolaId(gondolaId);
+      set({ orientationSessionsLoading: false });
+      return true;
+    } catch (error: any) {
+      set({ orientationSessionsError: error.message || 'Failed to update orientation session', orientationSessionsLoading: false });
+      return false;
+    }
+  },
   createOrientationSession: async (gondolaId, session) => {
     set({ orientationSessionsLoading: true, orientationSessionsError: null });
     try {

@@ -5,8 +5,8 @@ import pool from '@/lib/db';
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
     const { id: gondolaId } = context.params;
-    // Fetch gondola rental details from Gondola table (with project manager info)
-    const rentalQuery = `
+    // Fetch gondola details by id (no project join)
+    const gondolaQuery = `
       SELECT 
         g.id,
         g."serialNumber",
@@ -17,40 +17,47 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
         g."nextInspection",
         g."photoData",
         g."photoName",
-        g."projectId",
-        p."projectName" as "projectName",
-        p."created" as "startDate",
-        p."endDate" as "endDate",
-        p."client" as "clientName",
-        p."projectManagerId",
-        u.name as "projectManagerName",
-        u.email as "projectManagerEmail"
+        g."projectId"
       FROM "Gondola" g
-      LEFT JOIN "Project" p ON g."projectId" = p.id
-      LEFT JOIN "User" u ON p."projectManagerId" = u.id
       WHERE g.id = $1
     `;
-    const billingQuery = `SELECT * FROM "BillingHistory" WHERE "gondolaId" = $1 ORDER BY "startDate" DESC`;
-
-    const rentalResult = await pool.query(rentalQuery, [gondolaId]);
-    const billingResult = await pool.query(billingQuery, [gondolaId]);
-
-    const rentalDetail = rentalResult.rows[0] || null;
-    const billingHistory = billingResult.rows || [];
+    const gondolaResult = await pool.query(gondolaQuery, [gondolaId]);
+    const gondola = gondolaResult.rows[0] || null;
 
     // Convert date fields to ISO strings for frontend
-    if (rentalDetail) {
-      if (rentalDetail.lastInspection) rentalDetail.lastInspection = new Date(rentalDetail.lastInspection).toISOString();
-      if (rentalDetail.nextInspection) rentalDetail.nextInspection = new Date(rentalDetail.nextInspection).toISOString();
+    if (gondola) {
+      if (gondola.lastInspection) gondola.lastInspection = new Date(gondola.lastInspection).toISOString();
+      if (gondola.nextInspection) gondola.nextInspection = new Date(gondola.nextInspection).toISOString();
     }
-    billingHistory.forEach((row: any) => {
-      if (row.startDate) row.startDate = new Date(row.startDate).toISOString().split('T')[0];
-      if (row.endDate) row.endDate = new Date(row.endDate).toISOString().split('T')[0];
-      if (row.paidDate) row.paidDate = new Date(row.paidDate).toISOString().split('T')[0];
-      if (row.invoiceDate) row.invoiceDate = new Date(row.invoiceDate).toISOString().split('T')[0];
-    });
 
-    return NextResponse.json({ rentalDetail, billingHistory });
+    // Fetch all related projects via ProjectGondola (many-to-many)
+    const projectIdsResult = await pool.query(
+      `SELECT pg."projectId" FROM "ProjectGondola" pg WHERE pg."gondolaId" = $1`,
+      [gondolaId]
+    );
+    const projectIds = projectIdsResult.rows.map((row: any) => row.projectId);
+
+    let projects = [];
+    if (projectIds.length > 0) {
+      const projectsResult = await pool.query(
+        `SELECT * FROM "Project" WHERE id = ANY($1)`,
+        [projectIds]
+      );
+      projects = projectsResult.rows;
+    }
+
+    // Fetch all inspections for this gondola
+    const inspectionsResult = await pool.query(
+      `SELECT id, "gondolaId", type, date, inspector, priority, notes, "notifyClient", "createdAt", "time" FROM "Inspection" WHERE "gondolaId" = $1 ORDER BY date DESC`,
+      [gondolaId]
+    );
+    const inspections = inspectionsResult.rows.map((row: any) => ({
+      ...row,
+      date: row.date ? new Date(row.date).toISOString() : null,
+      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : null,
+    }));
+
+    return NextResponse.json({ gondola, projects, inspections });
   } catch (error) {
     console.error('Failed to fetch rental details for gondolaId:', context?.params?.id, error);
     return NextResponse.json({ error: (error as Error).message || 'Failed to fetch rental details' }, { status: 500 });

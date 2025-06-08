@@ -100,7 +100,7 @@ export default function GondolaDetailPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-gray-500">Current Location</p>
-                <p className="font-semibold text-gray-900">{gondola?.locationDetail || '-'}</p>
+                <p className="font-semibold text-gray-900">{gondola?.location || '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Elevation</p>
@@ -192,12 +192,12 @@ export default function GondolaDetailPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-gray-500">Project ID</p>
-                {gondola?.projectId ? (
+                {gondola?.projects[0]?.id ? (
                   <Link
-                    href={`/projects/${gondola.projectId}`}
+                    href={`/projects/${gondola.projects[0]?.id}`}
                     className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
-                    {gondola.projectId}
+                    {gondola.projects[0]?.id}
                   </Link>
                 ) : (
                   <span className="font-medium text-gray-700">-</span>
@@ -207,9 +207,9 @@ export default function GondolaDetailPage() {
                 <p className="text-sm text-gray-500">Project Manager</p>
                 {gondola?.projectManagerName ? (
                   <>
-                    <p className="font-medium text-gray-700">{gondola.projectManagerName}</p>
+                    <p className="font-medium text-gray-700">{gondola.projects[0]?.managerName}</p>
                     {gondola.projectManagerEmail && (
-                      <p className="text-xs text-gray-500">{gondola.projectManagerEmail}</p>
+                      <p className="text-xs text-gray-500">{gondola.projects[0]?.managerEmail}</p>
                     )}
                   </>
                 ) : (

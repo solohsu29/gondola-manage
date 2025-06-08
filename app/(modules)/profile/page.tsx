@@ -11,19 +11,48 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Camera, Save, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [profileData, setProfileData] = useState({
-    firstName: "Gondola",
-    lastName: "Admin",
-    email: "admin@gondola.com",
-    phone: "+65 9123 4567",
-    jobTitle: "System Administrator",
-    department: "Operations",
-  })
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    jobTitle: '',
+    department: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch profile data on mount
+  useEffect(() => {
+    async function fetchProfile() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/profile');
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        const data = await res.json();
+        setProfileData({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          email: data.email || user?.email || '',
+          phone: data.phone || '',
+          jobTitle: data.jobTitle || '',
+          department: data.department || '',
+        });
+      } catch (err: any) {
+        setError(err.message || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, [user]);
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -33,11 +62,33 @@ export default function ProfilePage() {
     weeklyReports: true,
   })
 
+
   const [newPassword, setNewPassword] = useState("")
   const [passwordStrength, setPasswordStrength] = useState(0)
-
-  const handleProfileSave = () => {
-    alert("Profile information updated successfully!")
+  const {user} = useUserInfo()
+console.log('user',user)
+  const handleProfileSave = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          phone: profileData.phone,
+          jobTitle: profileData.jobTitle,
+          department: profileData.department,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to update profile');
+      alert('Profile information updated successfully!');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handlePasswordChange = () => {

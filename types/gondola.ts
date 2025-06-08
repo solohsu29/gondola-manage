@@ -1,4 +1,5 @@
 import { GondolaStatus } from './gondolaStatus';
+import { Project } from './project';
 import { ShiftHistory } from './shiftHistory';
 
 export interface Gondola {
@@ -13,4 +14,6 @@ export interface Gondola {
   projectId?: string;
   photoName?: string;
   photoData?: { type: string; data: number[] };
+  projects?:Project[];
+  photoDataBase64?:string
 }

@@ -23,8 +23,107 @@ import { Textarea } from "@/components/ui/textarea"
 
 import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
+  // --- Generate DD Dialog state and handlers ---
+  const [ddForm, setDdForm] = useState({
+    ddId: `DD-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, "0")}`,
+    deploymentDate: new Date().toISOString().split("T")[0],
+    projectSiteName: "Marina Bay Tower",
+    clientCompany: "Apex Construction",
+    leadTechnicianName: "",
+    leadTechnicianId: "",
+    siteAddress: "",
+    siteContactName: "",
+    siteContactPhone: "",
+    siteContactEmail: "",
+    certificates: null as FileList | null,
+    additionalNotes: ""
+  });
+
+  const handleDdFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value, files } = e.target as HTMLInputElement;
+    if (id === "certificates") {
+      setDdForm((prev) => ({ ...prev, certificates: files }));
+    } else {
+      setDdForm((prev) => ({ ...prev, [id]: value }));
+    }
+  };
+
+  const onGenerateDD = () => {
+    // Validate required fields
+    const requiredFields = [
+      { value: ddForm.deploymentDate, name: "Deployment Date" },
+      { value: ddForm.projectSiteName, name: "Project/Site Name" },
+      { value: ddForm.clientCompany, name: "Client Company Name" },
+      { value: ddForm.leadTechnicianName, name: "Lead Technician Name" },
+      { value: ddForm.leadTechnicianId, name: "Lead Technician ID" },
+      { value: ddForm.siteAddress, name: "Site Address" },
+      { value: ddForm.siteContactName, name: "Site Contact Name" },
+      { value: ddForm.siteContactPhone, name: "Site Contact Phone" },
+      { value: ddForm.siteContactEmail, name: "Site Contact Email" },
+    ];
+    const missingFields = requiredFields.filter((field) => !field.value.trim());
+    if (missingFields.length > 0) {
+
+
+      toast.error("Missing Required Fields!",{description: `Please fill in the following required fields:\n${missingFields.map((field) => `- ${field.name}`).join("\n")}`,className:"bg-destructive text-white"})
+      return;
+    }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(ddForm.siteContactEmail)) {
+    
+      toast.error("Invalid Email!",{description:"Please enter a valid email address for Site Contact Email",className:"bg-destructive text-white"})
+      return;
+    }
+    const attachments = ddForm.certificates
+      ? Array.from(ddForm.certificates).map((file) => file.name).join(", ")
+      : "None";
+    const deploymentDocument = {
+      ddId: ddForm.ddId,
+      gondolaId: gondolaId,
+      deploymentDate: ddForm.deploymentDate,
+      projectSiteName: ddForm.projectSiteName,
+      clientCompany: ddForm.clientCompany,
+      leadTechnician: {
+        name: ddForm.leadTechnicianName,
+        id: ddForm.leadTechnicianId,
+      },
+      siteAddress: ddForm.siteAddress,
+      siteContact: {
+        name: ddForm.siteContactName,
+        phone: ddForm.siteContactPhone,
+        email: ddForm.siteContactEmail,
+      },
+      attachments: attachments,
+      additionalNotes: ddForm.additionalNotes || "None",
+      generatedAt: new Date().toISOString(),
+    };
+    console.log("Generated Deployment Document:", deploymentDocument);
+    alert(
+      `Deployment Document generated successfully!\n\nDD ID: ${deploymentDocument.ddId}\nGondola: ${deploymentDocument.gondolaId}\nDeployment Date: ${deploymentDocument.deploymentDate}\nProject/Site: ${deploymentDocument.projectSiteName}\nClient: ${deploymentDocument.clientCompany}\nLead Technician: ${deploymentDocument.leadTechnician.name} (ID: ${deploymentDocument.leadTechnician.id})\nSite Address: ${deploymentDocument.siteAddress}\nSite Contact: ${deploymentDocument.siteContact.name}\nPhone: ${deploymentDocument.siteContact.phone}\nEmail: ${deploymentDocument.siteContact.email}\nAttachments: ${deploymentDocument.attachments}\nNotes: ${deploymentDocument.additionalNotes}\n\nDocument has been generated and is ready for download.`,
+    );
+    setIsGenerateDDDialogOpen(false);
+    // Reset form fields
+    setDdForm({
+      ddId: `DD-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, "0")}`,
+      deploymentDate: new Date().toISOString().split("T")[0],
+      projectSiteName: "Marina Bay Tower",
+      clientCompany: "Apex Construction",
+      leadTechnicianName: "",
+      leadTechnicianId: "",
+      siteAddress: "",
+      siteContactName: "",
+      siteContactPhone: "",
+      siteContactEmail: "",
+      certificates: null,
+      additionalNotes: ""
+    });
+  };
+  // --- End Generate DD Dialog state and handlers ---
+
   const [isGenerateDDDialogOpen, setIsGenerateDDDialogOpen] = useState(false)
   const [isUploadCOSDialogOpen, setIsUploadCOSDialogOpen] = useState(false)
   const [isCertAlertsDialogOpen, setIsCertAlertsDialogOpen] = useState(false)
@@ -59,10 +158,10 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
   if (rentalDetailsError) {
     return <div className="p-6 text-red-600">Error: {rentalDetailsError}</div>;
   }
+  // Support multiple rental infos (one per project)
+  const gondola = rentalDetails?.gondola || {};
+  const projects = rentalDetails?.projects || [];
 
-  const rentalDetail = rentalDetails?.rentalDetail;
-  const billingHistory = rentalDetails?.billingHistory || [];
-console.log('documents',documents)
   const certificates = (documents || []).map((doc: any) => {
     let status = doc.status?.toLowerCase() || 'valid';
     let daysToExpiry = null;
@@ -86,6 +185,7 @@ console.log('documents',documents)
       fileUrl: `/api/document/${doc.id}/serve`,
     };
   });
+
 
   const certificatesLoading = documentsLoading;
   const certificatesError = documentsError;
@@ -177,7 +277,7 @@ console.log('documents',documents)
                     <Label htmlFor="ddId">DD ID *</Label>
                     <Input
                       id="ddId"
-                      value={`DD-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, "0")}`}
+                      value={ddForm.ddId}
                       disabled
                       className="bg-gray-50"
                     />
@@ -187,7 +287,8 @@ console.log('documents',documents)
                     <Input
                       id="deploymentDate"
                       type="date"
-                      defaultValue={new Date().toISOString().split("T")[0]}
+                      value={ddForm.deploymentDate}
+                      onChange={handleDdFormChange}
                       required
                     />
                   </div>
@@ -196,7 +297,8 @@ console.log('documents',documents)
                     <Input
                       id="projectSiteName"
                       placeholder="Enter project or site name"
-                      defaultValue="Marina Bay Tower"
+                      value={ddForm.projectSiteName}
+                      onChange={handleDdFormChange}
                     />
                   </div>
                   <div className="space-y-2">
@@ -204,41 +306,42 @@ console.log('documents',documents)
                     <Input
                       id="clientCompany"
                       placeholder="Enter client company name"
-                      defaultValue="Apex Construction"
+                      value={ddForm.clientCompany}
+                      onChange={handleDdFormChange}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="leadTechnicianName">Lead Technician Name *</Label>
-                    <Input id="leadTechnicianName" placeholder="Enter lead technician name" />
+                    <Input id="leadTechnicianName" placeholder="Enter lead technician name" value={ddForm.leadTechnicianName} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="leadTechnicianId">Lead Technician ID *</Label>
-                    <Input id="leadTechnicianId" placeholder="Enter technician ID" />
+                    <Input id="leadTechnicianId" placeholder="Enter technician ID" value={ddForm.leadTechnicianId} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siteAddress">Site Address / Location *</Label>
-                    <Textarea id="siteAddress" placeholder="Enter complete site address and location details" />
+                    <Textarea id="siteAddress" placeholder="Enter complete site address and location details" value={ddForm.siteAddress} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siteContactName">Site Contact Person Name *</Label>
-                    <Input id="siteContactName" placeholder="Enter site contact person name" />
+                    <Input id="siteContactName" placeholder="Enter site contact person name" value={ddForm.siteContactName} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siteContactPhone">Site Contact Phone *</Label>
-                    <Input id="siteContactPhone" type="tel" placeholder="Enter contact phone number" />
+                    <Input id="siteContactPhone" type="tel" placeholder="Enter contact phone number" value={ddForm.siteContactPhone} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siteContactEmail">Site Contact Email *</Label>
-                    <Input id="siteContactEmail" type="email" placeholder="Enter contact email address" />
+                    <Input id="siteContactEmail" type="email" placeholder="Enter contact email address" value={ddForm.siteContactEmail} onChange={handleDdFormChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="certificates">Certificates and Attachments</Label>
-                    <Input id="certificates" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                    <Input id="certificates" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={handleDdFormChange} />
                     <p className="text-sm text-gray-500">Upload relevant certificates and supporting documents</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="additionalNotes">Additional Notes</Label>
-                    <Textarea id="additionalNotes" placeholder="Any additional information or special requirements" />
+                    <Textarea id="additionalNotes" placeholder="Any additional information or special requirements" value={ddForm.additionalNotes} onChange={handleDdFormChange} />
                   </div>
                 </div>
                 <DialogFooter>
@@ -247,99 +350,7 @@ console.log('documents',documents)
                   </Button>
                   <Button
                     type="submit"
-                    onClick={() => {
-                      const ddIdInput = document.getElementById("ddId") as HTMLInputElement
-                      const deploymentDateInput = document.getElementById("deploymentDate") as HTMLInputElement
-                      const projectSiteNameInput = document.getElementById("projectSiteName") as HTMLInputElement
-                      const clientCompanyInput = document.getElementById("clientCompany") as HTMLInputElement
-                      const leadTechnicianNameInput = document.getElementById("leadTechnicianName") as HTMLInputElement
-                      const leadTechnicianIdInput = document.getElementById("leadTechnicianId") as HTMLInputElement
-                      const siteAddressInput = document.getElementById("siteAddress") as HTMLTextAreaElement
-                      const siteContactNameInput = document.getElementById("siteContactName") as HTMLInputElement
-                      const siteContactPhoneInput = document.getElementById("siteContactPhone") as HTMLInputElement
-                      const siteContactEmailInput = document.getElementById("siteContactEmail") as HTMLInputElement
-                      const certificatesInput = document.getElementById("certificates") as HTMLInputElement
-                      const additionalNotesInput = document.getElementById("additionalNotes") as HTMLTextAreaElement
-
-                      // Validate required fields
-                      const requiredFields = [
-                        { input: deploymentDateInput, name: "Deployment Date" },
-                        { input: projectSiteNameInput, name: "Project/Site Name" },
-                        { input: clientCompanyInput, name: "Client Company Name" },
-                        { input: leadTechnicianNameInput, name: "Lead Technician Name" },
-                        { input: leadTechnicianIdInput, name: "Lead Technician ID" },
-                        { input: siteAddressInput, name: "Site Address" },
-                        { input: siteContactNameInput, name: "Site Contact Name" },
-                        { input: siteContactPhoneInput, name: "Site Contact Phone" },
-                        { input: siteContactEmailInput, name: "Site Contact Email" },
-                      ]
-
-                      const missingFields = requiredFields.filter((field) => !field.input.value.trim())
-
-                      if (missingFields.length > 0) {
-                        alert(
-                          `Please fill in the following required fields:\n${missingFields.map((field) => `- ${field.name}`).join("\n")}`,
-                        )
-                        return
-                      }
-
-                      // Validate email format
-                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                      if (!emailRegex.test(siteContactEmailInput.value)) {
-                        alert("Please enter a valid email address for Site Contact Email")
-                        return
-                      }
-
-                      const attachments = certificatesInput.files
-                        ? Array.from(certificatesInput.files)
-                            .map((file) => file.name)
-                            .join(", ")
-                        : "None"
-
-                      // Generate deployment document
-                      const deploymentDocument = {
-                        ddId: ddIdInput.value,
-                        gondolaId: gondolaId,
-                        deploymentDate: deploymentDateInput.value,
-                        projectSiteName: projectSiteNameInput.value,
-                        clientCompany: clientCompanyInput.value,
-                        leadTechnician: {
-                          name: leadTechnicianNameInput.value,
-                          id: leadTechnicianIdInput.value,
-                        },
-                        siteAddress: siteAddressInput.value,
-                        siteContact: {
-                          name: siteContactNameInput.value,
-                          phone: siteContactPhoneInput.value,
-                          email: siteContactEmailInput.value,
-                        },
-                        attachments: attachments,
-                        additionalNotes: additionalNotesInput.value || "None",
-                        generatedAt: new Date().toISOString(),
-                      }
-
-                      // In a real application, this would send the data to an API
-                      console.log("Generated Deployment Document:", deploymentDocument)
-
-                      alert(
-                        `Deployment Document generated successfully!\n\nDD ID: ${deploymentDocument.ddId}\nGondola: ${deploymentDocument.gondolaId}\nDeployment Date: ${deploymentDocument.deploymentDate}\nProject/Site: ${deploymentDocument.projectSiteName}\nClient: ${deploymentDocument.clientCompany}\nLead Technician: ${deploymentDocument.leadTechnician.name} (ID: ${deploymentDocument.leadTechnician.id})\nSite Address: ${deploymentDocument.siteAddress}\nSite Contact: ${deploymentDocument.siteContact.name}\nPhone: ${deploymentDocument.siteContact.phone}\nEmail: ${deploymentDocument.siteContact.email}\nAttachments: ${deploymentDocument.attachments}\nNotes: ${deploymentDocument.additionalNotes}\n\nDocument has been generated and is ready for download.`,
-                      )
-
-                      setIsGenerateDDDialogOpen(false)
-
-                      // Reset form fields
-                      deploymentDateInput.value = new Date().toISOString().split("T")[0]
-                      projectSiteNameInput.value = "Marina Bay Tower"
-                      clientCompanyInput.value = "Apex Construction"
-                      leadTechnicianNameInput.value = ""
-                      leadTechnicianIdInput.value = ""
-                      siteAddressInput.value = ""
-                      siteContactNameInput.value = ""
-                      siteContactPhoneInput.value = ""
-                      siteContactEmailInput.value = ""
-                      certificatesInput.value = ""
-                      additionalNotesInput.value = ""
-                    }}
+                    onClick={onGenerateDD}
                   >
                     Generate Document
                   </Button>
@@ -481,41 +492,45 @@ console.log('documents',documents)
 
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Rental Information</h3>
-          {rentalDetail ? (
-            <div className="bg-white border rounded-md p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Current Status</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.currentStatus || rentalDetail.status || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Contract Number</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.contractNumber?.slice(0,10) || rentalDetail.id?.slice(0,10) || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Client Name</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.clientName || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Project Name</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.projectName || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Rental Start Date</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.startDate?.split("T")[0] || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Rental End Date</p>
-                  <p className="font-medium text-gray-900">{rentalDetail.endDate?.split("T")[0] || '-'}</p>
+          {projects.length > 0 ? (
+            projects.map((project: any) => (
+              <div key={project.id} className="bg-white border rounded-md p-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Project Name</p>
+                    <p className="font-medium text-gray-900">{project.projectName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Project ID</p>
+                    <p className="font-medium text-gray-900">{project.id || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Client Name</p>
+                    <p className="font-medium text-gray-900">{project.client || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Site</p>
+                    <p className="font-medium text-gray-900">{project.site || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p className="font-medium text-gray-900">{project.status || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Rental Start Date</p>
+                    <p className="font-medium text-gray-900">{project.startDate ? project.startDate.split('T')[0] : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Rental End Date</p>
+                    <p className="font-medium text-gray-900">{project.endDate ? project.endDate.split('T')[0] : '-'}</p>
+                  </div>
+                  {/* Add more project/rental fields as needed */}
                 </div>
               </div>
-              {/* Additional rental info fields */}
-              
-            </div>
+            ))
           ) : (
             <div className="text-gray-500">No rental details found for this gondola.</div>
           )}
-
         </div>
 
         <div className="p-6">

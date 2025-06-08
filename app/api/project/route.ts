@@ -32,10 +32,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Link gondolas to this project
+    // Link gondolas to this project using ProjectGondola join table
     if (Array.isArray(gondolas)) {
-      for (const gondolaId of gondolas) {
-        await pool.query('UPDATE "Gondola" SET "projectId" = $1 WHERE id = $2', [id, typeof gondolaId === 'string' ? gondolaId : gondolaId.id]);
+      for (const gondola of gondolas) {
+        const gondolaId = typeof gondola === 'string' ? gondola : gondola.id;
+        if (!gondolaId) continue;
+        await pool.query('INSERT INTO "ProjectGondola" ("projectId", "gondolaId") VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, gondolaId]);
       }
     }
 
@@ -61,11 +63,18 @@ export async function GET() {
     const gondolaResult = await pool.query('SELECT * FROM "Gondola"');
     const gondolas = gondolaResult.rows;
 
-    // Attach deliveryOrders and gondolas to each project using projectId
+    // Fetch all project-gondola links from the join table
+    const projectGondolaResult = await pool.query('SELECT * FROM "ProjectGondola"');
+    const projectGondolaLinks = projectGondolaResult.rows;
+
+    // Attach deliveryOrders and gondolas (via join table) to each project
     const projectsWithDOsAndGondolas = projects.map(project => ({
       ...project,
       deliveryOrders: deliveryOrders.filter(doItem => doItem.projectId === project.id),
-      gondolas: gondolas.filter(g => g.projectId === project.id),
+      gondolas: projectGondolaLinks
+        .filter(link => link.projectId === project.id)
+        .map(link => gondolas.find(g => g.id === link.gondolaId))
+        .filter(Boolean),
     }));
 
     return NextResponse.json(projectsWithDOsAndGondolas);

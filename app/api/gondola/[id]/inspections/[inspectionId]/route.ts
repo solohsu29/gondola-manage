@@ -7,7 +7,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string, 
     const { id: gondolaId, inspectionId } = params;
     const body = await req.json();
     // Only allow updating these fields
-    const allowedFields = ['type', 'date', 'inspector', 'priority', 'notes', 'notifyClient'];
+    const allowedFields = ['type', 'date', 'time', 'inspector', 'priority', 'notes', 'notifyClient'];
     const updates = [];
     const values = [];
     let idx = 1;
@@ -31,6 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string, 
     // Convert date fields to ISO strings for frontend
     updated.date = updated.date ? new Date(updated.date).toISOString() : null;
     updated.createdAt = updated.createdAt ? new Date(updated.createdAt).toISOString() : null;
+    // Return the time field as well
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Failed to update inspection:', error);

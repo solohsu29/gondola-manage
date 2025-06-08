@@ -1,7 +1,7 @@
 "use client"
 
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,8 +18,13 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { useAppStore } from "@/lib/store"
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
+import { DataTable } from "@/components/common/data-table";
 
+import { ColumnDef } from "@tanstack/react-table";
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "delivered":
@@ -33,69 +38,79 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
-interface DeliveryOrderRowProps {
-  order: any
-  linkedProject?: string
-  onViewOrder: (order: any) => void
-  onEditOrder: (order: any) => void
-  onDeleteOrder: (order: any) => void
-}
 
-function DeliveryOrderRow({ order, linkedProject, onViewOrder, onEditOrder, onDeleteOrder }: DeliveryOrderRowProps) {
-  return (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="p-4">
-        <span className="text-blue-600 hover:underline cursor-pointer">{order.number}</span>
-      </td>
-      <td className="p-4">{order.client}</td>
-      <td className="p-4">{order.site}</td>
-      <td className="p-4">{order.orderDate}</td>
-      <td className="p-4">{order.deliveryDate}</td>
-      <td className="p-4">{order.poReference}</td>
-      <td className="p-4">{order.amount}</td>
-      <td className="p-4">
-        {linkedProject ? (
-          <Link href={`/projects/${linkedProject}`} className="text-blue-600 hover:underline">
-            {linkedProject}
-          </Link>
-        ) : (
-          <span className="text-gray-500">Not Linked</span>
-        )}
-      </td>
-      <td className="p-4">
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => onViewOrder(order)}>
-            View
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onEditOrder(order)}>
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onDeleteOrder(order)}>
-            Delete
-          </Button>
-        </div>
-      </td>
-    </tr>
-  )
-}
+
+
+
 
 export default function ERPDOPage() {
-  const { projects, deliveryOrders } = useAppStore()
-  const [activeTab, setActiveTab] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
-  const [isManualEntryDialogOpen, setIsManualEntryDialogOpen] = useState(false)
-  const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [selectedOrder, setSelectedOrder] = useState<any>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [orderToDelete, setOrderToDelete] = useState<any>(null)
+  const { projects, deliveryOrders, fetchDeliveryOrders, addDeliveryOrder, deliveryOrdersLoading } = useAppStore();
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isManualEntryDialogOpen, setIsManualEntryDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
+  const [manualEntry, setManualEntry] = useState<any>({
+    number: "",
+    client: "",
+    site: "",
+    orderDate: "",
+    deliveryDate: "",
+    poReference: "",
+    amount: "",
+  });
+  const [erpFile, setErpFile] = useState<File | null>(null);
+const [importing, setImporting] = useState(false);
+const [open, setOpen] = React.useState(false);
+
+  async function handleImportFromERP() {
+    if (!manualEntry.number || !manualEntry.client || !erpFile) {
+      toast.error("Please fill in all required fields", { className: 'bg-destructive text-white' });
+      return;
+    }
+    setImporting(true);
+    const formData = new FormData();
+    formData.append("file", erpFile);
+    formData.append("manualEntry", JSON.stringify(manualEntry));
+    try {
+      const res = await fetch("/api/delivery-order/import", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        toast.success("Delivery Order imported successfully!", { className: 'bg-[#14AA4d] text-white', duration: 6000 });
+        setIsUploadDialogOpen(false);
+        setManualEntry({ number: "", client: "", site: "", orderDate: "", deliveryDate: "", poReference: "", amount: "" });
+        setErpFile(null);
+        fetchDeliveryOrders();
+      } else {
+        const errMsg = await res.text();
+        toast.error(`Backend error: ${errMsg}`, { className: 'bg-destructive text-white' });
+      }
+    } catch (err: any) {
+      toast.error("Failed to upload to backend.", { className: 'bg-destructive text-white' });
+    } finally {
+      setImporting(false);
+    }
+  }
+  // Fetch delivery orders on mount
+useEffect(() => {
+    fetchDeliveryOrders();
+  }, []);
 
   // Get all delivery orders (both linked and unlinked)
   const allDeliveryOrders = [
     ...deliveryOrders, // Unlinked DOs
-    ...projects.flatMap((project) => project.deliveryOrders.map((do_) => ({ ...do_, linkedProject: project.id }))), // Linked DOs with project reference
-  ]
+    ...projects.flatMap((project) =>
+      (project.deliveryOrders || []).map((do_: any) => ({ ...do_, linkedProject: project.id }))
+    ), // Linked DOs with project reference
+  ];
+
+  console.log('all dElivve',allDeliveryOrders)
 
   const filteredOrders = allDeliveryOrders.filter((order) => {
     // Filter by search query
@@ -113,21 +128,67 @@ export default function ERPDOPage() {
     if (activeTab === "pending") return order.status === "pending"
     if (activeTab === "delivered") return order.status === "delivered"
     if (activeTab === "cancelled") return order.status === "cancelled"
-    if (activeTab === "linked") return !!order.linkedProject
-    if (activeTab === "unlinked") return !order.linkedProject
+    if (activeTab === "linked") return !!order.projectId
+    if (activeTab === "unlinked") return !order.projectId
 
     // "all" tab
     return true
   })
 
+  // Handle confirm delete from Actions dialog
+  async function handleDeleteOrderConfirm(orderId: string, closeDialog: () => void) {
+    try {
+      const res = await fetch(`/api/delivery-order/${orderId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      await fetchDeliveryOrders();
+      toast.success('Order deleted', { className: 'bg-[#14AA4d] text-white' });
+      closeDialog();
+    } catch (err) {
+      toast.error('Failed to delete order', { className: 'bg-destructive text-white' });
+    }
+  }
+
+  // Export handler for CSV/Excel
+  function handleExport() {
+    if (!filteredOrders.length) {
+      toast.error("No data to export", { className: 'bg-destructive text-white' });
+      return;
+    }
+    // Prompt user for format
+    const format = window.confirm("Export as Excel? Click OK for Excel, Cancel for CSV.") ? 'excel' : 'csv';
+    const exportData = filteredOrders.map(({ id, number, client, site, orderDate, deliveryDate, poReference, status, amount, items, projectId }) => ({
+      id, number, client, site, orderDate, deliveryDate, poReference, status, amount, items, projectId
+    }));
+    if (format === 'csv') {
+      const csv = Papa.unparse(exportData);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `delivery_orders_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'DeliveryOrders');
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `delivery_orders_${new Date().toISOString().slice(0,10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    toast.success(`Exported ${filteredOrders.length} records as ${format.toUpperCase()}.`, { className: 'bg-[#14AA4d] text-white' });
+  }
+
   const handleViewOrder = (order: any) => {
     setSelectedOrder(order)
     setViewDialogOpen(true)
-  }
-
-  const handleDeleteOrder = (order: any) => {
-    setOrderToDelete(order)
-    setDeleteDialogOpen(true)
   }
 
   const handleEditOrder = (order: any) => {
@@ -135,6 +196,79 @@ export default function ERPDOPage() {
     setEditDialogOpen(true)
   }
 
+
+  
+  const deliveryOrderColumns: ColumnDef<any>[] = [
+    {
+      header: "DO Number",
+      accessorKey: "number",
+      cell: ({ row }) => (
+        <span className="text-blue-600 hover:underline cursor-pointer">{row.original.number}</span>
+      ),
+    },
+    { header: "Client", accessorKey: "client" },
+    { header: "Site", accessorKey: "site" },
+    { header: "Order Date", accessorKey: "orderDate",cell:({row})=>row?.original?.orderDate?.split("T")[0] },
+    { header: "Delivery Date", accessorKey: "deliveryDate",cell:({row})=>row?.original?.deliveryDate?.split("T")[0] },
+    { header: "PO Reference", accessorKey: "poReference" },
+    { header: "Amount", accessorKey: "amount" },
+    {
+      header: "Linked Project",
+      accessorKey: "projectId",
+      cell: ({ row }) =>
+        row.original.projectId ? (
+          <Link href={`/projects/${row.original.projectId}`} className="text-blue-600 hover:underline">
+            {row.original.projectId?.slice(0,10)}
+          </Link>
+        ) : (
+          <span className="text-gray-500">Not Linked</span>
+        ),
+    },
+    {
+      header: "Actions",
+      id: "actions",
+      cell: ({ row, table }) => {
+        const order = row.original;
+      
+        return (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>
+              View
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleEditOrder(order)}>
+              Edit
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+                Delete
+              </Button>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Delete Delivery Order</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete delivery order {order.number}? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => handleDeleteOrderConfirm(order.id, () => setOpen(false))}
+                  >
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )
+      },
+    },
+  ];
+  
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -157,31 +291,43 @@ export default function ERPDOPage() {
                   <Label htmlFor="doNumber" className="text-right">
                     DO Number
                   </Label>
-                  <Input id="doNumber" placeholder="DO-YYYY-XXXX" className="col-span-3" />
+                  <Input id="doNumber" placeholder="DO-YYYY-XXXX" className="col-span-3" value={manualEntry.number} onChange={e => setManualEntry({ ...manualEntry, number: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="client" className="text-right">
                     Client
                   </Label>
-                  <Input id="client" placeholder="Client name" className="col-span-3" />
+                  <Input id="client" placeholder="Client name" className="col-span-3" value={manualEntry.client} onChange={e => setManualEntry({ ...manualEntry, client: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="site" className="text-right">
                     Site
                   </Label>
-                  <Input id="site" placeholder="Site location" className="col-span-3" />
+                  <Input id="site" placeholder="Site location" className="col-span-3" value={manualEntry.site} onChange={e => setManualEntry({ ...manualEntry, site: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="poRef" className="text-right">
+                  <Label htmlFor="orderDate" className="text-right">
+                    Order Date
+                  </Label>
+                  <Input id="orderDate" type="date" className="col-span-3" value={manualEntry.orderDate} onChange={e => setManualEntry({ ...manualEntry, orderDate: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="deliveryDate" className="text-right">
+                    Delivery Date
+                  </Label>
+                  <Input id="deliveryDate" type="date" className="col-span-3" value={manualEntry.deliveryDate} onChange={e => setManualEntry({ ...manualEntry, deliveryDate: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="poReference" className="text-right">
                     PO Reference
                   </Label>
-                  <Input id="poRef" placeholder="PO-YYYY-XXXX" className="col-span-3" />
+                  <Input id="poReference" placeholder="PO Reference" className="col-span-3" value={manualEntry.poReference} onChange={e => setManualEntry({ ...manualEntry, poReference: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="file" className="text-right">
                     ERP File
                   </Label>
-                  <Input id="file" type="file" accept=".csv,.xlsx,.xml" className="col-span-3" />
+                  <Input id="file" type="file" accept=".csv,.xlsx,.xml" className="col-span-3" onChange={e => setErpFile(e.target.files?.[0] ?? null)} />
                 </div>
               </div>
               <DialogFooter>
@@ -189,19 +335,8 @@ export default function ERPDOPage() {
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
-                  onClick={() => {
-                    const doNumberInput = document.getElementById("doNumber") as HTMLInputElement
-                    const clientInput = document.getElementById("client") as HTMLInputElement
-                    const fileInput = document.getElementById("file") as HTMLInputElement
-
-                    if (doNumberInput.value && clientInput.value && fileInput.files && fileInput.files[0]) {
-                      alert(`Delivery Order ${doNumberInput.value} imported successfully!`)
-                      setIsUploadDialogOpen(false)
-                    } else {
-                      alert("Please fill in all required fields")
-                    }
-                  }}
+                  type="button"
+                  onClick={handleImportFromERP}
                 >
                   Import
                 </Button>
@@ -226,13 +361,15 @@ export default function ERPDOPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="manualDoNumber">DO Number *</Label>
-                    <Input id="manualDoNumber" placeholder="DO-2025-001" />
+                    <Input id="manualDoNumber" placeholder="DO-2025-001" value={manualEntry.number} onChange={e => setManualEntry({ ...manualEntry, number: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="manualStatus">Status</Label>
                     <select
                       id="manualStatus"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      value={manualEntry.status || 'pending'}
+                      onChange={e => setManualEntry({ ...manualEntry, status: e.target.value })}
                     >
                       <option value="pending">Pending</option>
                       <option value="delivered">Delivered</option>
@@ -243,36 +380,36 @@ export default function ERPDOPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="manualClient">Client *</Label>
-                    <Input id="manualClient" placeholder="Client name" />
+                    <Input id="manualClient" placeholder="Client name" value={manualEntry.client} onChange={e => setManualEntry({ ...manualEntry, client: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="manualSite">Site *</Label>
-                    <Input id="manualSite" placeholder="Site location" />
+                    <Input id="manualSite" placeholder="Site location" value={manualEntry.site} onChange={e => setManualEntry({ ...manualEntry, site: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="manualOrderDate">Order Date *</Label>
-                    <Input id="manualOrderDate" type="date" />
+                    <Input id="manualOrderDate" type="date" value={manualEntry.orderDate} onChange={e => setManualEntry({ ...manualEntry, orderDate: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="manualDeliveryDate">Delivery Date</Label>
-                    <Input id="manualDeliveryDate" type="date" />
+                    <Input id="manualDeliveryDate" type="date" value={manualEntry.deliveryDate} onChange={e => setManualEntry({ ...manualEntry, deliveryDate: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="manualPoRef">PO Reference *</Label>
-                    <Input id="manualPoRef" placeholder="PO-2025-001" />
+                    <Input id="manualPoRef" placeholder="PO-2025-001" value={manualEntry.poReference} onChange={e => setManualEntry({ ...manualEntry, poReference: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="manualAmount">Amount</Label>
-                    <Input id="manualAmount" placeholder="$0.00" />
+                    <Input id="manualAmount" placeholder="$0.00" value={manualEntry.amount} onChange={e => setManualEntry({ ...manualEntry, amount: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="manualItems">Items Description</Label>
-                  <Input id="manualItems" placeholder="Description of items" />
+                  <Input id="manualItems" placeholder="Description of items" value={manualEntry.items || ''} onChange={e => setManualEntry({ ...manualEntry, items: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="manualDocuments">Documents</Label>
@@ -281,6 +418,7 @@ export default function ERPDOPage() {
                     type="file"
                     multiple
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv"
+                    onChange={e => setManualEntry({ ...manualEntry, documents: e.target.files ? Array.from(e.target.files) : [] })}
                   />
                 </div>
               </div>
@@ -290,37 +428,40 @@ export default function ERPDOPage() {
                 </Button>
                 <Button
                   type="submit"
-                  onClick={() => {
-                    const doNumberInput = document.getElementById("manualDoNumber") as HTMLInputElement
-                    const clientInput = document.getElementById("manualClient") as HTMLInputElement
-                    const siteInput = document.getElementById("manualSite") as HTMLInputElement
-                    const orderDateInput = document.getElementById("manualOrderDate") as HTMLInputElement
-                    const poRefInput = document.getElementById("manualPoRef") as HTMLInputElement
-                    const statusInput = document.getElementById("manualStatus") as HTMLSelectElement
-                    const deliveryDateInput = document.getElementById("manualDeliveryDate") as HTMLInputElement
-                    const amountInput = document.getElementById("manualAmount") as HTMLInputElement
-                    const itemsInput = document.getElementById("manualItems") as HTMLInputElement
-
-                    const documentsInput = document.getElementById("manualDocuments") as HTMLInputElement
-                    const uploadedFiles = documentsInput.files
-                      ? Array.from(documentsInput.files)
-                          .map((file) => file.name)
-                          .join(", ")
-                      : "No files uploaded"
-
-                    if (
-                      doNumberInput.value &&
-                      clientInput.value &&
-                      siteInput.value &&
-                      orderDateInput.value &&
-                      poRefInput.value
-                    ) {
-                      alert(
-                        `Delivery Order ${doNumberInput.value} created successfully!\n\nDetails:\nClient: ${clientInput.value}\nSite: ${siteInput.value}\nOrder Date: ${orderDateInput.value}\nDelivery Date: ${deliveryDateInput.value || "Not specified"}\nPO Reference: ${poRefInput.value}\nAmount: ${amountInput.value || "Not specified"}\nItems: ${itemsInput.value || "Not specified"}\nStatus: ${statusInput.value}\nUploaded Documents: ${uploadedFiles}`,
-                      )
-                      setIsManualEntryDialogOpen(false)
-                    } else {
-                      alert("Please fill in all required fields (marked with *)")
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if (!manualEntry.number || !manualEntry.client || !manualEntry.site || !manualEntry.orderDate || !manualEntry.poReference) {
+                      toast.error("Please fill in all required fields (marked with *)", { className: 'bg-destructive text-white' });
+                      return;
+                    }
+                    // Prepare form data
+                    const formData = new FormData();
+                    formData.append("manualEntry", JSON.stringify({
+                      ...manualEntry,
+                      items: manualEntry.items || '',
+                      status: manualEntry.status || 'pending',
+                      amount: manualEntry.amount || '0',
+                    }));
+                    if (manualEntry.documents && manualEntry.documents.length > 0) {
+                      // Only upload the first file for now (backend expects one file)
+                      formData.append("file", manualEntry.documents[0]);
+                    }
+                    try {
+                      const res = await fetch("/api/delivery-order/import", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      if (res.ok) {
+                        toast.success(`Delivery Order ${manualEntry.number} created successfully!`, { className: 'bg-[#14AA4d] text-white' });
+                        setIsManualEntryDialogOpen(false);
+                        setManualEntry({ number: "", client: "", site: "", orderDate: "", deliveryDate: "", poReference: "", amount: "", items: "", status: "pending", documents: [] });
+                        fetchDeliveryOrders();
+                      } else {
+                        const errMsg = await res.text();
+                        toast.error(`Backend error: ${errMsg}`, { className: 'bg-destructive text-white' });
+                      }
+                    } catch (err: any) {
+                      toast.error("Failed to create delivery order.", { className: 'bg-destructive text-white' });
                     }
                   }}
                 >
@@ -346,10 +487,12 @@ export default function ERPDOPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
                 <Download className="h-4 w-4" />
-                <span>Export</span>
+                <span>Export
+                </span>
               </Button>
+              
             </div>
           </div>
 
@@ -365,27 +508,27 @@ export default function ERPDOPage() {
             </div>
 
             <TabsContent value="all" className="mt-0">
-              <DeliveryOrdersTable
-                orders={filteredOrders}
-                onViewOrder={handleViewOrder}
-                onEditOrder={handleEditOrder}
-                onDeleteOrder={handleDeleteOrder}
+              <DataTable
+                data={filteredOrders}
+                columns={deliveryOrderColumns}
+                pageSize={10}
+              
               />
             </TabsContent>
             <TabsContent value="linked" className="mt-0">
-              <DeliveryOrdersTable
-                orders={filteredOrders}
-                onViewOrder={handleViewOrder}
-                onEditOrder={handleEditOrder}
-                onDeleteOrder={handleDeleteOrder}
+              <DataTable
+                data={filteredOrders}
+                columns={deliveryOrderColumns}
+                pageSize={10}
+              
               />
             </TabsContent>
             <TabsContent value="unlinked" className="mt-0">
-              <DeliveryOrdersTable
-                orders={filteredOrders}
-                onViewOrder={handleViewOrder}
-                onEditOrder={handleEditOrder}
-                onDeleteOrder={handleDeleteOrder}
+              <DataTable
+                data={filteredOrders}
+                columns={deliveryOrderColumns}
+                pageSize={10}
+              
               />
             </TabsContent>
           </Tabs>
@@ -426,11 +569,11 @@ export default function ERPDOPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label className="text-sm font-medium text-gray-500">Order Date</Label>
-                  <p className="text-sm">{selectedOrder.orderDate}</p>
+                  <p className="text-sm">{selectedOrder.orderDate?.split("T")[0]}</p>
                 </div>
                 <div className="grid gap-2">
                   <Label className="text-sm font-medium text-gray-500">Delivery Date</Label>
-                  <p className="text-sm">{selectedOrder.deliveryDate}</p>
+                  <p className="text-sm">{selectedOrder.deliveryDate?.split("T")[0]}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -446,9 +589,9 @@ export default function ERPDOPage() {
               <div className="grid gap-2">
                 <Label className="text-sm font-medium text-gray-500">Linked Project</Label>
                 <p className="text-sm">
-                  {selectedOrder.linkedProject ? (
-                    <Link href={`/projects/${selectedOrder.linkedProject}`} className="text-blue-600 hover:underline">
-                      {selectedOrder.linkedProject}
+                  {selectedOrder.projectId ? (
+                    <Link href={`/projects/${selectedOrder.projectId}`} className="text-blue-600 hover:underline">
+                      {selectedOrder.projectId}
                     </Link>
                   ) : (
                     <span className="text-gray-500">Not linked to any project</span>
@@ -521,11 +664,11 @@ export default function ERPDOPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="editOrderDate">Order Date</Label>
-                  <Input id="editOrderDate" type="date" defaultValue={selectedOrder.orderDate} />
+                  <Input id="editOrderDate" type="date" defaultValue={selectedOrder.orderDate?.split("T")[0]} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="editDeliveryDate">Delivery Date</Label>
-                  <Input id="editDeliveryDate" type="date" defaultValue={selectedOrder.deliveryDate} />
+                  <Input id="editDeliveryDate" type="date" defaultValue={selectedOrder.deliveryDate ? selectedOrder.deliveryDate.split("T")[0] : ""} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -546,17 +689,43 @@ export default function ERPDOPage() {
             </Button>
             <Button
               type="submit"
-              onClick={() => {
-                const doNumberInput = document.getElementById("editDoNumber") as HTMLInputElement
-                const clientInput = document.getElementById("editClient") as HTMLInputElement
-                const siteInput = document.getElementById("editSite") as HTMLInputElement
-                const statusInput = document.getElementById("editStatus") as HTMLSelectElement
-
+              onClick={async () => {
+                if (!selectedOrder) return;
+                const doNumberInput = document.getElementById("editDoNumber") as HTMLInputElement;
+                const clientInput = document.getElementById("editClient") as HTMLInputElement;
+                const siteInput = document.getElementById("editSite") as HTMLInputElement;
+                const statusInput = document.getElementById("editStatus") as HTMLSelectElement;
+                const orderDateInput = document.getElementById("editOrderDate") as HTMLInputElement;
+                const deliveryDateInput = document.getElementById("editDeliveryDate") as HTMLInputElement;
+                const poRefInput = document.getElementById("editPoRef") as HTMLInputElement;
+                const amountInput = document.getElementById("editAmount") as HTMLInputElement;
                 if (doNumberInput.value && clientInput.value && siteInput.value) {
-                  alert(`Delivery Order ${doNumberInput.value} updated successfully!`)
-                  setEditDialogOpen(false)
+                  try {
+                    const payload = {
+                      number: doNumberInput.value,
+                      client: clientInput.value,
+                      site: siteInput.value,
+                      status: statusInput.value,
+                      orderDate: orderDateInput.value || null,
+                      deliveryDate: deliveryDateInput.value || null,
+                      poReference: poRefInput.value,
+                      amount: amountInput.value,
+                    };
+                    const res = await fetch(`/api/delivery-order/${selectedOrder.id}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    if (!res.ok) throw new Error("Failed to update delivery order");
+                    await fetchDeliveryOrders();
+                    setEditDialogOpen(false);
+                    setSelectedOrder(null);
+                    toast.success('Delivery Order updated', { className: 'bg-[#14AA4d] text-white' });
+                  } catch (err) {
+                    toast.error('Failed to update delivery order', { className: 'bg-destructive text-white' });
+                  }
                 } else {
-                  alert("Please fill in all required fields")
+                  toast.error('Please fill in all required fields', { className: 'bg-destructive text-white' });
                 }
               }}
             >
@@ -583,7 +752,10 @@ export default function ERPDOPage() {
               type="button"
               variant="destructive"
               onClick={() => {
-                alert(`Delivery Order ${orderToDelete?.number} has been deleted successfully!`)
+              
+                toast.success(`Delivery Order ${orderToDelete?.number} has been deleted successfully!`,{
+                  className:'bg-[#14aa4d] text-white'
+                })
                 setDeleteDialogOpen(false)
                 setOrderToDelete(null)
                 // In a real app, you would call an API to delete the order
@@ -594,55 +766,6 @@ export default function ERPDOPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
-
-interface DeliveryOrdersTableProps {
-  orders: any[]
-  onViewOrder: (order: any) => void
-  onEditOrder: (order: any) => void
-  onDeleteOrder: (order: any) => void
-}
-
-function DeliveryOrdersTable({ orders, onViewOrder, onEditOrder, onDeleteOrder }: DeliveryOrdersTableProps) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="text-left p-4 font-medium text-gray-500">DO Number</th>
-            <th className="text-left p-4 font-medium text-gray-500">Client</th>
-            <th className="text-left p-4 font-medium text-gray-500">Site</th>
-            <th className="text-left p-4 font-medium text-gray-500">Order Date</th>
-            <th className="text-left p-4 font-medium text-gray-500">Delivery Date</th>
-            <th className="text-left p-4 font-medium text-gray-500">PO Reference</th>
-            <th className="text-left p-4 font-medium text-gray-500">Amount</th>
-            <th className="text-left p-4 font-medium text-gray-500">Linked Project</th>
-            <th className="text-left p-4 font-medium text-gray-500">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.length > 0 ? (
-            orders.map((order) => (
-              <DeliveryOrderRow
-                key={order.id}
-                order={order}
-                linkedProject={order.linkedProject}
-                onViewOrder={onViewOrder}
-                onEditOrder={onEditOrder}
-                onDeleteOrder={onDeleteOrder}
-              />
-            ))
-          ) : (
-            <tr>
-              <td colSpan={9} className="p-4 text-center text-gray-500">
-                No delivery orders found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
     </div>
   )
 }

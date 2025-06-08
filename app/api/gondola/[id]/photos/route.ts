@@ -5,9 +5,15 @@ import pool from '@/lib/db';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id: gondolaId } = params;
-    const query = `SELECT id, "fileName", "mimeType", uploaded, description, category FROM "Photo" WHERE "gondolaId" = $1 ORDER BY uploaded DESC`;
+    const query = `SELECT id, "fileName", "mimeType", uploaded, description, category, "fileData" FROM "Photo" WHERE "gondolaId" = $1 ORDER BY uploaded DESC`;
     const result = await pool.query(query, [gondolaId]);
-    return NextResponse.json(result.rows);
+
+    // Attach base64 file data for each photo
+    const photosWithBase64 = result.rows.map((photo: any) => ({
+      ...photo,
+      fileDataBase64: photo.fileData ? Buffer.from(photo.fileData).toString('base64') : null,
+    }));
+    return NextResponse.json(photosWithBase64);
   } catch (error) {
     console.error('Failed to fetch photos for gondolaId:', params?.id, error);
     return NextResponse.json({ error: (error as Error).message || 'Failed to fetch photos' }, { status: 500 });

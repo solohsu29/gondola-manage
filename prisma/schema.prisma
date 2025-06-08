@@ -16,6 +16,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   otps      OTP[]
+  profile   Profile?
 }
 
 model OTP {
@@ -30,6 +31,7 @@ model OTP {
 }
 
 model DeliveryOrder {
+  updatedAt   DateTime @updatedAt @default(now())
   id           String   @id @default(uuid())
   projectId    String?
   number       String
@@ -44,24 +46,30 @@ model DeliveryOrder {
   amount       String
   items        Int
   project      Project? @relation(fields: [projectId], references: [id])
+  document     Document? @relation("DeliveryOrderDocument", fields: [documentId], references: [id])
+  documentId   String? @unique
 }
 
 model Project {
+  updatedAt   DateTime @updatedAt @default(now())
   id               String          @id @default(uuid())
   client           String
   site             String
   created          DateTime
   status           String
+  startDate        DateTime?
   endDate          DateTime?
   projectName      String?         @db.VarChar(255)
   projectManagerId Int?
   deliveryOrders   DeliveryOrder[]
   documents        Document[]
-  gondolas         Gondola[]
-  projectManager   ProjectManager? @relation("Project_projectManagerId", fields: [projectManagerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectManager   ProjectManager? @relation("Project_projectManagerId", fields: [projectManagerId], references: [id])
+  projectGondolas ProjectGondola[]
+  gondolasOne     Gondola[] @relation("ProjectToGondola")
 }
 
 model Gondola {
+  updatedAt   DateTime @updatedAt @default(now())
   photos Photo[]
   id             String         @id @default(uuid())
   serialNumber   String
@@ -75,27 +83,30 @@ model Gondola {
   projectId      String?
   certificates   Certificate[]
   documents      Document[]
-  project        Project?       @relation(fields: [projectId], references: [id])
+  project        Project?       @relation("ProjectToGondola", fields: [projectId], references: [id])
   inspections    Inspection[]
   shiftHistory   ShiftHistory[]
   repairLogs     RepairLog[]
+  projectGondolas ProjectGondola[]
 }
 
 model RepairLog {
+  updatedAt   DateTime @updatedAt @default(now())
   id           String   @id @default(uuid())
-  gondolaId    String
+  gondolaId    String?
   date         DateTime
   type         String
   description  String
   partName     String?
   cost         Float
-  isChargeable Boolean
+  isChargeable Boolean?
   technician   String
   status       String
-  gondola      Gondola  @relation(fields: [gondolaId], references: [id])
+  gondola      Gondola?  @relation(fields: [gondolaId], references: [id])
 }
 
 model Document {
+  updatedAt   DateTime @updatedAt @default(now())
   id        String    @id @default(uuid())
   gondolaId String?
   type      String
@@ -105,15 +116,18 @@ model Document {
   status    String?
   filePath  String?
   fileData  Bytes?
+  deliveryOrder DeliveryOrder? @relation("DeliveryOrderDocument")
   projectId String?
   fileUrl   String?
   category  String?
   title     String?
+  notes     String?
   gondola   Gondola?  @relation(fields: [gondolaId], references: [id])
   project   Project?  @relation(fields: [projectId], references: [id])
 }
 
 model ShiftHistory {
+  updatedAt   DateTime @updatedAt @default(now())
   id                 String   @id @default(uuid())
   gondolaId          String
   fromLocation       String
@@ -129,17 +143,19 @@ model ShiftHistory {
 }
 
 model Certificate {
+  updatedAt   DateTime @updatedAt @default(now())
   id         String   @id @default(uuid())
   gondolaId  String
   title      String
   status     String
   expiryDate DateTime
-  gondola    Gondola  @relation(fields: [gondolaId], references: [id])
+  gondola    Gondola?  @relation(fields: [gondolaId], references: [id])
 }
 
 model Inspection {
+  time         String?
   id           String   @id @default(uuid())
-  gondolaId    String
+  gondolaId    String?
   type         String
   date         DateTime
   inspector    String
@@ -147,16 +163,16 @@ model Inspection {
   notes        String?
   notifyClient String?
   createdAt    DateTime @default(now())
-  gondola      Gondola  @relation(fields: [gondolaId], references: [id])
+  gondola      Gondola?  @relation(fields: [gondolaId], references: [id])
 }
 
 model ProjectManager {
   id              Int       @id @default(autoincrement())
   name            String    @db.VarChar(255)
   email           String?   @unique @db.VarChar(255)
+  projectsManaged Project[] @relation("Project_projectManagerId")
   phone           String?   @db.VarChar(50)
   created_at      DateTime? @default(now()) @db.Timestamp(6)
-  projectsManaged Project[] @relation("Project_projectManagerId")
 }
 
 model Photo {
@@ -168,7 +184,33 @@ model Photo {
   fileData   Bytes
   description String?
   category   String?
+  gondola    Gondola?  @relation(fields: [gondolaId], references: [id])
+}
+
+model ProjectGondola {
+  projectId  String
+  gondolaId  String
+
+  project    Project  @relation(fields: [projectId], references: [id])
   gondola    Gondola  @relation(fields: [gondolaId], references: [id])
+
+  @@id([projectId, gondolaId])
+
+  description String?
+  category   String?
+}
+
+model Profile {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id])
+  firstName  String
+  lastName   String
+  phone      String?
+  jobTitle   String?
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 enum OTPType {

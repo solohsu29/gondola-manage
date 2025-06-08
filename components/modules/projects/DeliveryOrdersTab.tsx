@@ -76,6 +76,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
     // Unlink delivery order from project
    
   }
+  console.log('deliveryOrders',deliveryOrders)
   
   async function handleUnlinkDeliveryOrder(deliveryOrderId: string) {
   
@@ -85,7 +86,6 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
         .filter((d: any) => d.id !== deliveryOrderId)
         .map((d: any) => d.id);
   
-        console.log('remain',remainingDOIds)
       const res = await fetch(`/api/project/${project.id}/link-delivery-orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,11 +175,13 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                                 onClick={(e) => {
                                   e.preventDefault()
                                   e.stopPropagation()
-                                  window.open("/documents/placeholder.pdf", "_blank")
+                                  window.open(`/api/document/${deliveryOrder.documentId}/serve`, "_blank")
                                 }}
                                 className="text-sm text-blue-600 hover:underline"
                               >
                                 Document attached - Click to view
+
+                              
                               </button>
                             </label>
                           </div>
@@ -299,9 +301,9 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500 mb-1">Document</h4>
-                      {deliveryOrder.fileUrl ? (
+                      {deliveryOrder.documentId ? (
                         <button
-                          onClick={() => window.open(deliveryOrder.fileUrl, "_blank")}
+                          onClick={() =>    window.open(`/api/document/${deliveryOrder.documentId}/serve`, "_blank")}
                           className="text-blue-600 hover:underline text-sm"
                         >
                           View Document
@@ -419,9 +421,9 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                       <div>
                         <Label className="text-sm font-medium text-gray-500">Document</Label>
                         <p className="mt-1">
-                          {selectedDeliveryOrderForView.fileUrl ? (
+                          {selectedDeliveryOrderForView.documentId ? (
                             <button
-                              onClick={() => window.open(selectedDeliveryOrderForView.fileUrl, "_blank")}
+                              onClick={() => window.open(`/api/document/${selectedDeliveryOrderForView.documentId}/serve`, "_blank")}
                               className="text-blue-600 hover:underline text-sm"
                             >
                               View Document
@@ -461,8 +463,8 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                 <Button type="button" variant="outline" onClick={() => setIsViewDetailsDialogOpen(false)}>
                   Close
                 </Button>
-                {selectedDeliveryOrderForView?.fileUrl && (
-                  <Button type="button" onClick={() => window.open(selectedDeliveryOrderForView.fileUrl, "_blank")}>
+                {selectedDeliveryOrderForView?.documentId && (
+                  <Button type="button" onClick={() =>window.open(`/api/document/${selectedDeliveryOrderForView.documentId}/serve`, "_blank")}>
                     Open Document
                   </Button>
                 )}

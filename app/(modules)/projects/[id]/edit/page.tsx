@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, X } from "lucide-react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { DeliveryOrder, Gondola, ProjectStatus } from "@/types"
+import { DeliveryOrder, Gondola } from "@/types"
+import { toast } from "sonner"
+
 interface Project {
   id: string
   client: string
@@ -74,7 +76,6 @@ export default function EditProjectPage() {
       .then(async res => {
         if (!res.ok) throw new Error('Failed to fetch project');
         const data = await res.json();
-        console.log('data',data)
         setFormData({
           ...data,
           created: data.created ? new Date(data.created) : undefined,
@@ -91,6 +92,8 @@ export default function EditProjectPage() {
       });
   }, [projectId]);
 
+  console.log('available gondola',gondolas)
+
   const availableGondolas = gondolas;
   const availableDOs = deliveryOrders?.filter((doItem)=>!doItem?.projectId)
 
@@ -101,24 +104,20 @@ export default function EditProjectPage() {
     }))
   }
 
-  const handleViewDocument = (fileUrl: string, doNumber: string) => {
+  const handleViewDocument = (documentId: string) => {
     // Open document in a new tab/window
-    window.open(fileUrl, "_blank")
-    console.log(`Opening document for ${doNumber}: ${fileUrl}`)
+    const documentUrl =  `/api/document/${documentId}/serve`;
+    window.open(documentUrl, "_blank")
+   
+   
   }
 
+  const [gondolaDialogOpen, setGondolaDialogOpen] = useState(false);
+  const [selectedGondola, setSelectedGondola] = useState<Gondola | null>(null);
+
   const handleViewGondolaDetails = (gondola: Gondola) => {
-    // In a real app, this would open a modal with detailed information
-    alert(`
-Gondola Details:
-ID: ${gondola.id}
-Serial Number: ${gondola.serialNumber}
-Location: ${gondola.location}
-Location Detail: ${gondola.locationDetail}
-Last Inspection: ${gondola.lastInspection}
-Next Inspection: ${gondola.nextInspection}
-Status: ${gondola.status}
-  `)
+    setSelectedGondola(gondola);
+    setGondolaDialogOpen(true);
   }
 
   const handleRemoveDeliveryOrder = (index: number) => {
@@ -153,17 +152,26 @@ Status: ${gondola.status}
     e.preventDefault();
 
     if (!formData.deliveryOrders || formData.deliveryOrders.length === 0) {
-      alert("Please add at least one delivery order");
+      toast.error("Missing Required Field",{
+        description:"Please add at least one delivery order",
+        className:"bg-destructive text-white"
+      })
       return;
     }
 
     if (!formData.projectName) {
-      alert("Please enter a project name");
+      toast.error("Missing Required Field",{
+        description:"Please enter a project name",
+        className:"bg-destructive text-white"
+      })
       return;
     }
 
     if (!primaryDOId && formData.deliveryOrders && formData.deliveryOrders.length > 0) {
-      alert("Please select a primary DO");
+      toast.error("Missing Required Field",{
+        description:"Please select a primary DO",
+        className:"bg-destructive text-white"
+      })
       return;
     }
 
@@ -219,8 +227,33 @@ Status: ${gondola.status}
   if (error) {
     return <div className="p-6 text-red-600">Error: {error}</div>;
   }
+
   return (
     <div className="p-6">
+      {/* Gondola Details Dialog */}
+      <Dialog open={gondolaDialogOpen} onOpenChange={setGondolaDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Gondola Details</DialogTitle>
+          </DialogHeader>
+          {selectedGondola && (
+            <div className="space-y-2">
+              <div className="flex gap-4"><span className="font-semibold">ID:</span> {selectedGondola.id}</div>
+              <div  className="flex gap-4"><span className="font-semibold">Serial Number:</span> {selectedGondola.serialNumber}</div>
+              <div  className="flex gap-4"><span className="font-semibold">Location:</span> {selectedGondola.location}</div>
+              <div  className="flex gap-4"><span className="font-semibold">Location Detail:</span> {selectedGondola.locationDetail}</div>
+              <div className="flex gap-4"><span className="font-semibold">Last Inspection:</span> {selectedGondola.lastInspection?.split("T")[0]}</div>
+              <div className="flex gap-4"><span className="font-semibold">Next Inspection:</span> {selectedGondola.nextInspection?.split("T")[0]}</div>
+              <div className="flex gap-4"><span className="font-semibold">Status:</span> {selectedGondola.status}</div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setGondolaDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex items-center gap-4 mb-6">
         <Link href="/projects">
           <Button variant="outline" size="icon" className="h-8 w-8">
@@ -378,31 +411,21 @@ Status: ${gondola.status}
                           <label htmlFor={`do-${deliveryOrder.id}`} className="flex-1 cursor-pointer">
                             <div className="font-medium">{deliveryOrder.number}</div>
                             <div className="text-sm text-gray-500">Date: {deliveryOrder.date?.split("T")[0]}</div>
-                            {deliveryOrder.fileUrl ? (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleViewDocument(deliveryOrder.fileUrl!, deliveryOrder.number)
-                                }}
-                                className="text-sm text-blue-600 hover:underline"
-                              >
-                                Document attached - Click to view
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleViewDocument("/documents/placeholder.pdf", deliveryOrder.number)
-                                }}
-                                className="text-sm text-blue-600 hover:underline"
-                              >
-                                Document attached - Click to view
-                              </button>
-                            )}
+                            {deliveryOrder.documentId ? (
+  <button
+    type="button"
+    onClick={(e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      handleViewDocument(deliveryOrder?.documentId)
+    }}
+    className="text-sm text-blue-600 hover:underline"
+  >
+    Document attached - Click to view
+  </button>
+) : (
+  <span className="text-sm text-gray-400 italic">No document attached</span>
+)}
                           </label>
                         </div>
                       ))}
@@ -515,7 +538,7 @@ Status: ${gondola.status}
 
                             return matchesSearch
                           })
-                          .filter((gondola) => gondola.status === "deployed" || gondola.status === "in use")
+                          .filter((gondola) => gondola.status?.toLowerCase() === "deployed" || gondola.status?.toLowerCase() === "in use")
                         return filteredGondolas.map((gondola) => (
                           <div
                             key={gondola.id}

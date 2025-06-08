@@ -22,12 +22,13 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     const createdAt = new Date();
     // Insert into Inspection table (assuming such a table exists)
     await pool.query(
-      'INSERT INTO "Inspection" (id, "gondolaId", type, date, inspector, priority, notes, "notifyClient", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      'INSERT INTO "Inspection" (id, "gondolaId", type, date, time, inspector, priority, notes, "notifyClient", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
       [
         inspectionId,
         gondolaId,
         inspectionType,
         scheduledDateTime,
+        inspectionTime, // store original string
         inspector,
         priority || 'normal',
         notes,

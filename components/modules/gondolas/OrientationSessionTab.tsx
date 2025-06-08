@@ -20,6 +20,52 @@ import { useAppStore } from "@/lib/store"
 import { toast } from "sonner"
 
 export default function OrientationSessionTab({ gondolaId }: { gondolaId: string }) {
+
+
+
+  // Handler for editing session (Step 2)
+  const { updateOrientationSession } = useAppStore();
+
+  const handleEditSessionSave = async () => {
+    if (
+      editData.session_type &&
+      editData.date &&
+      editData.time &&
+      editData.duration &&
+      editData.conducted_by &&
+      editData.location
+    ) {
+      if (!selectedSession?.id) {
+        toast.error("No session selected for editing.");
+        return;
+      }
+      const updatedSession = {
+        session_type: editData.session_type,
+        date: editData.date,
+        time: editData.time,
+        duration: Number(editData.duration),
+        conducted_by: editData.conducted_by,
+        location: editData.location,
+        maxParticipants: editData.maxParticipants ? Number(editData.maxParticipants) : undefined,
+        notes: editData.notes || undefined,
+      };
+      const success = await updateOrientationSession(
+        gondolaId,
+        selectedSession.id,
+        updatedSession
+      );
+      if (success) {
+        toast.success("Session updated successfully!");
+        setIsEditSessionDialogOpen(false);
+        setSelectedSession(null);
+      } else {
+        toast.error("Failed to update session. Please try again.");
+      }
+    } else {
+      toast.error("Please fill in all required fields");
+    }
+  };
+
   // Controlled state for form fields
   const [sessionType, setSessionType] = useState("");
   const [sessionDate, setSessionDate] = useState("");
@@ -34,14 +80,24 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
   const [isViewSessionDialogOpen, setIsViewSessionDialogOpen] = useState(false)
   const [isEditSessionDialogOpen, setIsEditSessionDialogOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<any>(null)
+  const [editData, setEditData] = useState<any>({});
 
+  const {
+    orientationSessions,
+    orientationSessionsLoading,
+    createOrientationSession,
+    fetchOrientationSessionsByGondolaId
+  } = useAppStore();
+    // Compute isCompleted for use in JSX
+    let isCompleted = false;
+    if (selectedSession?.date) {
+      const sessionDate = new Date(selectedSession.date);
+      const now = new Date('2025-06-06T20:38:46+06:30'); // Use fixed or real-time as needed
+      isCompleted = sessionDate < now;
+    }
+  
     // Bind real data from store
-    const {
-      orientationSessions,
-      orientationSessionsLoading,
-      createOrientationSession,
-      fetchOrientationSessionsByGondolaId
-    } = useAppStore();
+
   
   // Handler for scheduling session
   const handleScheduleSession = async () => {
@@ -89,6 +145,16 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
   // Handler for Edit button in Actions column
   const handleEditSessionClick = (session: any) => {
     setSelectedSession(session);
+    setEditData({
+      session_type: session.session_type || session.type || "",
+      date: session.date ? new Date(session.date).toISOString().slice(0, 10) : "",
+      time: session.date ? new Date(session.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).slice(0,5) : "",
+      duration: session.duration ? String(session.duration) : "",
+      conducted_by: session.conducted_by || session.instructor || "",
+      location: session.location || "",
+      maxParticipants: session.maxParticipants ? String(session.maxParticipants) : "",
+      notes: session.notes || "",
+    });
     setIsEditSessionDialogOpen(true);
   };
 
@@ -432,41 +498,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                  
                 </div>
 
-                {/* {selectedSession.participants && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Participant List</Label>
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="text-left p-2 text-xs font-medium text-gray-500">Name</th>
-                            <th className="text-left p-2 text-xs font-medium text-gray-500">ID</th>
-                            <th className="text-left p-2 text-xs font-medium text-gray-500">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {selectedSession.participants.map((participant:any, index:any) => (
-                            <tr key={index}>
-                              <td className="p-2 text-sm">{participant.name}</td>
-                              <td className="p-2 text-sm">{participant.id}</td>
-                              <td className="p-2">
-                                <span
-                                  className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                    participant.confirmed
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {participant.confirmed ? "Confirmed" : "Pending"}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )} */}
+               
                 {(() => {
                   const sessionDate = new Date(selectedSession.date);
                   const now = new Date('2025-06-06T20:38:46+06:30');
@@ -507,10 +539,22 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               >
                 Close
               </Button>
-              {selectedSession?.status === "Scheduled" && (
+              {!isCompleted && (
                 <Button
                   onClick={() => {
                     setIsViewSessionDialogOpen(false)
+                    if (selectedSession) {
+                      setEditData({
+                        session_type: selectedSession.type || selectedSession.session_type || '',
+                        date: selectedSession.date ? selectedSession.date.split('T')[0] : '',
+                        time: selectedSession.time || (selectedSession.date ? (selectedSession.date.split('T')[1] || '').slice(0,5) : ''),
+                        duration: selectedSession.duration ? String(selectedSession.duration) : '',
+                        conducted_by: selectedSession.instructor || selectedSession.conducted_by || '',
+                        location: selectedSession.location || '',
+                        maxParticipants: selectedSession.maxParticipants ? String(selectedSession.maxParticipants) : '',
+                        notes: selectedSession.notes || '',
+                      });
+                    }
                     setIsEditSessionDialogOpen(true)
                   }}
                 >
@@ -532,7 +576,11 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="editSessionType">Session Type *</Label>
-                  <Select name="editSessionType" defaultValue={selectedSession.type}>
+                  <Select
+                    name="editSessionType"
+                    value={editData.session_type || ''}
+                    onValueChange={v => setEditData((prev: any) => ({ ...prev, session_type: v }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select session type" />
                     </SelectTrigger>
@@ -550,18 +598,19 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <Input
                     id="editSessionDate"
                     type="date"
-                    defaultValue={selectedSession.date}
+                    value={editData.date || ''}
+                    onChange={e => setEditData((prev: any) => ({ ...prev, date: e.target.value }))}
                     min={new Date().toISOString().split("T")[0]}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="editSessionTime">Session Time *</Label>
-                  <Input id="editSessionTime" type="time" defaultValue={selectedSession.time} required />
+                  <Input id="editSessionTime" type="time" value={editData.time || ''} onChange={e => setEditData((prev: any) => ({ ...prev, time: e.target.value }))} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="editDuration">Duration (hours) *</Label>
-                  <Select name="editDuration" defaultValue={selectedSession.duration}>
+                  <Select name="editDuration" value={editData.duration || ''} onValueChange={v => setEditData((prev: any) => ({ ...prev, duration: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
@@ -575,7 +624,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="editInstructor">Instructor *</Label>
-                  <Select name="editInstructor" defaultValue={selectedSession.instructor}>
+                  <Select name="editInstructor" value={editData.conducted_by || ''} onValueChange={v => setEditData((prev: any) => ({ ...prev, conducted_by: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select instructor" />
                     </SelectTrigger>
@@ -592,7 +641,8 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <Input
                     id="editLocation"
                     placeholder="Enter session location"
-                    defaultValue={selectedSession.location}
+                    value={editData.location || ''}
+                    onChange={e => setEditData((prev: any) => ({ ...prev, location: e.target.value }))}
                     required
                   />
                 </div>
@@ -601,7 +651,8 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <Input
                     id="editMaxParticipants"
                     type="number"
-                    defaultValue={selectedSession.maxParticipants}
+                    value={editData.maxParticipants || ''}
+                    onChange={e => setEditData((prev: any) => ({ ...prev, maxParticipants: e.target.value }))}
                     min="1"
                     max="12"
                   />
@@ -611,7 +662,8 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <Textarea
                     id="editSessionNotes"
                     placeholder="Any special requirements or focus areas for this session"
-                    defaultValue={selectedSession.notes}
+                    value={editData.notes || ''}
+                    onChange={e => setEditData((prev: any) => ({ ...prev, notes: e.target.value }))}
                   />
                 </div>
               </div>
@@ -629,33 +681,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               </Button>
               <Button
                 type="submit"
-                onClick={() => {
-                  const editSessionTypeSelect = document.querySelector('[name="editSessionType"]') as HTMLSelectElement
-                  const editSessionDateInput = document.getElementById("editSessionDate") as HTMLInputElement
-                  const editSessionTimeInput = document.getElementById("editSessionTime") as HTMLInputElement
-                  const editDurationSelect = document.querySelector('[name="editDuration"]') as HTMLSelectElement
-                  const editInstructorSelect = document.querySelector('[name="editInstructor"]') as HTMLSelectElement
-                  const editLocationInput = document.getElementById("editLocation") as HTMLInputElement
-                  const editMaxParticipantsInput = document.getElementById("editMaxParticipants") as HTMLInputElement
-                  const editSessionNotesInput = document.getElementById("editSessionNotes") as HTMLTextAreaElement
-
-                  if (
-                    editSessionTypeSelect?.value &&
-                    editSessionDateInput.value &&
-                    editSessionTimeInput.value &&
-                    editDurationSelect?.value &&
-                    editInstructorSelect?.value &&
-                    editLocationInput.value
-                  ) {
-                    alert(
-                      `Session updated successfully!\n\nSession ID: ${selectedSession?.id}\nGondola: ${gondolaId}\nType: ${editSessionTypeSelect.value}\nDate: ${editSessionDateInput.value}\nTime: ${editSessionTimeInput.value}\nDuration: ${editDurationSelect.value} hours\nInstructor: ${editInstructorSelect.value}\nLocation: ${editLocationInput.value}\nMax Participants: ${editMaxParticipantsInput.value}\nNotes: ${editSessionNotesInput.value || "None"}`,
-                    )
-                    setIsEditSessionDialogOpen(false)
-                    setSelectedSession(null)
-                  } else {
-                    alert("Please fill in all required fields")
-                  }
-                }}
+                onClick={handleEditSessionSave}
               >
                 Save Changes
               </Button>

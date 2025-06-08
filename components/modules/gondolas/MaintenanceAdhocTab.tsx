@@ -65,12 +65,12 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
         cell: ({ row }) => (
           <span
             className={`px-2 py-1 text-xs font-medium rounded-full ${
-              row.original.ischargeable
+              row.original.isChargeable
                 ? "bg-green-100 text-green-800"
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {row.original.ischargeable ? "Chargeable" : "Non-Chargeable"}
+            {row.original.isChargeable ? "Chargeable" : "Non-Chargeable"}
           </span>
         ),
       },
@@ -224,10 +224,10 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
                       <Label className="text-sm font-medium text-gray-500">Chargeable</Label>
                       <p
                         className={`px-2 py-1 text-xs font-medium rounded-full w-fit ${
-                          selectedRepairLog.ischargeable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                          selectedRepairLog.isChargeable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {selectedRepairLog.ischargeable ? "Chargeable" : "Non-Chargeable"}
+                        {selectedRepairLog.isChargeable ? "Chargeable" : "Non-Chargeable"}
                       </p>
                     </div>
                     <div className="space-y-2">

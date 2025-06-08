@@ -15,6 +15,7 @@ export const useUserInfo = () => {
   const { getItem, setItem, removeItem } = useLocalStore();
 
   useEffect(() => {
+    fetchUser()
     // Only handle localStorage for non-auth flows (email/code/role)
     const storedEmail = getItem("email");
     const storedCode = getItem("code");
@@ -31,6 +32,7 @@ export const useUserInfo = () => {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         const data = await res.json();
+        console.log('user data from api',data)
         setUser(data.user);
       } else {
         setUser(null);

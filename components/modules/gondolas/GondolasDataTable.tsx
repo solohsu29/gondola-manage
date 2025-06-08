@@ -47,7 +47,7 @@ export function GondolasDataTable() {
         header: "Image",
         cell: ({ row }) => (
           <img
-            src={row.original.photoData ? `/api/gondola/photo/${row.original.id}` : "/placeholder.svg?height=50&width=50"}
+            src={row.original.photoDataBase64 ? `data:image/jpeg;base64,${row.original.photoDataBase64}` : "/placeholder.svg?height=50&width=50"}
             alt={row.original.photoName || row.original.serialNumber || "Gondola"}
             width={50}
             height={50}
@@ -92,16 +92,26 @@ export function GondolasDataTable() {
         cell: ({ row }) => <StatusBadge status={row?.original?.status}/>,
       },
       {
-        accessorKey: "projectId",
+        accessorKey: "projects",
         header: "Linked Project",
         cell: ({ row }) => {
-          console.log('row',row)
-          return(
-            <div>
-              {row?.original?.projectId  && <Link href={`/projects/${row.original?.projectId}`} className="text-blue-600 underline">{row.original.projectId}</Link> || <span>Not Linked</span>}
-         
-          </div>
-          )
+          const projects = row?.original?.projects;
+          if (Array.isArray(projects) && projects.length > 0) {
+            return (
+              <div>
+                {projects.map((project: any, idx: number) =>
+                  <span key={project.id}>
+                    <Link href={`/projects/${project.id}`} className="text-blue-600 underline">
+                      { project.id?.slice(0,8)}
+                    </Link>
+                    {idx < projects.length - 1 && ', '}
+                  </span>
+                )}
+              </div>
+            );
+          } else {
+            return <span>Not Linked</span>;
+          }
         },
       },
       // Actions column placeholder
@@ -216,10 +226,10 @@ console.log('editData',editData)
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="deployed">Deployed</SelectItem>
-                  <SelectItem value="in use">In Use</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="off-hired">Off-hired</SelectItem>
+                  <SelectItem value="Deployed">Deployed</SelectItem>
+                  <SelectItem value="In Use">In Use</SelectItem>
+                  <SelectItem value="Maintenance">Maintenance</SelectItem>
+                  <SelectItem value="Off-Hired">Off-Hired</SelectItem>
                 </SelectContent>
               </Select>
             </div>

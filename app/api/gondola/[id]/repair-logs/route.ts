@@ -5,7 +5,7 @@ import pool from '@/lib/db';
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
     const { id: gondolaId } = context.params;
-    const query = `SELECT id, "gondolaid", date, type, description, "partname", cost, "ischargeable", technician, status FROM "RepairLog" WHERE "gondolaid" = $1 ORDER BY date DESC`;
+    const query = `SELECT id, "gondolaId", date, type, description, "partName", cost, "isChargeable", technician, status FROM "RepairLog" WHERE "gondolaId" = $1 ORDER BY date DESC`;
     let result;
     try {
       result = await pool.query(query, [gondolaId]);
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     if (!date || !type || !description || !cost || !technician || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    const insertQuery = `INSERT INTO "RepairLog" (id, "gondolaid", date, type, description, "partname", cost, "ischargeable", technician, status) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, "gondolaid", date, type, description, "partname", cost, "ischargeable", technician, status`;
+    const insertQuery = `INSERT INTO "RepairLog" (id, "gondolaId", date, type, description, "partName", cost, "isChargeable", technician, status) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, "gondolaId", date, type, description, "partName", cost, "isChargeable", technician, status`;
     const values = [
       gondolaId,
       date,

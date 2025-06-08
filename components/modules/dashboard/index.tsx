@@ -32,7 +32,7 @@ const projectColumns: ColumnDef<Project>[] = [
 </Link> },
   { accessorKey: "client", header: "Client" },
   { accessorKey: "site", header: "Site" },
-  { accessorKey: "gondolas", header: "Gondolas" },
+  { accessorKey: "gondolas", header: "Gondolas",cell:({row})=>row?.original?.gondolas?.length ||0 },
   {
     accessorKey: "deliveryOrders",
     header: "DOs",

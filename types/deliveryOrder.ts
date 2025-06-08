@@ -11,5 +11,6 @@ export interface DeliveryOrder {
   status: 'pending' | 'delivered' | 'cancelled';
   amount: string;
   items: number;
-  projectId:string
+  projectId:string;
+  documentId:string
 }

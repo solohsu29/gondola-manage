@@ -151,11 +151,11 @@ export default function GondolasPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="deployed">Deployed</SelectItem>
-                <SelectItem value="in-use">In Use</SelectItem>
-                <SelectItem value="under-inspection">Under Inspection</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="off-hired">Off-hired</SelectItem>
+                <SelectItem value="Deployed">Deployed</SelectItem>
+                <SelectItem value="In Use">In Use</SelectItem>
+                <SelectItem value="Under Inspection">Under Inspection</SelectItem>
+                <SelectItem value="Maintenance">Maintenance</SelectItem>
+                <SelectItem value="Off-hired">Off-hired</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -225,11 +225,11 @@ export default function GondolasPage() {
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="in_use">In Use</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-              <SelectItem value="ready_for_deployment">Ready for Deployment</SelectItem>
-              <SelectItem value="deployed">Deployed</SelectItem>
-              <SelectItem value="off_hire">Off-Hire</SelectItem>
+              <SelectItem value="In Use">In Use</SelectItem>
+              <SelectItem value="Maintenance">Maintenance</SelectItem>
+              <SelectItem value="Ready for Deployment">Ready for Deployment</SelectItem>
+              <SelectItem value="Deployed">Deployed</SelectItem>
+              <SelectItem value="Off-Hire">Off-Hire</SelectItem>
             </SelectContent>
           </Select>
         </div>

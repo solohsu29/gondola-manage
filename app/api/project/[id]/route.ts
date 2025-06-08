@@ -16,8 +16,12 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     const doResult = await pool.query('SELECT * FROM "DeliveryOrder" WHERE "projectId" = $1', [id]);
     const deliveryOrders = doResult.rows;
 
-    // Fetch gondolas for this project
-    const gondolaResult = await pool.query('SELECT * FROM "Gondola" WHERE "projectId" = $1', [id]);
+    // Fetch gondolas for this project using explicit join table
+    const gondolaResult = await pool.query(`
+      SELECT g.* FROM "Gondola" g
+      JOIN "ProjectGondola" pg ON g.id = pg."gondolaId"
+      WHERE pg."projectId" = $1
+    `, [id]);
     const gondolas = gondolaResult.rows;
 
     const projectWithDOsAndGondolas = {
@@ -37,7 +41,7 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
   const body = await req.json();
 
   // Build dynamic SQL for partial update
-  const allowedFields = ['client', 'site', 'created', 'status', 'endDate', 'projectName', 'projectManagerId'];
+  const allowedFields = ['client', 'site', 'created', 'status','startDate', 'endDate', 'projectName', 'projectManagerId'];
   const updates = [];
   const values = [];
   let idx = 1;
@@ -60,12 +64,29 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
     }
     // After updating the project, update related gondolas
     if (Array.isArray(body.gondolas)) {
-      // Unlink all gondolas from this project first
-      await pool.query('UPDATE "Gondola" SET "projectId" = NULL WHERE "projectId" = $1', [id]);
-      // Link selected gondolas
+      // Remove all existing many-to-many links for this project
+      await pool.query('DELETE FROM "ProjectGondola" WHERE "projectId" = $1', [id]);
+      // Link selected gondolas via the join table
       for (const gondola of body.gondolas) {
         const gondolaId = typeof gondola === 'string' ? gondola : gondola.id;
-        await pool.query('UPDATE "Gondola" SET "projectId" = $1 WHERE id = $2', [id, gondolaId]);
+        if (!gondolaId) {
+          console.warn('Skipping empty gondola ID for project', id);
+          continue;
+        }
+        // Check project exists
+        const projectCheck = await pool.query('SELECT 1 FROM "Project" WHERE id = $1', [id]);
+        if (projectCheck.rowCount === 0) {
+          console.warn('Project does not exist:', id);
+          continue;
+        }
+        // Check gondola exists
+        const gondolaCheck = await pool.query('SELECT 1 FROM "Gondola" WHERE id = $1', [gondolaId]);
+        if (gondolaCheck.rowCount === 0) {
+          console.warn('Gondola does not exist:', gondolaId);
+          continue;
+        }
+        console.log('Linking project', id, 'with gondola', gondolaId);
+        await pool.query('INSERT INTO "ProjectGondola" ("projectId", "gondolaId") VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, gondolaId]);
       }
     }
     // Update related delivery orders
