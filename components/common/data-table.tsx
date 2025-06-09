@@ -24,14 +24,16 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import { Spinner } from "../ui/spinner";
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<TData, any>[];
   data: TData[];
   pageSize?: number;
+  loading?:boolean
 }
 
-export function DataTable<TData extends RowData>({ columns, data, pageSize = 10 }: DataTableProps<TData>) {
+export function DataTable<TData extends RowData>({ columns, data, pageSize = 10,loading }: DataTableProps<TData>) {
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize,
@@ -63,7 +65,8 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10 
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map(row => (
+
+          {table?.getRowModel()?.rows?.length > 0 ?table.getRowModel().rows.map(row => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id}>
@@ -71,9 +74,12 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10 
                 </TableCell>
               ))}
             </TableRow>
-          ))}
-
-          {table?.getRowModel().rows.length === 0 && (
+          )) : loading ? <TableRow>
+           
+          <TableCell className="text-center" colSpan={columns?.length}>
+         Loading ...
+          </TableCell>
+          </TableRow> : table?.getRowModel().rows.length === 0 && (
             <TableRow>
            
               <TableCell className="text-center" colSpan={columns?.length}>
@@ -81,7 +87,7 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10 
               </TableCell>
               </TableRow>
             )}
-          
+         
         </TableBody>
         <TableFooter>
           <TableRow>

@@ -110,7 +110,6 @@ useEffect(() => {
     ), // Linked DOs with project reference
   ];
 
-  console.log('all dElivve',allDeliveryOrders)
 
   const filteredOrders = allDeliveryOrders.filter((order) => {
     // Filter by search query
@@ -149,13 +148,18 @@ useEffect(() => {
   }
 
   // Export handler for CSV/Excel
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | null>(null);
+
   function handleExport() {
     if (!filteredOrders.length) {
       toast.error("No data to export", { className: 'bg-destructive text-white' });
       return;
     }
-    // Prompt user for format
-    const format = window.confirm("Export as Excel? Click OK for Excel, Cancel for CSV.") ? 'excel' : 'csv';
+    setExportDialogOpen(true);
+  }
+
+  function doExport(format: 'csv' | 'excel') {
     const exportData = filteredOrders.map(({ id, number, client, site, orderDate, deliveryDate, poReference, status, amount, items, projectId }) => ({
       id, number, client, site, orderDate, deliveryDate, poReference, status, amount, items, projectId
     }));
@@ -184,6 +188,7 @@ useEffect(() => {
       document.body.removeChild(link);
     }
     toast.success(`Exported ${filteredOrders.length} records as ${format.toUpperCase()}.`, { className: 'bg-[#14AA4d] text-white' });
+    setExportDialogOpen(false);
   }
 
   const handleViewOrder = (order: any) => {
@@ -197,7 +202,42 @@ useEffect(() => {
   }
 
 
-  
+  const handleCreateManualDD =async (e:any)=>{
+    e.preventDefault();
+    if (!manualEntry.number || !manualEntry.client || !manualEntry.site || !manualEntry.orderDate || !manualEntry.poReference) {
+      toast.error("Please fill in all required fields (marked with *)", { className: 'bg-destructive text-white' });
+      return;
+    }
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("manualEntry", JSON.stringify({
+      ...manualEntry,
+      items: manualEntry.items || '',
+      status: manualEntry.status || 'pending',
+      amount: manualEntry.amount || '0',
+    }));
+    if (manualEntry.documents && manualEntry.documents.length > 0) {
+      // Only upload the first file for now (backend expects one file)
+      formData.append("file", manualEntry.documents[0]);
+    }
+    try {
+      const res = await fetch("/api/delivery-order/import", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        toast.success(`Delivery Order ${manualEntry.number} created successfully!`, { className: 'bg-[#14AA4d] text-white' });
+        setIsManualEntryDialogOpen(false);
+        setManualEntry({ number: "", client: "", site: "", orderDate: "", deliveryDate: "", poReference: "", amount: "", items: "", status: "pending", documents: [] });
+        fetchDeliveryOrders();
+      } else {
+        const errMsg = await res.text();
+        toast.error(`Backend error: ${errMsg}`, { className: 'bg-destructive text-white' });
+      }
+    } catch (err: any) {
+      toast.error("Failed to create delivery order.", { className: 'bg-destructive text-white' });
+    }
+  }
   const deliveryOrderColumns: ColumnDef<any>[] = [
     {
       header: "DO Number",
@@ -274,6 +314,28 @@ useEffect(() => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">ERP Delivery Orders</h1>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={handleExport}
+          >
+            <Download className="h-4 w-4" />
+            <span>Export</span>
+          </Button>
+          <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Export Delivery Orders</DialogTitle>
+                <DialogDescription>
+                  Export as Excel or CSV?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex gap-4 justify-end">
+                <Button variant="outline" onClick={() => doExport('csv')}>CSV</Button>
+                <Button onClick={() => doExport('excel')}>Excel</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
@@ -428,42 +490,7 @@ useEffect(() => {
                 </Button>
                 <Button
                   type="submit"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    if (!manualEntry.number || !manualEntry.client || !manualEntry.site || !manualEntry.orderDate || !manualEntry.poReference) {
-                      toast.error("Please fill in all required fields (marked with *)", { className: 'bg-destructive text-white' });
-                      return;
-                    }
-                    // Prepare form data
-                    const formData = new FormData();
-                    formData.append("manualEntry", JSON.stringify({
-                      ...manualEntry,
-                      items: manualEntry.items || '',
-                      status: manualEntry.status || 'pending',
-                      amount: manualEntry.amount || '0',
-                    }));
-                    if (manualEntry.documents && manualEntry.documents.length > 0) {
-                      // Only upload the first file for now (backend expects one file)
-                      formData.append("file", manualEntry.documents[0]);
-                    }
-                    try {
-                      const res = await fetch("/api/delivery-order/import", {
-                        method: "POST",
-                        body: formData,
-                      });
-                      if (res.ok) {
-                        toast.success(`Delivery Order ${manualEntry.number} created successfully!`, { className: 'bg-[#14AA4d] text-white' });
-                        setIsManualEntryDialogOpen(false);
-                        setManualEntry({ number: "", client: "", site: "", orderDate: "", deliveryDate: "", poReference: "", amount: "", items: "", status: "pending", documents: [] });
-                        fetchDeliveryOrders();
-                      } else {
-                        const errMsg = await res.text();
-                        toast.error(`Backend error: ${errMsg}`, { className: 'bg-destructive text-white' });
-                      }
-                    } catch (err: any) {
-                      toast.error("Failed to create delivery order.", { className: 'bg-destructive text-white' });
-                    }
-                  }}
+                  onClick={handleCreateManualDD}
                 >
                   Create Delivery Order
                 </Button>
@@ -512,6 +539,7 @@ useEffect(() => {
                 data={filteredOrders}
                 columns={deliveryOrderColumns}
                 pageSize={10}
+                loading={deliveryOrdersLoading}
               
               />
             </TabsContent>
@@ -520,6 +548,7 @@ useEffect(() => {
                 data={filteredOrders}
                 columns={deliveryOrderColumns}
                 pageSize={10}
+                loading={deliveryOrdersLoading}
               
               />
             </TabsContent>
@@ -528,6 +557,7 @@ useEffect(() => {
                 data={filteredOrders}
                 columns={deliveryOrderColumns}
                 pageSize={10}
+                loading={deliveryOrdersLoading}
               
               />
             </TabsContent>
