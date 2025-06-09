@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useAppStore } from "@/lib/store"
+import ProfilePhotoUpload from "./ProfilePhotoUpload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,47 +14,35 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Camera, Save, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useUserInfo } from "@/hooks/useUserInfo"
+import { toast } from "sonner"
+
+import { useSessionInfo } from './sessionHooks';
+import getBase64 from "@/app/utils/getBase64"
 
 export default function ProfilePage() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [profileData, setProfileData] = useState({
+  const sessionInfo = useSessionInfo();
+
+  const {
+    profileData,
+    profileLoading,
+    profileError,
+    fetchProfile,
+    updateProfile
+  } = useAppStore();
+
+  // For form editing, keep a local copy
+  const [localProfile, setLocalProfile] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     jobTitle: '',
     department: '',
+    photoUrl: '',
+    photoData:''
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Fetch profile data on mount
-  useEffect(() => {
-    async function fetchProfile() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/profile');
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        const data = await res.json();
-        setProfileData({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          email: data.email || user?.email || '',
-          phone: data.phone || '',
-          jobTitle: data.jobTitle || '',
-          department: data.department || '',
-        });
-      } catch (err: any) {
-        setError(err.message || 'Something went wrong');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProfile();
-  }, [user]);
+
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -60,44 +50,148 @@ export default function ProfilePage() {
     maintenanceReminders: true,
     projectUpdates: false,
     weeklyReports: true,
-  })
+  });
+
+  // Load notification preferences from backend profileData
+  useEffect(() => {
+    if (profileData && profileData.notificationPreferences) {
+      try {
+        const prefs = typeof profileData.notificationPreferences === 'string'
+          ? JSON.parse(profileData.notificationPreferences)
+          : profileData.notificationPreferences;
+        setNotifications({
+          emailNotifications: prefs.emailNotifications ?? true,
+          pushNotifications: prefs.pushNotifications ?? true,
+          certificateExpiry: prefs.certificateExpiry ?? true,
+          maintenanceReminders: prefs.maintenanceReminders ?? true,
+          projectUpdates: prefs.projectUpdates ?? false,
+          weeklyReports: prefs.weeklyReports ?? true,
+        });
+      } catch {
+        // fallback to defaults
+      }
+    }
+  }, [profileData]);
+
 
 
   const [newPassword, setNewPassword] = useState("")
   const [passwordStrength, setPasswordStrength] = useState(0)
   const {user} = useUserInfo()
 console.log('user',user)
-  const handleProfileSave = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: profileData.firstName,
-          lastName: profileData.lastName,
-          phone: profileData.phone,
-          jobTitle: profileData.jobTitle,
-          department: profileData.department,
-        }),
+
+  // Fetch profile data on mount
+  useEffect(() => {
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Sync localProfile with store profileData
+  useEffect(() => {
+    if (profileData) {
+      setLocalProfile({
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email || user?.email || '',
+        phone: profileData.phone || '',
+        jobTitle: profileData.jobTitle || '',
+        department: profileData.department || '',
+        photoUrl: profileData.photoUrl || '',
+        photoData:profileData?.photoData
       });
-      if (!res.ok) throw new Error('Failed to update profile');
-      alert('Profile information updated successfully!');
+    }
+  }, [profileData, user]);
+
+  console.log('profileData',profileData)
+  const handleProfileSave = async () => {
+    try {
+      await updateProfile({
+        firstName: localProfile.firstName,
+        lastName: localProfile.lastName,
+        phone: localProfile.phone,
+        jobTitle: localProfile.jobTitle,
+        department: localProfile.department,
+        photoUrl: localProfile.photoUrl,
+      });
+
+      toast.success("Success!",{description:"Profile information updated successfully!",className:"bg-[#14a44d] text-white"})
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
-    } finally {
-      setLoading(false);
+      // profileError from store will be shown
     }
   }
 
-  const handlePasswordChange = () => {
-    alert("Password changed successfully!")
+  // Save notification preferences to backend
+  async function handleNotificationSave() {
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...localProfile,
+          notificationPreferences: notifications,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save preferences');
+      // Update local state with latest from backend (in case backend normalizes/overwrites)
+      if (data.notificationPreferences) {
+        const prefs = typeof data.notificationPreferences === 'string' ? JSON.parse(data.notificationPreferences) : data.notificationPreferences;
+        setNotifications({
+          emailNotifications: prefs.emailNotifications ?? true,
+          pushNotifications: prefs.pushNotifications ?? true,
+          certificateExpiry: prefs.certificateExpiry ?? true,
+          maintenanceReminders: prefs.maintenanceReminders ?? true,
+          projectUpdates: prefs.projectUpdates ?? false,
+          weeklyReports: prefs.weeklyReports ?? true,
+        });
+      }
+      toast.success('Preferences saved!', { description: 'Notification preferences updated successfully.', className: 'bg-[#14a44d] text-white' });
+    } catch (err: any) {
+      toast.error('Failed to save preferences', { description: err.message || 'Unknown error', className: 'bg-[#dc2626] text-white' });
+    }
   }
 
-  const handleNotificationSave = () => {
-    alert("Notification preferences updated successfully!")
+  const [currentPassword, setCurrentPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
+const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+
+const handlePasswordChange = async () => {
+  setPasswordChangeError(null);
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    setPasswordChangeError("All password fields are required.");
+    return;
   }
+  if (newPassword !== confirmPassword) {
+    setPasswordChangeError("New passwords do not match.");
+    return;
+  }
+  setPasswordChangeLoading(true);
+  try {
+    const res = await fetch("/api/profile/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setPasswordChangeError(data.error || "Failed to change password.");
+      setPasswordChangeLoading(false);
+      return;
+    }
+    toast.success("Password changed successfully!",{className:"bg-[#14a44d] text-white"});
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  } catch (err: any) {
+    setPasswordChangeError(err.message || "Failed to change password.");
+  } finally {
+    setPasswordChangeLoading(false);
+  }
+};
+
+
+    
 
   const calculatePasswordStrength = (password: string) => {
     let strength = 0
@@ -108,7 +202,11 @@ console.log('user',user)
     return strength
   }
 
-  return (
+  if (profileLoading || !localProfile) {
+  return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+}
+
+return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-6 px-4">
         <div className="mb-6">
@@ -136,14 +234,22 @@ console.log('user',user)
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarFallback className="text-lg">GA</AvatarFallback>
+                  {localProfile && localProfile.photoData ? (
+                                      <img src={`data:image/*;base64,${getBase64(localProfile.photoData)}`} alt={localProfile.firstName || ''} className="h-20 w-20 rounded-full object-cover" />
+                                    
+                                    ) : localProfile && localProfile.photoUrl ? (
+                                      <img src={localProfile.photoUrl} alt={localProfile.firstName || ''} className="h-20 w-20 rounded-full object-cover" />
+                                    ) : (
+                                      <AvatarFallback>{localProfile && localProfile.firstName ? localProfile.firstName[0] : 'U'}</AvatarFallback>
+                                    )}
                   </Avatar>
+
+                  
                   <div>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Camera className="h-4 w-4" />
-                      Change Photo
-                    </Button>
-                    <p className="text-sm text-gray-500 mt-1">JPG, PNG or GIF. Max size 2MB.</p>
+                    <ProfilePhotoUpload
+  photoUrl={localProfile.photoUrl}
+  onUploaded={(url: string) => setLocalProfile({ ...localProfile, photoUrl: url })}
+/>
                   </div>
                 </div>
 
@@ -154,16 +260,16 @@ console.log('user',user)
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
-                      value={profileData.firstName}
-                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                      value={localProfile?.firstName||''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, firstName: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
-                      value={profileData.lastName}
-                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                      value={localProfile?.lastName || ''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, lastName: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,32 +277,32 @@ console.log('user',user)
                     <Input
                       id="email"
                       type="email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      value={localProfile?.email || ''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, email: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input
                       id="phone"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      value={localProfile?.phone ||''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, phone: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="jobTitle">Job Title</Label>
                     <Input
                       id="jobTitle"
-                      value={profileData.jobTitle}
-                      onChange={(e) => setProfileData({ ...profileData, jobTitle: e.target.value })}
+                      value={localProfile?.jobTitle || ''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, jobTitle: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="department">Department</Label>
                     <Input
                       id="department"
-                      value={profileData.department}
-                      onChange={(e) => setProfileData({ ...profileData, department: e.target.value })}
+                      value={localProfile?.department || ''}
+                      onChange={(e) => setLocalProfile({ ...localProfile, department: e.target.value })}
                     />
                   </div>
                 </div>
@@ -225,19 +331,12 @@ console.log('user',user)
                       <Label htmlFor="currentPassword">Current Password</Label>
                       <div className="relative">
                         <Input
-                          id="currentPassword"
-                          type={showCurrentPassword ? "text" : "password"}
-                          placeholder="Enter current password"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        >
-                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+  id="currentPassword"
+  type={"password"}
+  placeholder="Enter current password"
+  value={currentPassword}
+  onChange={e => setCurrentPassword(e.target.value)}
+/>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -245,7 +344,7 @@ console.log('user',user)
                       <div className="relative">
                         <Input
                           id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
+                          type={"password"}
                           placeholder="Enter new password"
                           value={newPassword}
                           onChange={(e) => {
@@ -253,15 +352,7 @@ console.log('user',user)
                             setPasswordStrength(calculatePasswordStrength(e.target.value))
                           }}
                         />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                        >
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+                      
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         Must be 8+ characters with uppercase, lowercase, number, and special character
@@ -309,25 +400,23 @@ console.log('user',user)
                       <Label htmlFor="confirmPassword">Confirm New Password</Label>
                       <div className="relative">
                         <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Confirm new password"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+  id="confirmPassword"
+  type={"password"}
+  placeholder="Confirm new password"
+  value={confirmPassword}
+  onChange={e => setConfirmPassword(e.target.value)}
+/>                        
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-end">
-                    <Button onClick={handlePasswordChange}>Update Password</Button>
-                  </div>
+                  {passwordChangeError && (
+  <div className="text-red-500 text-sm mb-2">{passwordChangeError}</div>
+)}
+<div className="flex justify-end">
+  <Button onClick={handlePasswordChange} disabled={passwordChangeLoading}>
+    {passwordChangeLoading ? 'Updating...' : 'Update Password'}
+  </Button>
+</div>
                 </div>
 
                 <Separator />
@@ -335,8 +424,12 @@ console.log('user',user)
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Session Management</h3>
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">Current session: Chrome on Windows</p>
-                    <p className="text-sm text-gray-500">Last login: Today at 9:30 AM</p>
+                    <p className="text-sm text-gray-600">
+                      Current session: {sessionInfo ? sessionInfo.userAgent : 'Loading...'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Last login: {sessionInfo ? sessionInfo.lastLogin : 'Loading...'}
+                    </p>
                   </div>
                   <Button variant="outline">Sign out of all devices</Button>
                 </div>

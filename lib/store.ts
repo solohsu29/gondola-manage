@@ -67,6 +67,13 @@ interface OrientationSession {
 }
 
 interface AppState {
+  // Profile
+  profileData: any | null;
+  profileLoading: boolean;
+  profileError: string | null;
+  fetchProfile: () => Promise<void>;
+  updateProfile: (profile: any) => Promise<void>;
+
   updateOrientationSession: (gondolaId: string, sessionId: string, session: Partial<OrientationSession>) => Promise<boolean>; // ADDED
   createOrientationSession: (gondolaId: string, session: Omit<OrientationSession, 'id' | 'gondola_id'>) => Promise<boolean>;
   fetchShiftHistoryByGondolaId: (gondolaId: string) => Promise<void>;
@@ -145,6 +152,41 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  // Profile State
+  profileData: null,
+  profileLoading: false,
+  profileError: null,
+
+  // Fetch profile data from API
+  fetchProfile: async () => {
+    set({ profileLoading: true, profileError: null });
+    try {
+      const res = await fetch('/api/profile');
+      if (!res.ok) throw new Error('Failed to fetch profile');
+      const data = await res.json();
+      set({ profileData: data, profileLoading: false });
+    } catch (error: any) {
+      set({ profileError: error.message || 'Failed to fetch profile', profileLoading: false });
+    }
+  },
+
+  // Update profile data via API
+  updateProfile: async (profile: any) => {
+    set({ profileLoading: true, profileError: null });
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+      if (!res.ok) throw new Error('Failed to update profile');
+      const data = await res.json();
+      set({ profileData: data, profileLoading: false });
+    } catch (error: any) {
+      set({ profileError: error.message || 'Failed to update profile', profileLoading: false });
+    }
+  },
+
   updateOrientationSession: async (gondolaId, sessionId, session) => {
     set({ orientationSessionsLoading: true, orientationSessionsError: null });
     try {

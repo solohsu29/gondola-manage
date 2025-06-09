@@ -8,41 +8,50 @@ import { Button } from "@/components/ui/button";
 import { Form, FormItem, FormLabel, FormControl, FormMessage, FormField } from '@/components/ui/form';
 import { useUserInfo } from "@/hooks/useUserInfo";
 
-export default function SignupPage() {
+import { useSearchParams, useRouter } from "next/navigation";
+
+export default function ResetPassword() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const emailFromQuery = searchParams.get("email") || '';
   const schema = yup.object().shape({
-    email: yup.string().email('Invalid email').required('Email is required'),
-    name: yup.string().required('Name is required'),
     password: yup.string().required('Password is required').min(8, 'Password must be at least 8 characters'),
+    confirmPassword: yup.string()
+      .oneOf([yup.ref('password')], 'Passwords must match')
+      .required('Please confirm your password'),
   });
 
   const form = useForm({
-    defaultValues: { email: '', name: '', password: '' },
+    defaultValues: { password: '', confirmPassword: '' },
     resolver: yupResolver(schema),
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
-  const { storeEmail, fetchUser } = useUserInfo();
+  const { removeForgotPassData } = useUserInfo();
 
-  async function onSubmit(values: { email: string; name: string; password: string }) {
+  async function onSubmit(values: { password: string; confirmPassword: string }) {
     setLoading(true);
     setError("");
     setSuccess("");
+    if (!emailFromQuery) {
+      setError("Email is missing. Please restart the reset password flow.");
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ email: emailFromQuery, password: values.password }),
       });
       const data = await res.json();
-     
-      if (!res.ok) throw new Error(data.error || data.message || "Signup failed");
-      storeEmail(values.email);
-      await fetchUser(); // Update user info after signup
-      setSuccess("Signup successful! Please check your email for OTP (signup only).");
+      if (!res.ok) throw new Error(data.message || "Reset failed");
+      removeForgotPassData();
+      setSuccess("Password reset successful! Redirecting to login...");
       setTimeout(() => {
-        window.location.href = "/verify-otp";
-      }, 1200);
+        router.push('/login');
+      }, 1000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -51,59 +60,48 @@ export default function SignupPage() {
   }
 
   return (
+   
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="bg-background p-8 rounded shadow-md w-full max-w-md space-y-6"
         >
-          <h1 className="text-2xl font-bold mb-4 text-center">Sign Up</h1>
+          <h1 className="text-2xl font-bold mb-4 text-center">Reset Password</h1>
           {error && <div className="text-red-600">{error}</div>}
           {success && <div className="text-green-600">{success}</div>}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>New Password</FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <Input type="password" value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm New Password</FormLabel>
+                <FormControl>
+                  <Input type="password" value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing up..." : "Sign Up"}
+            {loading ? "Resetting..." : "Reset Password"}
           </Button>
         </form>
       </Form>
     </div>
+   
   );
 }

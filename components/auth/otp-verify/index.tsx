@@ -7,10 +7,14 @@ import { Form, FormItem, FormLabel, FormControl, FormMessage, FormField } from '
 import { Button } from '@/components/ui/button';
 import { useUserInfo } from "@/hooks/useUserInfo";
 import { useRouter } from "next/navigation";
-import { useForm, FormProvider } from "react-hook-form";
 
+import { useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
 
-export default function VerifyOtpPage() {
+export default function OtpVerifyForgotPassword() {
+  const searchParams = useSearchParams();
+  const emailFromQuery = searchParams.get("email") || "";
+  const { email: emailFromStore, storeEmail, removeAllData } = useUserInfo();
   const schema = yup.object().shape({
     otp: yup.string().required('OTP is required').matches(/^\d{6}$/, 'OTP must be 6 digits'),
   });
@@ -20,8 +24,16 @@ export default function VerifyOtpPage() {
     resolver: yupResolver(schema),
   });
   const [otp, setOtp] = useState("");
-  const { email, removeAllData, fetchUser } = useUserInfo();
+  const [email, setEmail] = useState(emailFromQuery || emailFromStore || "");
   const [loading, setLoading] = useState(false);
+
+  // On mount, if emailFromQuery exists, store it in localStorage/state
+  useEffect(() => {
+    if (emailFromQuery) {
+      setEmail(emailFromQuery);
+      storeEmail(emailFromQuery);
+    }
+  }, [emailFromQuery, storeEmail]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -33,7 +45,7 @@ export default function VerifyOtpPage() {
 
   const router = useRouter();
 
-  // Start countdown on mount and after resend
+  // Countdown timer logic
   useEffect(() => {
     if (timer === 0 && timerRef.current) {
       clearInterval(timerRef.current);
@@ -52,7 +64,6 @@ export default function VerifyOtpPage() {
       }
     };
   }, [timer]);
-
 
 
   const handleResend = async () => {
@@ -76,7 +87,7 @@ export default function VerifyOtpPage() {
     }
   };
 
-  const onSubmit = async (data: { otp: string }) => {
+  const onSubmit = async (values:{otp:string}) => {
     setLoading(true);
     setError("");
     setSuccess("");
@@ -84,13 +95,14 @@ export default function VerifyOtpPage() {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: data.otp }),
+        body: JSON.stringify({ email, otp:values.otp }),
       });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "OTP verification failed");
-      removeAllData();
-      setSuccess("OTP verified! Redirecting...");
-      router.push('/login');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "OTP verification failed");
+      setSuccess("OTP verified! Redirecting to password reset...");
+      setTimeout(() => {
+        router.push(`/reset-password?email=${encodeURIComponent(email ?? '')}`);
+      }, 1000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -98,20 +110,13 @@ export default function VerifyOtpPage() {
     }
   };
 
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-background p-8 rounded shadow-md w-full max-w-md space-y-6"
-        >
-        <h1 className="text-2xl font-bold mb-4 text-center">Verify OTP</h1>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background p-8 rounded shadow-md w-full max-w-md space-y-6">
+          <h1 className="text-2xl font-bold mb-4 text-center">Verify OTP (Forgot Password)</h1>
         {error && <div className="text-red-600">{error}</div>}
         {success && <div className="text-green-600">{success}</div>}
-        {resendError && <div className="text-red-600 text-center">{resendError}</div>}
-        {resendSuccess && <div className="text-green-600 text-center">{resendSuccess}</div>}
-
         <FormField
           control={form.control}
           name="otp"
@@ -136,28 +141,33 @@ export default function VerifyOtpPage() {
             </FormItem>
           )}
         />
-        <div className="flex flex-col items-center mb-2">
-          <span className="text-sm text-muted-foreground mb-1">
-            Didn't receive OTP?
-          </span>
-          <Button
-            type="button"
-            variant="link"
-            className="p-0 h-auto text-blue-600 disabled:text-gray-400"
-            onClick={handleResend}
-            disabled={timer > 0 || resendLoading}
-          >
-            {resendLoading
-              ? "Resending..."
-              : timer > 0
-                ? `Resend OTP in ${timer}s`
-                : "Resend OTP"}
-          </Button>
-        </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Verifying..." : "Verify OTP"}
         </Button>
-        </form>
+      
+
+
+         <div className="flex flex-col items-center mb-2">
+                  <span className="text-sm text-muted-foreground mb-1">
+                    Didn't receive OTP?
+                  </span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="p-0 h-auto text-blue-600 disabled:text-gray-400"
+                    onClick={handleResend}
+                    disabled={timer > 0 || resendLoading}
+                  >
+                    {resendLoading
+                      ? "Resending..."
+                      : timer > 0
+                        ? `Resend OTP in ${timer}s`
+                        : "Resend OTP"}
+                  </Button>
+                  {resendSuccess && <span className="text-green-600 text-sm ml-2">{resendSuccess}</span>}
+                  {resendError && <span className="text-red-600 text-sm ml-2">{resendError}</span>}
+                </div>
+      </form>
       </Form>
     </div>
   );

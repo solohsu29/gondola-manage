@@ -18,7 +18,7 @@ export default function Sidebar() {
   }, [pathname])
 
   return (
-    <div className="w-64 border-r bg-white h-full flex flex-col">
+    <div className="w-64 border-r bg-background h-full flex flex-col">
       <div className="p-4 border-b">
         <Link href="/" className="text-xl font-bold text-blue-800">
           Gondola Manager
@@ -54,14 +54,7 @@ export default function Sidebar() {
           />
         </nav>
       </div>
-      <div className="p-4 border-t">
-        <NavItem
-          href="/settings"
-          icon={<Settings className="h-5 w-5" />}
-          label="Settings"
-          isActive={activeItem === "/settings"}
-        />
-      </div>
+    
     </div>
   )
 }
@@ -83,7 +76,7 @@ function NavItem({ href, icon, label, hasSubmenu = false, isActive = false }: Na
       }`}
     >
       <span className={`mr-3 ${isActive ? "text-blue-800" : "text-gray-500 group-hover:text-blue-800"}`}>{icon}</span>
-      <span className="flex-1">{label}</span>
+      <span className={`flex-1 ${isActive ? "text-blue-800" : "text-foreground group-hover:text-blue-800"}`}>{label}</span>
       {hasSubmenu && (
         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -19,11 +19,11 @@ export default function PageLayout({
 }>) {
   return (
    
-          <div className="flex h-screen overflow-hidden">
+          <div className="flex h-screen bg-background overflow-hidden">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
               <Header />
-              <main className="flex-1 overflow-auto bg-gray-50">{children}</main>
+              <main className="flex-1 overflow-auto bg-background">{children}</main>
             </div>
           </div>
        

@@ -121,7 +121,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-xl font-semibold">Delivery Orders ({project.deliveryOrders.length})</h2>
-              <p className="text-gray-500">Delivery orders assigned to this project</p>
+              <p className="text-foreground">Delivery orders assigned to this project</p>
             </div>
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
@@ -194,13 +194,13 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                       <h3 className="text-sm font-medium mb-4">
                         Selected Delivery Orders ({selectedDeliveryOrders.length})
                       </h3>
-                      <div className="max-h-64 overflow-y-auto border rounded-md bg-gray-50">
+                      <div className="max-h-64 overflow-y-auto border rounded-md bg-background">
                         {selectedDeliveryOrders.length > 0 ? (
                           <div className="space-y-2 p-3">
                             {selectedDeliveryOrders.map((deliveryOrder, index) => (
                               <div
                                 key={deliveryOrder.id}
-                                className="flex items-center justify-between p-2 bg-white border rounded-md"
+                                className="flex items-center justify-between p-2 bg-background border rounded-md"
                               >
                                 <div className="flex-1">
                                   <div className="font-medium">{deliveryOrder.number}</div>
@@ -261,7 +261,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
           <div className="space-y-4">
             {project.deliveryOrders.map((deliveryOrder: any, index: number) => (
               <div key={deliveryOrder.id} className="border rounded-md overflow-hidden">
-                <div className="p-4 bg-gray-50 border-b">
+                <div className="p-4 bg-background border-b">
                   <div className="flex justify-between items-center">
                     <h3 className="font-medium">{deliveryOrder.number}</h3>
                     <span
@@ -436,9 +436,9 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                     </div>
   
                     <div className="border-t pt-4">
-                      <Label className="text-sm font-medium text-gray-500">Additional Information</Label>
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                        <p className="text-sm text-gray-600">
+                      <Label className="text-sm font-medium text-foreground">Additional Information</Label>
+                      <div className="mt-2 p-3 bg-background rounded-md">
+                        <p className="text-sm text-foreground">
                           This delivery order is linked to the current project and contains{" "}
                           {selectedDeliveryOrderForView.items} item(s) with a total value of{" "}
                           {selectedDeliveryOrderForView.amount}.

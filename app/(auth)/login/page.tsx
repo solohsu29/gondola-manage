@@ -69,7 +69,7 @@ const router = useRouter()
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-6"
+          className="bg-background p-8 rounded shadow-md w-full max-w-md space-y-6"
         >
           <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
           {error && <div className="text-red-600">{error}</div>}

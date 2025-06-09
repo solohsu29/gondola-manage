@@ -30,6 +30,17 @@ export async function POST(req: Request) {
         name,
       },
     });
+    // Create the profile for the user
+    await prisma.profile.create({
+      data: {
+        userId: user.id,
+        firstName: '',
+        lastName: '',
+        phone: '',
+        jobTitle: '',
+        department: '',
+      },
+    });
     // Generate OTP
     const code = generateOtp();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 10); // 10 min expiry

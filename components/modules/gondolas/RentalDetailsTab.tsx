@@ -494,7 +494,7 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
           <h3 className="text-lg font-semibold mb-4">Rental Information</h3>
           {projects.length > 0 ? (
             projects.map((project: any) => (
-              <div key={project.id} className="bg-white border rounded-md p-4 mb-4">
+              <div key={project.id} className="bg-background border rounded-md p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Project Name</p>

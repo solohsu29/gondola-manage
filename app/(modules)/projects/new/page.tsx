@@ -389,7 +389,7 @@ export default function NewProjectPage() {
                           {formData.deliveryOrders.map((deliveryOrder, index) => (
                             <div
                               key={deliveryOrder.id}
-                              className="flex items-center justify-between p-2 bg-white border rounded-md"
+                              className="flex items-center justify-between p-2 bg-background border rounded-md"
                             >
                               <div className="flex items-center gap-3 flex-1">
                                 <input
@@ -566,7 +566,7 @@ export default function NewProjectPage() {
                           {formData.gondolas.map((gondola, index) => (
                             <div
                               key={gondola.id}
-                              className="flex items-center justify-between p-2 bg-white border rounded-md"
+                              className="flex items-center justify-between p-2 bg-background border rounded-md"
                             >
                               <div className="flex items-center gap-3 flex-1">
                                 <input

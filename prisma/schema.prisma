@@ -17,6 +17,7 @@ model User {
   updatedAt DateTime @updatedAt
   otps      OTP[]
   profile   Profile?
+  notifications Notification[]
 }
 
 model OTP {
@@ -31,8 +32,8 @@ model OTP {
 }
 
 model DeliveryOrder {
-  updatedAt   DateTime @updatedAt @default(now())
-  id           String   @id @default(uuid())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  id           String    @id @default(uuid())
   projectId    String?
   number       String
   date         DateTime
@@ -45,53 +46,53 @@ model DeliveryOrder {
   status       String
   amount       String
   items        Int
-  project      Project? @relation(fields: [projectId], references: [id])
+  project      Project?  @relation(fields: [projectId], references: [id])
   document     Document? @relation("DeliveryOrderDocument", fields: [documentId], references: [id])
-  documentId   String? @unique
+  documentId   String?   @unique
 }
 
 model Project {
-  updatedAt   DateTime @updatedAt @default(now())
-  id               String          @id @default(uuid())
+  updatedAt        DateTime         @default(now()) @updatedAt
+  id               String           @id @default(uuid())
   client           String
   site             String
   created          DateTime
   status           String
   startDate        DateTime?
   endDate          DateTime?
-  projectName      String?         @db.VarChar(255)
+  projectName      String?          @db.VarChar(255)
   projectManagerId Int?
   deliveryOrders   DeliveryOrder[]
   documents        Document[]
-  projectManager   ProjectManager? @relation("Project_projectManagerId", fields: [projectManagerId], references: [id])
-  projectGondolas ProjectGondola[]
-  gondolasOne     Gondola[] @relation("ProjectToGondola")
+  projectManager   ProjectManager?  @relation("Project_projectManagerId", fields: [projectManagerId], references: [id])
+  projectGondolas  ProjectGondola[]
+  gondolasOne      Gondola[]        @relation("ProjectToGondola")
 }
 
 model Gondola {
-  updatedAt   DateTime @updatedAt @default(now())
-  photos Photo[]
-  id             String         @id @default(uuid())
-  serialNumber   String
-  location       String
-  locationDetail String
-  lastInspection DateTime
-  nextInspection DateTime
-  status         String
-  photoName      String?
-  photoData      Bytes?
-  projectId      String?
-  certificates   Certificate[]
-  documents      Document[]
-  project        Project?       @relation("ProjectToGondola", fields: [projectId], references: [id])
-  inspections    Inspection[]
-  shiftHistory   ShiftHistory[]
-  repairLogs     RepairLog[]
+  updatedAt       DateTime         @default(now()) @updatedAt
+  photos          Photo[]
+  id              String           @id @default(uuid())
+  serialNumber    String
+  location        String
+  locationDetail  String
+  lastInspection  DateTime
+  nextInspection  DateTime
+  status          String
+  photoName       String?
+  photoData       Bytes?
+  projectId       String?
+  certificates    Certificate[]
+  documents       Document[]
+  project         Project?         @relation("ProjectToGondola", fields: [projectId], references: [id])
+  inspections     Inspection[]
+  shiftHistory    ShiftHistory[]
+  repairLogs      RepairLog[]
   projectGondolas ProjectGondola[]
 }
 
 model RepairLog {
-  updatedAt   DateTime @updatedAt @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
   id           String   @id @default(uuid())
   gondolaId    String?
   date         DateTime
@@ -102,32 +103,32 @@ model RepairLog {
   isChargeable Boolean?
   technician   String
   status       String
-  gondola      Gondola?  @relation(fields: [gondolaId], references: [id])
+  gondola      Gondola? @relation(fields: [gondolaId], references: [id])
 }
 
 model Document {
-  updatedAt   DateTime @updatedAt @default(now())
-  id        String    @id @default(uuid())
-  gondolaId String?
-  type      String
-  name      String
-  uploaded  DateTime
-  expiry    DateTime?
-  status    String?
-  filePath  String?
-  fileData  Bytes?
+  updatedAt     DateTime       @default(now()) @updatedAt
+  id            String         @id @default(uuid())
+  gondolaId     String?
+  type          String
+  name          String
+  uploaded      DateTime
+  expiry        DateTime?
+  status        String?
+  filePath      String?
+  fileData      Bytes?
   deliveryOrder DeliveryOrder? @relation("DeliveryOrderDocument")
-  projectId String?
-  fileUrl   String?
-  category  String?
-  title     String?
-  notes     String?
-  gondola   Gondola?  @relation(fields: [gondolaId], references: [id])
-  project   Project?  @relation(fields: [projectId], references: [id])
+  projectId     String?
+  fileUrl       String?
+  category      String?
+  title         String?
+  notes         String?
+  gondola       Gondola?       @relation(fields: [gondolaId], references: [id])
+  project       Project?       @relation(fields: [projectId], references: [id])
 }
 
 model ShiftHistory {
-  updatedAt   DateTime @updatedAt @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
   id                 String   @id @default(uuid())
   gondolaId          String
   fromLocation       String
@@ -143,13 +144,13 @@ model ShiftHistory {
 }
 
 model Certificate {
-  updatedAt   DateTime @updatedAt @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
   id         String   @id @default(uuid())
   gondolaId  String
   title      String
   status     String
   expiryDate DateTime
-  gondola    Gondola?  @relation(fields: [gondolaId], references: [id])
+  gondola    Gondola? @relation(fields: [gondolaId], references: [id])
 }
 
 model Inspection {
@@ -163,7 +164,7 @@ model Inspection {
   notes        String?
   notifyClient String?
   createdAt    DateTime @default(now())
-  gondola      Gondola?  @relation(fields: [gondolaId], references: [id])
+  gondola      Gondola? @relation(fields: [gondolaId], references: [id])
 }
 
 model ProjectManager {
@@ -176,41 +177,53 @@ model ProjectManager {
 }
 
 model Photo {
-  id         String   @id @default(uuid())
-  gondolaId  String
-  fileName   String
-  mimeType   String
-  uploaded   DateTime @default(now())
-  fileData   Bytes
+  id          String   @id @default(uuid())
+  gondolaId   String
+  fileName    String
+  mimeType    String
+  uploaded    DateTime @default(now())
+  fileData    Bytes
   description String?
-  category   String?
-  gondola    Gondola?  @relation(fields: [gondolaId], references: [id])
+  category    String?
+  gondola     Gondola? @relation(fields: [gondolaId], references: [id])
 }
 
 model ProjectGondola {
-  projectId  String
-  gondolaId  String
+  projectId String
+  gondolaId String
 
-  project    Project  @relation(fields: [projectId], references: [id])
-  gondola    Gondola  @relation(fields: [gondolaId], references: [id])
-
-  @@id([projectId, gondolaId])
+  project Project @relation(fields: [projectId], references: [id])
+  gondola Gondola @relation(fields: [gondolaId], references: [id])
 
   description String?
-  category   String?
+  category    String?
+
+  @@id([projectId, gondolaId])
 }
 
 model Profile {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique
-  user       User     @relation(fields: [userId], references: [id])
-  firstName  String
-  lastName   String
-  phone      String?
-  jobTitle   String?
-  department String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                      Int      @id @default(autoincrement())
+  userId                  Int      @unique
+  user                    User     @relation(fields: [userId], references: [id])
+  firstName               String
+  lastName                String
+  phone                   String?
+  jobTitle                String?
+  department              String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  photoUrl                String?
+  photoData               Bytes?
+  photoName               String?
+  photoMimeType           String?
+  notificationPreferences Json? // New field for notification preferences
+  language                String?
+  timezone                String?
+  dateFormat              String?
+  timeFormat              String?
+  currency                String?
+  darkMode                Boolean?
+  compactMode             Boolean?
 }
 
 enum OTPType {
@@ -218,4 +231,18 @@ enum OTPType {
   LOGIN
   FORGOT_PASSWORD
   RESET_PASSWORD
+}
+
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     Int
+  type       String
+  message    String
+  date       DateTime @default(now())
+  read       Boolean  @default(false)
+  actionLink String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
 }

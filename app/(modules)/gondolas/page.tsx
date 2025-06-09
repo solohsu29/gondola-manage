@@ -122,7 +122,7 @@ export default function GondolasPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Gondolas</h1>
 
-      <div className="bg-white border rounded-lg overflow-hidden">
+      <div className="bg-background border rounded-lg overflow-hidden">
         <div className="p-4 flex flex-col sm:flex-row gap-4 border-b">
           <div className="relative flex-1">
             <Input type="search" placeholder="Search gondolas..." className="pl-10" />
