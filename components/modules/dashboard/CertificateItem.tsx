@@ -14,7 +14,7 @@ interface CertificateItemProps {
       <div className="flex items-center justify-between border-b pb-3">
         <div>
           <p className="font-medium">{title}</p>
-          <p className="text-sm text-gray-500">Gondola: {serialNumber}</p>
+          <p className="text-sm text-foreground">Gondola: {serialNumber}</p>
         </div>
         <Badge
           variant="outline"

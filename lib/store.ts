@@ -59,9 +59,11 @@ interface OrientationSession {
   gondola_id: string;
   session_type: string;
   date: string;
+  time:string;
   notes?: string;
   conducted_by?: string;
-  maxParticipants?:number
+  instructor?:string;
+  max_participants?:number
   duration?:number
   location?:string
 }
@@ -367,7 +369,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/gondola");
       if (!res.ok) throw new Error(`Failed to fetch gondolas (${res.status})`);
       const data = await res.json();
-      set({ gondolas: data });
+      set({ gondolas: data,gondolasLoading:false });
     } catch (err: any) {
       set({ gondolasError: err.message || 'Unknown error' });
     } finally {

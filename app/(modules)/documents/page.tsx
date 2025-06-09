@@ -13,7 +13,7 @@ export default function DocumentsPage() {
         <CardContent className="p-0">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">All Documents</h2>
-            <p className="text-gray-500">Complete list of all documents across all gondolas</p>
+            <p className="text-foreground">Complete list of all documents across all gondolas</p>
 
             <div className="mt-4 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -25,13 +25,13 @@ export default function DocumentsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left p-4 font-medium text-gray-500">Gondola</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Type</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Name</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Uploaded</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Expiry</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Status</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Actions</th>
+                  <th className="text-left p-4 font-medium text-foreground">Gondola</th>
+                  <th className="text-left p-4 font-medium text-foreground">Type</th>
+                  <th className="text-left p-4 font-medium text-foreground">Name</th>
+                  <th className="text-left p-4 font-medium text-foreground">Uploaded</th>
+                  <th className="text-left p-4 font-medium text-foreground">Expiry</th>
+                  <th className="text-left p-4 font-medium text-foreground">Status</th>
+                  <th className="text-left p-4 font-medium text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>

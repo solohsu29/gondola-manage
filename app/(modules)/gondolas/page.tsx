@@ -3,10 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { GondolasDataTable } from "../../../components/modules/gondolas/GondolasDataTable"
 import { Input } from "@/components/ui/input"
-import { Filter, Download, Plus, ChevronDown } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
+import { Filter, Download, Plus } from "lucide-react"
 import { useState } from "react"
 import {
   Dialog,
@@ -20,13 +17,16 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-
+import {v4 as uuid} from 'uuid'
 import { useAppStore } from "@/lib/store";
+import { toast } from "sonner"
 
 export default function GondolasPage() {
   const [isNewGondolaDialogOpen, setIsNewGondolaDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const { gondolas, fetchGondolas } = useAppStore();
+  const [createLoading,setCreateLoading] = useState(false)
+  const [refresh,setRefresh] = useState('')
 
   // New Gondola state
   const [newGondola, setNewGondola] = useState({
@@ -59,6 +59,7 @@ export default function GondolasPage() {
       formData.append("image", newGondola.image);
     }
     try {
+      setCreateLoading(true)
       const res = await fetch("/api/gondola", {
         method: "POST",
         body: formData,
@@ -75,9 +76,13 @@ export default function GondolasPage() {
         notes: "",
         image: null,
       });
-      await fetchGondolas();
-    } catch (err) {
-      alert("Error creating gondola. Please try again.");
+     
+      setCreateLoading(false)
+      setRefresh(uuid())
+    } catch (err:any) {
+      setCreateLoading(false)
+
+      toast.error("Create gondola failed",{description:err.msg ||"Error creating gondola. Please try again.",className:"bg-destructive text-white"})
     }
   };
 
@@ -172,7 +177,7 @@ export default function GondolasPage() {
       <span>New Gondola</span>
     </Button>
   </DialogTrigger>
-  <DialogContent className="sm:max-w-[500px]">
+  <DialogContent className="sm:max-w-[500px] max-h-[90%] overflow-y-auto">
     <DialogHeader>
       <DialogTitle>Add New Gondola</DialogTitle>
       <DialogDescription>Create a new gondola entry in the system</DialogDescription>
@@ -272,14 +277,14 @@ export default function GondolasPage() {
             accept="image/*"
             onChange={e => setNewGondola({ ...newGondola, image: e.target.files?.[0] || null })}
           />
-          <p className="text-xs text-gray-500 mt-1">Upload an image of the gondola (JPG, PNG, max 5MB)</p>
+          <p className="text-xs text-foreground mt-1">Upload an image of the gondola (JPG, PNG, max 5MB)</p>
         </div>
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={() => setIsNewGondolaDialogOpen(false)}>
           Cancel
         </Button>
-        <Button type="submit">Create Gondola</Button>
+        <Button type="submit" disabled={createLoading}>{createLoading ? "Creating...":"Create Gondola"}</Button>
       </DialogFooter>
     </form>
   </DialogContent>
@@ -290,7 +295,7 @@ export default function GondolasPage() {
 
         <div className="overflow-x-auto">
           {/* DataTable for gondolas */}
-          <GondolasDataTable />
+          <GondolasDataTable refresh={refresh}/>
         </div>
        
 

@@ -164,12 +164,12 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                             />
                             <label htmlFor={`select-do-${deliveryOrder.id}`} className="flex-1 cursor-pointer">
                               <div className="font-medium">{deliveryOrder.number}</div>
-                              <div className="text-sm text-gray-500">Client: {deliveryOrder.client}</div>
-                              <div className="text-sm text-gray-500">Site: {deliveryOrder.site}</div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-foreground">Client: {deliveryOrder.client}</div>
+                              <div className="text-sm text-foreground">Site: {deliveryOrder.site}</div>
+                              <div className="text-sm text-foreground">
                                 Amount: {deliveryOrder.amount} | Items: {deliveryOrder.items}
                               </div>
-                              <div className="text-sm text-gray-500">Delivery: {deliveryOrder.deliveryDate?.split("T")[0]}</div>
+                              <div className="text-sm text-foreground">Delivery: {deliveryOrder.deliveryDate?.split("T")[0]}</div>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -204,8 +204,8 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                               >
                                 <div className="flex-1">
                                   <div className="font-medium">{deliveryOrder.number}</div>
-                                  <div className="text-sm text-gray-500">{deliveryOrder.client}</div>
-                                  <div className="text-sm text-gray-500">{deliveryOrder.site}</div>
+                                  <div className="text-sm text-foreground">{deliveryOrder.client}</div>
+                                  <div className="text-sm text-foreground">{deliveryOrder.site}</div>
                                 </div>
                                 <Button
                                   type="button"
@@ -223,7 +223,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                             ))}
                           </div>
                         ) : (
-                          <div className="p-4 text-center text-gray-500">No delivery orders selected</div>
+                          <div className="p-4 text-center text-foreground">No delivery orders selected</div>
                         )}
                       </div>
   
@@ -280,27 +280,27 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Order Date</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Order Date</h4>
                       <p>{deliveryOrder.orderDate?.split("T")[0]}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Delivery Date</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Delivery Date</h4>
                       <p>{deliveryOrder.deliveryDate?.split("T")[0]}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">PO Reference</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">PO Reference</h4>
                       <p>{deliveryOrder.poReference}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Amount</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Amount</h4>
                       <p>{deliveryOrder.amount}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Items</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Items</h4>
                       <p>{deliveryOrder.items}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Document</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Document</h4>
                       {deliveryOrder.documentId ? (
                         <button
                           onClick={() =>    window.open(`/api/document/${deliveryOrder.documentId}/serve`, "_blank")}
@@ -361,7 +361,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
             ))}
   
             {project.deliveryOrders.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-foreground">
                 <p>No delivery orders linked to this project.</p>
                 <p className="text-sm mt-2">Click "Link DO" to add delivery orders from the ERP system.</p>
               </div>
@@ -379,11 +379,11 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">DO Number</Label>
+                        <Label className="text-sm font-medium text-foreground">DO Number</Label>
                         <p className="mt-1">{selectedDeliveryOrderForView.number}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Status</Label>
+                        <Label className="text-sm font-medium text-foreground">Status</Label>
                         <p className="mt-1">
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -399,27 +399,27 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Order Date</Label>
+                        <Label className="text-sm font-medium text-foreground">Order Date</Label>
                         <p className="mt-1">{selectedDeliveryOrderForView.orderDate?.split("T")[0]}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Delivery Date</Label>
+                        <Label className="text-sm font-medium text-foreground">Delivery Date</Label>
                         <p className="mt-1">{selectedDeliveryOrderForView.deliveryDate?.split("T")[0]}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">PO Reference</Label>
+                        <Label className="text-sm font-medium text-foreground">PO Reference</Label>
                         <p className="mt-1">{selectedDeliveryOrderForView.poReference}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Amount</Label>
+                        <Label className="text-sm font-medium text-foreground">Amount</Label>
                         <p className="mt-1 font-semibold">{selectedDeliveryOrderForView.amount}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Items Count</Label>
+                        <Label className="text-sm font-medium text-foreground">Items Count</Label>
                         <p className="mt-1">{selectedDeliveryOrderForView.items}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Document</Label>
+                        <Label className="text-sm font-medium text-foreground">Document</Label>
                         <p className="mt-1">
                           {selectedDeliveryOrderForView.documentId ? (
                             <button

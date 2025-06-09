@@ -9,7 +9,7 @@ export default function WorkflowPage() {
       <Card>
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">Process Flow Diagram</h2>
-          <p className="text-gray-500 mb-6">
+          <p className="text-foreground mb-6">
             This diagram illustrates the complete workflow for gondola management, from delivery orders to deployment
             and maintenance.
           </p>

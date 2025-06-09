@@ -32,7 +32,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
       editData.date &&
       editData.time &&
       editData.duration &&
-      editData.conducted_by &&
+      editData.instructor &&
       editData.location
     ) {
       if (!selectedSession?.id) {
@@ -44,9 +44,9 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
         date: editData.date,
         time: editData.time,
         duration: Number(editData.duration),
-        conducted_by: editData.conducted_by,
+       instructor: editData.instructor,
         location: editData.location,
-        maxParticipants: editData.maxParticipants ? Number(editData.maxParticipants) : undefined,
+        max_participants: editData. max_participants ? Number(editData. max_participants) : undefined,
         notes: editData.notes || undefined,
       };
       const success = await updateOrientationSession(
@@ -72,7 +72,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
   const [sessionTime, setSessionTime] = useState("09:00");
   const [duration, setDuration] = useState("");
   const [instructor, setInstructor] = useState("");
-  const [maxParticipants, setMaxParticipants] = useState("6");
+  const [ max_participants, setMaxParticipants] = useState("6");
   const [notes, setNotes] = useState("");
   const [location, setLocation] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -103,14 +103,13 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
   const handleScheduleSession = async () => {
     if (sessionType && sessionDate && sessionTime && duration && instructor) {
       const date = `${sessionDate}T${sessionTime}`;
-      const conducted_by = instructor;
-    
       const success = await createOrientationSession(gondolaId, {
         session_type: sessionType,
         date,
+        time: sessionTime,
         notes: notes || undefined,
-        conducted_by,
-        maxParticipants: Number(maxParticipants),
+        instructor,
+        max_participants: Number( max_participants),
         duration: Number(duration),
         location: location || undefined,
       });
@@ -150,9 +149,9 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
       date: session.date ? new Date(session.date).toISOString().slice(0, 10) : "",
       time: session.date ? new Date(session.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).slice(0,5) : "",
       duration: session.duration ? String(session.duration) : "",
-      conducted_by: session.conducted_by || session.instructor || "",
+      instructor: session.instructor || "",
       location: session.location || "",
-      maxParticipants: session.maxParticipants ? String(session.maxParticipants) : "",
+      max_participants: session. max_participants ? String(session. max_participants) : "",
       notes: session.notes || "",
     });
     setIsEditSessionDialogOpen(true);
@@ -177,7 +176,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
         const idx = row.index;
         const session = row.original;
         const sessionDate = new Date(session.date);
-        return session.id || `OS-${sessionDate.getFullYear()}-${String(idx + 1).padStart(3, "0")}`;
+        return session.id?.slice(0,10) || `OS-${sessionDate.getFullYear()}-${String(idx + 1).padStart(3, "0")}`;
       },
     },
     {
@@ -195,7 +194,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
         return (
           <div>
             <p className="font-medium">{dateStr}</p>
-            <p className="text-sm text-gray-500">{timeStr}</p>
+            <p className="text-sm text-foreground">{timeStr}</p>
           </div>
         );
       },
@@ -207,13 +206,13 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
     },
     {
       header: 'Instructor',
-      accessorKey: 'conducted_by',
+      accessorKey: 'instructor',
     
       cell: ({ row }) => {
       
         return (
          
-            <p className="font-medium">{row.original.conducted_by?.split("_").join(" ")}</p>
+            <p className="font-medium">{row.original.instructor?.split("_").join(" ")}</p>
             
         );
       },
@@ -222,7 +221,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
       header: 'Participants',
       cell: ({ row }) => {
         const s = row.original;
-        return (typeof s.currentParticipants === 'number' && typeof s.maxParticipants === 'number') ? `${s.currentParticipants}/${s.maxParticipants}` : `${s.maxParticipants || "-"}`;
+        return (typeof s.currentParticipants === 'number' && typeof s. max_participants === 'number') ? `${s.currentParticipants}/${s. max_participants}` : `${s. max_participants || "-"}`;
       },
     },
     {
@@ -272,19 +271,20 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
     },
   ];
 
+  console.log('edit data',editData)
   return (
     <Card>
       <CardContent className="p-0">
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">Orientation Session</h2>
-            <p className="text-gray-500">Manage orientation sessions for gondola operators</p>
+            <p className="text-foreground">Manage orientation sessions for gondola operators</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => setDialogOpen(true)}>Schedule Session</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90%] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Schedule Orientation Session</DialogTitle>
                 <DialogDescription>Schedule a new orientation session for {gondolaId}</DialogDescription>
@@ -353,7 +353,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="maxParticipants">Max Participants</Label>
-                  <Input id="maxParticipants" type="number" min="1" max="12" value={maxParticipants} onChange={e => setMaxParticipants(e.target.value)} />
+                  <Input id="maxParticipants" type="number" min="1" max="12" value={ max_participants} onChange={e => setMaxParticipants(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sessionNotes">Session Notes</Label>
@@ -367,8 +367,9 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                 <Button
                   type="submit"
                   onClick={handleScheduleSession}
+                  disabled={orientationSessionsLoading}
                 >
-                  Schedule Session
+                {orientationSessionsLoading ? "Scheduling..." : "Schedule Session"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -386,7 +387,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <h3 className="font-semibold text-gray-900">Completed Sessions</h3>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">{completedSessions.length}</div>
-                <p className="text-sm text-gray-500">Total completed orientations</p>
+                <p className="text-sm text-foreground">Total completed orientations</p>
               </CardContent>
             </Card>
 
@@ -399,14 +400,14 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <h3 className="font-semibold text-gray-900">Upcoming Sessions</h3>
                 </div>
                 <div className="text-2xl font-bold text-green-600">{upcomingSessions.length}</div>
-                <p className="text-sm text-gray-500">Scheduled for next 30 days</p>
+                <p className="text-sm text-foreground">Scheduled for next 30 days</p>
               </CardContent>
             </Card>
           </div>
 
           <h3 className="text-lg font-semibold mb-4">Session History</h3>
           <div className="overflow-x-auto">
-            <DataTable columns={columns} data={sessionHistory} />
+            <DataTable columns={columns} data={sessionHistory} loading={orientationSessionsLoading}/>
             </div>
                   
                      
@@ -435,21 +436,21 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Session ID</Label>
-                    <p className="font-medium">{selectedSession.id}</p>
+                    <Label className="text-sm font-medium text-foreground">Session ID</Label>
+                    <p className="font-medium">{selectedSession.id?.slice(0,10)}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Gondola ID</Label>
-                    <p className="font-medium">{gondolaId}</p>
+                    <Label className="text-sm font-medium text-foreground">Gondola ID</Label>
+                    <p className="font-medium">{gondolaId?.slice(0,10)}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Session Type</Label>
+                    <Label className="text-sm font-medium text-foreground">Session Type</Label>
                     <p className="font-medium">
                       {selectedSession.session_type || '-'}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Status</Label>
+                    <Label className="text-sm font-medium text-foreground">Status</Label>
                     {(() => {
   const sessionDate = new Date(selectedSession.date);
   const now = new Date('2025-06-06T20:38:46+06:30'); // Use latest known time
@@ -463,35 +464,35 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
 
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Date</Label>
+                    <Label className="text-sm font-medium text-foreground">Date</Label>
                     <p className="font-medium">{selectedSession.date?.split("T")[0]}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Time</Label>
+                    <Label className="text-sm font-medium text-foreground">Time</Label>
                     <p className="font-medium">{selectedSession.date ? new Date(selectedSession.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Duration</Label>
+                    <Label className="text-sm font-medium text-foreground">Duration</Label>
                     <p className="font-medium">{selectedSession.duration} hours</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Instructor</Label>
+                    <Label className="text-sm font-medium text-foreground">Instructor</Label>
                     <p className="font-medium">John Smith</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Location</Label>
+                    <Label className="text-sm font-medium text-foreground">Location</Label>
                     <p className="font-medium">{selectedSession.location}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Participants</Label>
+                    <Label className="text-sm font-medium text-foreground">Participants</Label>
                     <p className="font-medium">
-                     {selectedSession.maxParticipants}
+                     {selectedSession. max_participants}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-500">Notes</Label>
+                  <Label className="text-sm font-medium text-foreground">Notes</Label>
                   {selectedSession.notes &&  <div className="p-3 bg-gray-50 border rounded-md">
                     <p className="text-sm">{selectedSession.notes}</p>
                   </div>}
@@ -506,7 +507,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   if (!isCompleted) return null;
                   return (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Completion Date</Label>
+                      <Label className="text-sm font-medium text-foreground">Completion Date</Label>
                       <p className="font-medium">{selectedSession.date?.split("T")[0]}</p>
                     </div>
                   );
@@ -518,7 +519,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   if (!isCompleted) return null;
                   return (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Instructor Feedback</Label>
+                      <Label className="text-sm font-medium text-foreground">Instructor Feedback</Label>
                       <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                         <p className="text-sm text-green-900">{selectedSession.feedback}</p>
                       </div>
@@ -549,9 +550,9 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                         date: selectedSession.date ? selectedSession.date.split('T')[0] : '',
                         time: selectedSession.time || (selectedSession.date ? (selectedSession.date.split('T')[1] || '').slice(0,5) : ''),
                         duration: selectedSession.duration ? String(selectedSession.duration) : '',
-                        conducted_by: selectedSession.instructor || selectedSession.conducted_by || '',
+                        instructor: selectedSession.instructor || selectedSession.instructor || '',
                         location: selectedSession.location || '',
-                        maxParticipants: selectedSession.maxParticipants ? String(selectedSession.maxParticipants) : '',
+                        max_participants: selectedSession. max_participants ? String(selectedSession. max_participants) : '',
                         notes: selectedSession.notes || '',
                       });
                     }
@@ -567,7 +568,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
 
         {/* Edit Session Dialog */}
         <Dialog open={isEditSessionDialogOpen} onOpenChange={setIsEditSessionDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[90%] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Orientation Session</DialogTitle>
               <DialogDescription>Edit session details for {selectedSession?.id}</DialogDescription>
@@ -585,11 +586,11 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                       <SelectValue placeholder="Select session type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="initial">Initial Orientation</SelectItem>
-                      <SelectItem value="refresher">Refresher Training</SelectItem>
-                      <SelectItem value="safety">Safety Briefing</SelectItem>
-                      <SelectItem value="equipment">Equipment Training</SelectItem>
-                      <SelectItem value="emergency">Emergency Procedures</SelectItem>
+                      <SelectItem value="Initial Orientation">Initial Orientation</SelectItem>
+                      <SelectItem value="Refresher Training">Refresher Training</SelectItem>
+                      <SelectItem value="Safety Briefing">Safety Briefing</SelectItem>
+                      <SelectItem value="Equipment Training">Equipment Training</SelectItem>
+                      <SelectItem value="Emergency Procedures">Emergency Procedures</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -624,7 +625,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="editInstructor">Instructor *</Label>
-                  <Select name="editInstructor" value={editData.conducted_by || ''} onValueChange={v => setEditData((prev: any) => ({ ...prev, conducted_by: v }))}>
+                  <Select name="editInstructor" value={editData.instructor || ''} onValueChange={v => setEditData((prev: any) => ({ ...prev, instructor: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select instructor" />
                     </SelectTrigger>
@@ -651,8 +652,8 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                   <Input
                     id="editMaxParticipants"
                     type="number"
-                    value={editData.maxParticipants || ''}
-                    onChange={e => setEditData((prev: any) => ({ ...prev, maxParticipants: e.target.value }))}
+                    value={editData. max_participants || ''}
+                    onChange={e => setEditData((prev: any) => ({ ...prev,  max_participants: e.target.value }))}
                     min="1"
                     max="12"
                   />
@@ -682,8 +683,9 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               <Button
                 type="submit"
                 onClick={handleEditSessionSave}
+                disabled={orientationSessionsLoading}
               >
-                Save Changes
+               {orientationSessionsLoading?"Saving ...":"Save Changes"} 
               </Button>
             </DialogFooter>
           </DialogContent>

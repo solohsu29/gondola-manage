@@ -354,7 +354,7 @@ return (
                         />
                       
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-foreground mt-1">
                         Must be 8+ characters with uppercase, lowercase, number, and special character
                       </div>
                       {newPassword && (
@@ -427,7 +427,7 @@ return (
                     <p className="text-sm text-gray-600">
                       Current session: {sessionInfo ? sessionInfo.userAgent : 'Loading...'}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground">
                       Last login: {sessionInfo ? sessionInfo.lastLogin : 'Loading...'}
                     </p>
                   </div>
@@ -450,7 +450,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Email Notifications</p>
-                        <p className="text-sm text-gray-500">Receive notifications via email</p>
+                        <p className="text-sm text-foreground">Receive notifications via email</p>
                       </div>
                       <Switch
                         checked={notifications.emailNotifications}
@@ -462,7 +462,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Push Notifications</p>
-                        <p className="text-sm text-gray-500">Receive push notifications in browser</p>
+                        <p className="text-sm text-foreground">Receive push notifications in browser</p>
                       </div>
                       <Switch
                         checked={notifications.pushNotifications}
@@ -482,7 +482,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Certificate Expiry Alerts</p>
-                        <p className="text-sm text-gray-500">Get notified when certificates are about to expire</p>
+                        <p className="text-sm text-foreground">Get notified when certificates are about to expire</p>
                       </div>
                       <Switch
                         checked={notifications.certificateExpiry}
@@ -494,7 +494,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Maintenance Reminders</p>
-                        <p className="text-sm text-gray-500">Receive reminders for scheduled maintenance</p>
+                        <p className="text-sm text-foreground">Receive reminders for scheduled maintenance</p>
                       </div>
                       <Switch
                         checked={notifications.maintenanceReminders}
@@ -506,7 +506,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Project Updates</p>
-                        <p className="text-sm text-gray-500">Get notified about project status changes</p>
+                        <p className="text-sm text-foreground">Get notified about project status changes</p>
                       </div>
                       <Switch
                         checked={notifications.projectUpdates}
@@ -516,7 +516,7 @@ return (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Weekly Reports</p>
-                        <p className="text-sm text-gray-500">Receive weekly summary reports</p>
+                        <p className="text-sm text-foreground">Receive weekly summary reports</p>
                       </div>
                       <Switch
                         checked={notifications.weeklyReports}

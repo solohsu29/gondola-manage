@@ -66,23 +66,23 @@ export default function GondolaDetailPage() {
         </Link>
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Gondola {gondola?.serialNumber || id}</h1>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${gondola?.status === 'deployed' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-              {gondola?.status || '-'}
+            <h1 className="text-2xl font-bold">Gondola {gondola?.gondola?.serialNumber || id}</h1>
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${gondola?.gondola?.status === 'deployed' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+              {gondola?.gondola?.status || '-'}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-gray-500">ID:</span>
-              <span className="ml-2 font-medium">{gondola?.id || id}</span>
+              <span className="text-foreground">ID:</span>
+              <span className="ml-2 font-medium">{gondola?.gondola?.id?.slice(0,10) || id}</span>
             </div>
             <div>
-              <span className="text-gray-500">Serial Number:</span>
-              <span className="ml-2 font-medium">{gondola?.serialNumber || '-'}</span>
+              <span className="text-foreground">Serial Number:</span>
+              <span className="ml-2 font-medium">{gondola?.gondola?.serialNumber || '-'}</span>
             </div>
             <div>
-              <span className="text-gray-500">Location:</span>
-              <span className="ml-2 font-medium">{gondola?.location || '-'}</span>
+              <span className="text-foreground">Location:</span>
+              <span className="ml-2 font-medium">{gondola?.gondola?.location || '-'}</span>
             </div>
           </div>
         </div>
@@ -95,16 +95,16 @@ export default function GondolaDetailPage() {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <MapPin className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">Location</h2>
+              <h2 className="text-sm font-semibold text-foreground">Location</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500">Current Location</p>
-                <p className="font-semibold text-gray-900">{gondola?.location || '-'}</p>
+                <p className="text-sm text-foreground">Current Location</p>
+                <p className="font-semibold text-gray-900">{gondola?.gondola?.location || '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Elevation</p>
-                <p className="font-medium text-gray-700">North</p>
+                <p className="text-sm text-foreground">Elevation</p>
+                <p className="font-medium text-foreground">North</p>
               </div>
             </div>
           </CardContent>
@@ -116,17 +116,17 @@ export default function GondolaDetailPage() {
               <div className="p-2 bg-green-100 rounded-lg">
                 <Calendar className="h-5 w-5 text-green-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">Deployment</h2>
+              <h2 className="text-sm font-semibold text-foreground">Deployment</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500">Deployed Date</p>
-                <p className="font-semibold text-gray-900">{gondola?.createdAt ? new Date(gondola.createdAt).toLocaleDateString() : '-'}</p>
+                <p className="text-sm text-foreground">Deployed Date</p>
+                <p className="font-semibold text-gray-900">{gondola?.gondola?.createdAt ? new Date(gondola.createdAt).toLocaleDateString() : '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Duration</p>
+                <p className="text-sm text-foreground">Duration</p>
                 <p className="font-medium text-green-600">{/* Calculate duration if possible */}
-                  {gondola?.createdAt ? `${Math.floor((Date.now() - new Date(gondola.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days active` : '-'}
+                  {gondola?.createdAt ? `${Math.floor((Date.now() - new Date(gondola.gondola?.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days active` : '-'}
                 </p>
               </div>
             </div>
@@ -139,15 +139,15 @@ export default function GondolaDetailPage() {
               <div className="p-2 bg-purple-100 rounded-lg">
                 <CheckCircle className="h-5 w-5 text-purple-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">Last Inspection</h2>
+              <h2 className="text-sm font-semibold text-foreground">Last Inspection</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500">Completed</p>
-                <p className="font-semibold text-gray-900">{gondola?.lastInspection ? new Date(gondola.lastInspection).toLocaleDateString() : '-'}</p>
+                <p className="text-sm text-foreground">Completed</p>
+                <p className="font-semibold text-gray-900">{gondola?.gondola?.lastInspection ? new Date(gondola.gondola.lastInspection).toLocaleDateString() : '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Status</p>
+                <p className="text-sm text-foreground">Status</p>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <p className="font-medium text-green-600">Passed</p>
@@ -163,18 +163,29 @@ export default function GondolaDetailPage() {
               <div className="p-2 bg-orange-100 rounded-lg">
                 <Clock className="h-5 w-5 text-orange-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">Next Inspection</h2>
+              <h2 className="text-sm font-semibold text-foreground">Next Inspection</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500">Due Date</p>
-                <p className="font-semibold text-gray-900">{gondola?.nextInspection ? new Date(gondola.nextInspection).toLocaleDateString() : '-'}</p>
+                <p className="text-sm text-foreground">Due Date</p>
+                <p className="font-semibold text-gray-900">{gondola?.gondola?.nextInspection ? new Date(gondola.gondola.nextInspection).toLocaleDateString() : '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Time Remaining</p>
+                <p className="text-sm text-foreground">Time Remaining</p>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <p className="font-medium text-orange-600">52 days</p>
+                  <p className="font-medium text-orange-600">{
+                    (() => {
+                      const now = new Date("2025-06-09T22:31:37+06:30");
+                      const due = gondola?.gondola?.nextInspection ? new Date(gondola.gondola.nextInspection) : null;
+                      if (!due) return '-';
+                      const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                      if (isNaN(diff)) return '-';
+                      if (diff < 0) return 'Due';
+                      if (diff === 0) return 'Today';
+                      return `${diff} day${diff === 1 ? '' : 's'}`;
+                    })()
+                  }</p>
                 </div>
               </div>
             </div>
@@ -187,11 +198,11 @@ export default function GondolaDetailPage() {
               <div className="p-2 bg-indigo-100 rounded-lg">
                 <FileText className="h-5 w-5 text-indigo-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">Linked Project</h2>
+              <h2 className="text-sm font-semibold text-foreground">Linked Project</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500">Project ID</p>
+                <p className="text-sm text-foreground">Project ID</p>
                 {gondola?.projects[0]?.id ? (
                   <Link
                     href={`/projects/${gondola.projects[0]?.id}`}
@@ -200,20 +211,20 @@ export default function GondolaDetailPage() {
                     {gondola.projects[0]?.id}
                   </Link>
                 ) : (
-                  <span className="font-medium text-gray-700">-</span>
+                  <span className="font-medium text-foreground">-</span>
                 )}
               </div>
               <div>
-                <p className="text-sm text-gray-500">Project Manager</p>
+                <p className="text-sm text-foreground">Project Manager</p>
                 {gondola?.projectManagerName ? (
                   <>
-                    <p className="font-medium text-gray-700">{gondola.projects[0]?.managerName}</p>
+                    <p className="font-medium text-foreground">{gondola.projects[0]?.managerName}</p>
                     {gondola.projectManagerEmail && (
-                      <p className="text-xs text-gray-500">{gondola.projects[0]?.managerEmail}</p>
+                      <p className="text-xs text-foreground">{gondola.projects[0]?.managerEmail}</p>
                     )}
                   </>
                 ) : (
-                  <span className="font-medium text-gray-700">-</span>
+                  <span className="font-medium text-foreground">-</span>
                 )}
               </div>
             </div>

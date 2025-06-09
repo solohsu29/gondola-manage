@@ -260,7 +260,7 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">Rental Details</h2>
-            <p className="text-gray-500">Manage rental information for GND-001-2023</p>
+            <p className="text-foreground">Manage rental information for GND-001-2023</p>
           </div>
           <div className="flex gap-3">
             <Dialog open={isGenerateDDDialogOpen} onOpenChange={setIsGenerateDDDialogOpen}>
@@ -337,7 +337,7 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                   <div className="space-y-2">
                     <Label htmlFor="certificates">Certificates and Attachments</Label>
                     <Input id="certificates" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={handleDdFormChange} />
-                    <p className="text-sm text-gray-500">Upload relevant certificates and supporting documents</p>
+                    <p className="text-sm text-foreground">Upload relevant certificates and supporting documents</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="additionalNotes">Additional Notes</Label>
@@ -384,9 +384,9 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                       }}
                     />
                     {selectedFiles && selectedFiles.length > 0 ? (
-                      <p className="text-sm text-gray-500">Selected {selectedFiles.length} file(s)</p>
+                      <p className="text-sm text-foreground">Selected {selectedFiles.length} file(s)</p>
                     ) : (
-                      <p className="text-sm text-gray-500">Accepted file types: PDF, DOC, JPG, PNG</p>
+                      <p className="text-sm text-foreground">Accepted file types: PDF, DOC, JPG, PNG</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -497,31 +497,31 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
               <div key={project.id} className="bg-background border rounded-md p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Project Name</p>
+                    <p className="text-sm font-medium text-foreground">Project Name</p>
                     <p className="font-medium text-gray-900">{project.projectName || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Project ID</p>
+                    <p className="text-sm font-medium text-foreground">Project ID</p>
                     <p className="font-medium text-gray-900">{project.id || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Client Name</p>
+                    <p className="text-sm font-medium text-foreground">Client Name</p>
                     <p className="font-medium text-gray-900">{project.client || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Site</p>
+                    <p className="text-sm font-medium text-foreground">Site</p>
                     <p className="font-medium text-gray-900">{project.site || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p className="text-sm font-medium text-foreground">Status</p>
                     <p className="font-medium text-gray-900">{project.status || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Rental Start Date</p>
+                    <p className="text-sm font-medium text-foreground">Rental Start Date</p>
                     <p className="font-medium text-gray-900">{project.startDate ? project.startDate.split('T')[0] : '-'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Rental End Date</p>
+                    <p className="text-sm font-medium text-foreground">Rental End Date</p>
                     <p className="font-medium text-gray-900">{project.endDate ? project.endDate.split('T')[0] : '-'}</p>
                   </div>
                   {/* Add more project/rental fields as needed */}
@@ -529,18 +529,18 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
               </div>
             ))
           ) : (
-            <div className="text-gray-500">No rental details found for this gondola.</div>
+            <div className="text-foreground">No rental details found for this gondola.</div>
           )}
         </div>
 
         <div className="p-6">
   <h3 className="text-lg font-semibold mb-4">Certificates</h3>
   {certificatesLoading ? (
-    <div className="text-gray-500 p-4">Loading certificates...</div>
+    <div className="text-foreground p-4">Loading certificates...</div>
   ) : certificatesError ? (
     <div className="text-red-600 p-4">Error: {certificatesError}</div>
   ) : certificates.length === 0 ? (
-    <div className="text-gray-500 p-4">No certificates found for this gondola.</div>
+    <div className="text-foreground p-4">No certificates found for this gondola.</div>
   ) : (
     <div className="overflow-x-auto">
       {/* DataTable for certificates */}

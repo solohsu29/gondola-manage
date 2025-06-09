@@ -82,7 +82,7 @@ export const columns: ColumnDef<Document>[] = [
     header: "Expiry Date",
     cell: ({ row }) => {
       const expiryDate = row.getValue("expiry") as string | undefined | null;
-      if (!expiryDate) return <div className="text-gray-500">N/A</div>;
+      if (!expiryDate) return <div className="text-foreground">N/A</div>;
       const date = new Date(expiryDate);
       return <div className="font-medium">{date.toLocaleDateString()}</div>;
     },
@@ -92,7 +92,7 @@ export const columns: ColumnDef<Document>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string | undefined | null;
-      if (!status) return <div className="text-gray-500">N/A</div>;
+      if (!status) return <div className="text-foreground">N/A</div>;
       // You might want to add color coding based on status here
       return <span className={`px-2 py-1 text-xs font-medium rounded-full ${status === 'valid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{status}</span>;
     },

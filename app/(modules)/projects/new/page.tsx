@@ -353,7 +353,7 @@ export default function NewProjectPage() {
                           />
                           <label htmlFor={`do-${deliveryOrder.id}`} className="flex-1 cursor-pointer">
                             <div className="font-medium">{deliveryOrder.number}</div>
-                            <div className="text-sm text-gray-500">Date: {deliveryOrder.date?.split("T")[0]}</div>
+                            <div className="text-sm text-foreground">Date: {deliveryOrder.date?.split("T")[0]}</div>
                             {deliveryOrder.documentId ? (
   <button
     type="button"
@@ -373,7 +373,7 @@ export default function NewProjectPage() {
                         </div>
                       ))}
                       {availableDOs?.length === 0 &&(
-                         <div className="p-4 text-center text-gray-500">No available delivery orders</div>
+                         <div className="p-4 text-center text-foreground">No available delivery orders</div>
                       )}
                     </div>
                   </div>
@@ -404,7 +404,7 @@ export default function NewProjectPage() {
                                 />
                                 <div>
                                   <div className="font-medium">{deliveryOrder.number}</div>
-                                  <div className="text-sm text-gray-500">{deliveryOrder.date}</div>
+                                  <div className="text-sm text-foreground">{deliveryOrder.date}</div>
                                   {primaryDOId === deliveryOrder.id && (
                                     <span className="text-xs text-green-600 font-medium">Primary DO</span>
                                   )}
@@ -422,7 +422,7 @@ export default function NewProjectPage() {
                           ))}
                         </div>
                       ) : (
-                        <div className="p-4 text-center text-gray-500">No delivery orders selected</div>
+                        <div className="p-4 text-center text-foreground">No delivery orders selected</div>
                       )}
                     </div>
 
@@ -513,8 +513,8 @@ export default function NewProjectPage() {
                             />
                             <label htmlFor={`gondola-${gondola.id}`} className="flex-1 cursor-pointer">
                               <div className="font-medium">{gondola.id?.slice(0,10)}</div>
-                              <div className="text-sm text-gray-500">Serial: {gondola.serialNumber}</div>
-                              <div className="text-sm text-gray-500">Location: {gondola.location}</div>
+                              <div className="text-sm text-foreground">Serial: {gondola.serialNumber}</div>
+                              <div className="text-sm text-foreground">Location: {gondola.location}</div>
                               <div className="flex justify-between items-center">
                                 <span className="text-xs text-blue-600">Status: Available</span>
                                 <button
@@ -546,14 +546,14 @@ export default function NewProjectPage() {
                           .filter((gondola) => gondola.status === "deployed" || gondola.status === "in use")
                         return (
                           filteredGondolas.length === 0 && (
-                            <div className="p-4 text-center text-gray-500">
+                            <div className="p-4 text-center text-foreground">
                               {gondolaSearch ? "No gondolas match your search criteria" : "No gondolas available"}
                             </div>
                           )
                         )
                       })()}
 
-                      {availableGondolas?.length === 0 &&  <div className="p-4 text-center text-gray-500">No available gondolas</div>}
+                      {availableGondolas?.length === 0 &&  <div className="p-4 text-center text-foreground">No available gondolas</div>}
                     </div>
                   </div>
 
@@ -581,7 +581,7 @@ export default function NewProjectPage() {
                                 />
                                 <div>
                                   <div className="font-medium">{gondola.id}</div>
-                                  <div className="text-sm text-gray-500">{gondola.location}</div>
+                                  <div className="text-sm text-foreground">{gondola.location}</div>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-blue-600">Available</span>
                                     {primaryGondolaId === gondola.id && (
@@ -602,7 +602,7 @@ export default function NewProjectPage() {
                           ))}
                         </div>
                       ) : (
-                        <div className="p-4 text-center text-gray-500">No gondolas selected</div>
+                        <div className="p-4 text-center text-foreground">No gondolas selected</div>
                       )}
                     </div>
 

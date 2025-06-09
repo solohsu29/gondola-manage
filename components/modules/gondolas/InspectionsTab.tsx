@@ -38,8 +38,9 @@ export default function InspectionsTab({ gondolaId }: { gondolaId: string }) {
     notes: '',
     notifyClient: 'false', // must be string for Inspection type
   });
-
+const [uploadDialogOpen,setUploadDialogOpen] = useState(false)
   const { inspections, inspectionsLoading, inspectionsError, fetchInspectionsByGondolaId, updateInspection } = useAppStore()
+  const [loading,setLoading] = useState(false)
 
   useEffect(() => {
     if (gondolaId) fetchInspectionsByGondolaId(gondolaId)
@@ -50,6 +51,8 @@ export default function InspectionsTab({ gondolaId }: { gondolaId: string }) {
   }
 
   const handleScheduleInspection = async () => {
+   
+  
     if (!form.inspectionType || !form.inspectionDate || !form.inspectionTime) {
    
 
@@ -59,6 +62,7 @@ export default function InspectionsTab({ gondolaId }: { gondolaId: string }) {
             });
       return;
     }
+    setLoading(true)
     try {
       const res = await fetch(`/api/gondola/${gondolaId}/schedule-inspection`, {
         method: "POST",
@@ -92,14 +96,16 @@ export default function InspectionsTab({ gondolaId }: { gondolaId: string }) {
         priority: '',
         notes: '',
       });
+      setUploadDialogOpen(false)
       fetchInspectionsByGondolaId(gondolaId);
+      setLoading(false)
     } catch (err: any) {
     
       toast.error("Failed to schedule inspection", {
         description: err.message,
           className: "bg-destructive text-destructive-foreground"
         });
-      
+      setLoading(false)
     }
   }
   const handleViewInspection = (inspection: Inspection) => {
@@ -234,9 +240,9 @@ console.log('inspect',inspections)
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">Inspections</h2>
-            <p className="text-gray-500">Inspection history and upcoming inspections</p>
+            <p className="text-foreground">Inspection history and upcoming inspections</p>
           </div>
-          <Dialog>
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button>Schedule Inspection</Button>
             </DialogTrigger>
@@ -312,8 +318,9 @@ console.log('inspect',inspections)
                 <Button
                   type="button"
                   onClick={handleScheduleInspection}
+                  disabled={loading}
                 >
-                  Schedule Inspection
+               {loading ? "Scheduling":"Schedule Inspection"}   
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -454,19 +461,19 @@ console.log('inspect',inspections)
               <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Inspection ID</Label>
+                    <Label className="text-sm font-medium text-foreground">Inspection ID</Label>
                     <p className="font-medium">{viewInspection.id?.slice(0,10)}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Gondola ID</Label>
+                    <Label className="text-sm font-medium text-foreground">Gondola ID</Label>
                     <p className="font-medium">{viewInspection.gondolaId?.slice(0,10)}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Inspection Type</Label>
+                    <Label className="text-sm font-medium text-foreground">Inspection Type</Label>
                     <p className="font-medium capitalize">{viewInspection.type}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Status</Label>
+                    <Label className="text-sm font-medium text-foreground">Status</Label>
                     {(() => {
                       const now = new Date("2025-06-05T22:42:55+06:30");
                       const inspDate = viewInspection.date ? new Date(viewInspection.date) : null;
@@ -478,31 +485,31 @@ console.log('inspect',inspections)
                     })()}
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Scheduled Date</Label>
+                    <Label className="text-sm font-medium text-foreground">Scheduled Date</Label>
                     <p className="font-medium">{viewInspection.date?.split("T")[0]}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Scheduled Time</Label>
+                    <Label className="text-sm font-medium text-foreground">Scheduled Time</Label>
                     <p className="font-medium">{
   viewInspection?.time || (viewInspection?.date && viewInspection.date.includes('T') ? viewInspection.date.split('T')[1].slice(0,5) : '-')
 }</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Inspector</Label>
+                    <Label className="text-sm font-medium text-foreground">Inspector</Label>
                     <p className="font-medium">{viewInspection.inspector}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Priority</Label>
+                    <Label className="text-sm font-medium text-foreground">Priority</Label>
                     <p className="font-medium">{viewInspection.priority}</p>
                   </div>
                   {viewInspection.status === "Completed" && (
                     <>
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-500">Completed Date</Label>
+                        <Label className="text-sm font-medium text-foreground">Completed Date</Label>
                         <p className="font-medium">{viewInspection.completedDate}</p>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-500">Duration</Label>
+                        <Label className="text-sm font-medium text-foreground">Duration</Label>
                         <p className="font-medium">{viewInspection.duration}</p>
                       </div>
                     </>
@@ -510,7 +517,7 @@ console.log('inspect',inspections)
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-500">Notes</Label>
+                  <Label className="text-sm font-medium text-foreground">Notes</Label>
                   {viewInspection?.notes ? (
                   <div className="p-3 bg-gray-50 border rounded-md">
                     <p className="text-sm">{viewInspection.notes}</p>
@@ -525,14 +532,14 @@ console.log('inspect',inspections)
                   return (
                     <>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Inspection Findings</Label>
+                      <Label className="text-sm font-medium text-foreground">Inspection Findings</Label>
                       <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                         <p className="text-sm text-blue-900">{viewInspection.findings}</p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Recommendations</Label>
+                      <Label className="text-sm font-medium text-foreground">Recommendations</Label>
                       <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                         <p className="text-sm text-yellow-900">{viewInspection.recommendations}</p>
                       </div>

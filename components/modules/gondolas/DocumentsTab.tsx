@@ -16,6 +16,7 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const documents = useAppStore((s) => s.documents);
   const fetchDocumentsByGondolaId = useAppStore((s) => s.fetchDocumentsByGondolaId);
+  const documentsLoading = useAppStore(s=>s.documentsLoading)
 
   // Controlled form state for upload
   const [uploadType, setUploadType] = useState("");
@@ -129,7 +130,7 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">Documents</h2>
-            <p className="text-gray-500">All documents associated with this gondola</p>
+            <p className="text-foreground">All documents associated with this gondola</p>
           </div>
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
@@ -194,6 +195,7 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
           <DataTable
             columns={columns}
             data={documents}
+            loading={documentsLoading}
           />
         </div>
       </CardContent>

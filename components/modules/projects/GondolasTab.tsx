@@ -134,7 +134,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
       <Card>
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">Gondolas ({gondolas?.length || 0})</h2>
-          <p className="text-gray-500 mb-4">List of gondolas associated with this project</p>
+          <p className="text-foreground mb-4">List of gondolas associated with this project</p>
   
           {gondolas.length > 0 ? (
             <div className="space-y-6">
@@ -150,23 +150,23 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                   </div>
                   <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Location</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Location</h4>
                       <p>{gondola.location}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Serial Number</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Serial Number</h4>
                       <p>{gondola.serialNumber}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Last Inspection</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Last Inspection</h4>
                       <p>{gondola.lastInspection?.split("T")[0]}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Next Inspection</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Next Inspection</h4>
                       <p>{gondola.nextInspection?.split("T")[0]}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-1">Location Detail</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-1">Location Detail</h4>
                       <p>{gondola.locationDetail}</p>
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                                   <span className="font-medium">
                                     {shift.fromLocation} → {shift.toLocation}
                                   </span>
-                                  <div className="text-gray-500">
+                                  <div className="text-foreground">
                                     {new Date(shift.createdAt).toLocaleDateString()} • {shift.reason?.split('_').join(' ')}
                                   </div>
                                 </div>
@@ -200,7 +200,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                           </Button>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500 mb-4">No recent shifts</p>
+                        <p className="text-sm text-foreground mb-4">No recent shifts</p>
                       )
                     })()}
   
@@ -233,7 +233,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                 </div>
               ))}
             </div>
-          ) :   <div className="text-center py-8 text-gray-500">
+          ) :   <div className="text-center py-8 text-foreground">
           <p>No gondolas linked to this project.</p>
          
         </div>}

@@ -206,19 +206,19 @@ export default function Dashboard() {
               <h3 className="font-semibold text-lg mb-2">Summary Statistics</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="border p-3 rounded-md">
-                  <p className="text-sm text-gray-500">Active Gondolas</p>
+                  <p className="text-sm text-foreground">Active Gondolas</p>
                   <p className="text-xl font-bold">{activeGondolas}</p>
                 </div>
                 <div className="border p-3 rounded-md">
-                  <p className="text-sm text-gray-500">Expiring Certificates</p>
+                  <p className="text-sm text-foreground">Expiring Certificates</p>
                   <p className="text-xl font-bold">{certificates.filter(cert => cert.status.toLowerCase().includes('expire')).length}</p>
                 </div>
                 <div className="border p-3 rounded-md">
-                  <p className="text-sm text-gray-500">Pending Inspections</p>
+                  <p className="text-sm text-foreground">Pending Inspections</p>
                   <p className="text-xl font-bold">{certificates.filter(cert => cert.status.toLowerCase().includes('pending inspection')).length}</p>
                 </div>
                 <div className="border p-3 rounded-md">
-                  <p className="text-sm text-gray-500">Total Projects</p>
+                  <p className="text-sm text-foreground">Total Projects</p>
                   <p className="text-xl font-bold">{projects.length}</p>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export default function Dashboard() {
               <h3 className="font-semibold text-lg mb-2">Certificate Status</h3>
               <div className="space-y-2">
                 {certificates.length === 0 ? (
-                  <div className="text-gray-500">No certificates found.</div>
+                  <div className="text-foreground">No certificates found.</div>
                 ) : (
                   certificates.map((cert, idx) => (
                     <div className="flex justify-between border-b pb-2" key={idx}>

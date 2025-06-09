@@ -19,18 +19,22 @@ export default function PhotosTab({ gondolaId }: { gondolaId: string }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading,setLoading] = useState(false)
 
   // Fetch all photos for this gondola
   useEffect(() => {
     async function fetchPhotos() {
       if (!gondolaId) return;
+      setLoading(true)
       try {
         const res = await fetch(`/api/gondola/${gondolaId}/photos`);
         if (!res.ok) throw new Error((await res.json()).error || 'Failed to fetch photos');
         const data = await res.json();
         setPhotos(data);
+        setLoading(false)
       } catch (err: any) {
         setError(err.message || 'Failed to fetch photos');
+        setLoading(false)
       }
     }
     fetchPhotos();
@@ -95,7 +99,7 @@ export default function PhotosTab({ gondolaId }: { gondolaId: string }) {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-semibold">Photos</h2>
-            <p className="text-gray-500">Images of the gondola installation and setup</p>
+            <p className="text-foreground">Images of the gondola installation and setup</p>
           </div>
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
@@ -169,13 +173,13 @@ export default function PhotosTab({ gondolaId }: { gondolaId: string }) {
                 />
                 <div className="p-3">
                   <p className="text-sm font-medium">{photo.fileName}</p>
-                  {photo.uploaded && <p className="text-xs text-gray-500">Uploaded: {new Date(photo.uploaded).toLocaleDateString()}</p>}
+                  {photo.uploaded && <p className="text-xs text-foreground">Uploaded: {new Date(photo.uploaded).toLocaleDateString()}</p>}
                   {photo.category && <p className="text-xs text-gray-400">Category: {photo.category}</p>}
                   {photo.description && <p className="text-xs text-gray-400">{photo.description}</p>}
                 </div>
               </div>
             ))
-          ) : (
+          ) : loading ? <div className="text-center">Loading...</div> : (
             <div className="border rounded-md overflow-hidden flex flex-col items-center justify-center h-48 bg-gray-100 col-span-4">
               <span className="text-gray-400">No photos uploaded</span>
             </div>

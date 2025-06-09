@@ -43,11 +43,11 @@ export default function TransactionDetailPage({ params }: { params: { id: string
             <h2 className="text-lg font-semibold mb-4">Project Status</h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-500">Status:</span>
+                <span className="text-foreground">Status:</span>
                 <span className="font-medium">Active</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Gondolas:</span>
+                <span className="text-foreground">Gondolas:</span>
                 <span className="font-medium">2</span>
               </div>
             </div>
@@ -61,14 +61,14 @@ export default function TransactionDetailPage({ params }: { params: { id: string
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
-                  <span className="text-gray-500">Start Date:</span>
+                  <span className="text-foreground">Start Date:</span>
                   <span className="font-medium">25 Apr 2025</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
-                  <span className="text-gray-500">Created:</span>
+                  <span className="text-foreground">Created:</span>
                   <span className="font-medium">23 Apr 2025</span>
                 </div>
               </div>
@@ -102,7 +102,7 @@ function DeliveryOrdersTab() {
     <Card>
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-4">Delivery Orders</h2>
-        <p className="text-gray-500">No delivery orders found for this project.</p>
+        <p className="text-foreground">No delivery orders found for this project.</p>
       </CardContent>
     </Card>
   )
@@ -113,7 +113,7 @@ function GondolasTab() {
     <Card>
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-4">Gondolas</h2>
-        <p className="text-gray-500">List of gondolas associated with this project</p>
+        <p className="text-foreground">List of gondolas associated with this project</p>
 
         <div className="mt-4 border rounded-md overflow-hidden">
           <div className="p-6 border-b bg-gray-50">
@@ -126,19 +126,19 @@ function GondolasTab() {
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-1">Location</h4>
+              <h4 className="text-sm font-medium text-foreground mb-1">Location</h4>
               <p>Bay A, 15, Block 1</p>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-1">Elevation</h4>
+              <h4 className="text-sm font-medium text-foreground mb-1">Elevation</h4>
               <p>North</p>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-1">Deployed Date</h4>
+              <h4 className="text-sm font-medium text-foreground mb-1">Deployed Date</h4>
               <p>25 Apr 2025</p>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-1">Last Inspection</h4>
+              <h4 className="text-sm font-medium text-foreground mb-1">Last Inspection</h4>
               <p>16 May 2025</p>
             </div>
           </div>
@@ -147,12 +147,12 @@ function GondolasTab() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left pb-2 font-medium text-gray-500">Type</th>
-                  <th className="text-left pb-2 font-medium text-gray-500">Name</th>
-                  <th className="text-left pb-2 font-medium text-gray-500">Uploaded</th>
-                  <th className="text-left pb-2 font-medium text-gray-500">Expiry</th>
-                  <th className="text-left pb-2 font-medium text-gray-500">Status</th>
-                  <th className="text-left pb-2 font-medium text-gray-500">Actions</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Type</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Name</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Uploaded</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Expiry</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Status</th>
+                  <th className="text-left pb-2 font-medium text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,16 +231,16 @@ function DocumentsTab() {
       <CardContent className="p-0">
         <div className="p-6 border-b">
           <h2 className="text-xl font-semibold">Deployment Documents</h2>
-          <p className="text-gray-500">List of all deployment documents attached to this project</p>
+          <p className="text-foreground">List of all deployment documents attached to this project</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-500">DD Number</th>
-                <th className="text-left p-4 font-medium text-gray-500">Date</th>
-                <th className="text-left p-4 font-medium text-gray-500">Status</th>
-                <th className="text-left p-4 font-medium text-gray-500">Actions</th>
+                <th className="text-left p-4 font-medium text-foreground">DD Number</th>
+                <th className="text-left p-4 font-medium text-foreground">Date</th>
+                <th className="text-left p-4 font-medium text-foreground">Status</th>
+                <th className="text-left p-4 font-medium text-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>

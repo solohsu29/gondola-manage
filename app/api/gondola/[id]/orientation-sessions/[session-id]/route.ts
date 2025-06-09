@@ -9,28 +9,28 @@ export async function PUT(
   const gondolaId = params.id;
   try {
     const body = await req.json();
-    const { session_type, date, time, notes, conducted_by, maxParticipants, duration, location,sessionId } = body;
+    const { session_type, date, time, notes,instructor, max_participants, duration, location,sessionId } = body;
     // Combine date and time if both are present
     const fullDate = date && time ? `${date}T${time}` : date;
 
     // Debug logging
     console.log('PUT /orientation-sessions/:sessionId', { sessionId, gondolaId, body });
     const selectResult = await pool.query(
-      `SELECT * FROM orientation_sessions WHERE id = $1 AND gondola_id = $2`,
+      `SELECT * FROM "OrientationSession" WHERE id = $1 AND "gondolaId" = $2`,
       [sessionId, gondolaId]
     );
     console.log('SELECT result:', selectResult.rows);
 
     const { rowCount } = await pool.query(
-      `UPDATE orientation_sessions
-       SET session_type = $1, date = $2, notes = $3, conducted_by = $4, "maxParticipants" = $5, duration = $6, location = $7
-       WHERE id = $8 AND gondola_id = $9`,
+      `UPDATE "OrientationSession"
+       SET session_type = $1, date = $2, notes = $3, instructor = $4, max_participants = $5, duration = $6, location = $7
+       WHERE id = $8 AND "gondolaId" = $9`,
       [
         session_type,
         fullDate,
         notes,
-        conducted_by,
-        maxParticipants ?? null,
+       instructor,
+        max_participants ?? null,
         duration ?? null,
         location ?? null,
         sessionId,

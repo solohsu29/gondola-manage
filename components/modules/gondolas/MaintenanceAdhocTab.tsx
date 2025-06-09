@@ -50,7 +50,7 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
         cell: ({ row }) => (
           <div>
             <p className="font-medium">{row.original.description}</p>
-            <p className="text-sm text-gray-500">{row.original.partName}</p>
+            <p className="text-sm text-foreground">{row.original.partName}</p>
           </div>
         ),
       },
@@ -105,6 +105,7 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
         if (!res.ok) throw new Error((await res.json()).error || 'Failed to fetch repair logs')
         const data = await res.json()
         setRepairLogs(data)
+        setLoading(false)
       } catch (err: any) {
         setError(err.message || 'Failed to fetch repair logs')
         setRepairLogs([])
@@ -130,20 +131,21 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
         })
         if (!res.ok) throw new Error((await res.json()).error || 'Failed to add repair log')
         await fetchRepairLogs()
+      setLoading(false)
       } catch (err: any) {
         setError(err.message || 'Failed to add repair log')
       } finally {
         setLoading(false)
       }
     }
-  console.log('repair logs',repairLogs)
+
     return (
       <Card>
         <CardContent className="p-0">
           <div className="p-6 border-b flex justify-between items-center">
             <div>
               <h2 className="text-xl font-semibold">Adhoc Deployment</h2>
-              <p className="text-gray-500">Log repairs, part replacements, and manage chargeable costs for {gondolaId}</p>
+              <p className="text-foreground">Log repairs, part replacements, and manage chargeable costs for {gondolaId}</p>
             </div>
             <div className="flex gap-2">
               <Dialog open={isRepairDialogOpen} onOpenChange={setIsRepairDialogOpen}>
@@ -172,10 +174,11 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
                 <DataTable
                   columns={columns}
                   data={repairLogs}
+                  loading={loading}
                 />
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 mb-8">
+            ) : loading ? <div className="text-center">Loading ...</div>: (
+              <div className="text-center py-8 text-foreground mb-8">
                 <p>No repair logs found for this gondola.</p>
                 <p className="text-sm mt-2">Click "Log Repair/Part" to record repair work or part replacements.</p>
               </div>
@@ -193,15 +196,15 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
                 <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Repair ID</Label>
+                      <Label className="text-sm font-medium text-foreground">Repair ID</Label>
                       <p className="font-medium">{selectedRepairLog.id?.slice(0,10)}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Gondola ID</Label>
+                      <Label className="text-sm font-medium text-foreground">Gondola ID</Label>
                       <p className="font-medium">{gondolaId?.slice(0,10)}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Repair Type</Label>
+                      <Label className="text-sm font-medium text-foreground">Repair Type</Label>
                       <p
                         className={`px-2 py-1 text-xs font-medium rounded-full w-fit ${
                           selectedRepairLog.type === "Repair"
@@ -213,15 +216,15 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Date</Label>
+                      <Label className="text-sm font-medium text-foreground">Date</Label>
                       <p className="font-medium">{selectedRepairLog.date}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Cost</Label>
+                      <Label className="text-sm font-medium text-foreground">Cost</Label>
                       <p className="font-medium">${selectedRepairLog.cost}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Chargeable</Label>
+                      <Label className="text-sm font-medium text-foreground">Chargeable</Label>
                       <p
                         className={`px-2 py-1 text-xs font-medium rounded-full w-fit ${
                           selectedRepairLog.isChargeable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
@@ -231,17 +234,17 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Technician</Label>
+                      <Label className="text-sm font-medium text-foreground">Technician</Label>
                       <p className="font-medium">{selectedRepairLog.technician}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Status</Label>
+                      <Label className="text-sm font-medium text-foreground">Status</Label>
                       <p className="font-medium capitalize">{selectedRepairLog.status}</p>
                     </div>
                   </div>
   
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-500">Description</Label>
+                    <Label className="text-sm font-medium text-foreground">Description</Label>
                     {selectedRepairLog?.description && <div className="p-3 bg-gray-50 border rounded-md">
                       <p className="text-sm">{selectedRepairLog.description}</p>
                     </div>}
@@ -250,7 +253,7 @@ export default function MaintenanceAdhocTab({ gondolaId }: { gondolaId: string }
   
                   {selectedRepairLog.partName && selectedRepairLog.partName !== "N/A" && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-500">Part Details</Label>
+                      <Label className="text-sm font-medium text-foreground">Part Details</Label>
                       <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                         <p className="text-sm text-blue-900">{selectedRepairLog.partName}</p>
                       </div>

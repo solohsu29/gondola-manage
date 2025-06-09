@@ -38,11 +38,11 @@ export default function ShiftHistoryTab({ gondolaId }: { gondolaId: string }) {
         <CardContent className="p-0">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Shift History</h2>
-            <p className="text-gray-500">Complete history of location changes for this gondola</p>
+            <p className="text-foreground">Complete history of location changes for this gondola</p>
           </div>
 
           {shiftHistoryLoading ? (
-            <div className="p-6 text-center text-gray-500">Loading shift history...</div>
+            <div className="p-6 text-center text-foreground">Loading shift history...</div>
           ) : shiftHistoryError ? (
             <div className="p-6 text-center text-red-500">{shiftHistoryError}</div>
           ) : shiftHistory.length > 0 ? (
@@ -56,7 +56,7 @@ export default function ShiftHistoryTab({ gondolaId }: { gondolaId: string }) {
                         <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                         <div>
                           <h3 className="font-medium">Location Shift</h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-foreground">
                             {new Date(shift.createdAt).toLocaleDateString()} at{" "}
                             {new Date(shift.createdAt).toLocaleTimeString()}
                           </p>
@@ -69,14 +69,14 @@ export default function ShiftHistoryTab({ gondolaId }: { gondolaId: string }) {
   
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">From Location</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-2">From Location</h4>
                         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                           <p className="font-medium text-red-900">{shift.fromLocation}</p>
                           <p className="text-sm text-red-700">{shift.fromLocationDetail}</p>
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">To Location</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-2">To Location</h4>
                         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                           <p className="font-medium text-green-900">{shift.toLocation}</p>
                           <p className="text-sm text-green-700">{shift.toLocationDetail}</p>
@@ -86,22 +86,22 @@ export default function ShiftHistoryTab({ gondolaId }: { gondolaId: string }) {
   
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">Shift Date:</span>
+                        <span className="text-foreground">Shift Date:</span>
                         <span className="ml-2 font-medium">{shift.shiftDate}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Shifted By:</span>
+                        <span className="text-foreground">Shifted By:</span>
                         <span className="ml-2 font-medium">{shift.shiftedBy}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Reason:</span>
+                        <span className="text-foreground">Reason:</span>
                         <span className="ml-2 font-medium">{getReasonLabel(shift.reason)}</span>
                       </div>
                     </div>
   
                     {shift.notes && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-md">
-                        <h4 className="text-sm font-medium text-gray-500 mb-1">Notes</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-1">Notes</h4>
                         <p className="text-sm">{shift.notes}</p>
                       </div>
                     )}
@@ -109,7 +109,7 @@ export default function ShiftHistoryTab({ gondolaId }: { gondolaId: string }) {
                 ))}
             </div>
           ) : (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-foreground">
               <p>No shift history found for this gondola.</p>
               <p className="text-sm mt-1">Location changes will appear here when shifts are made.</p>
             </div>

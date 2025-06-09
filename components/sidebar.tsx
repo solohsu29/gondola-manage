@@ -72,10 +72,10 @@ function NavItem({ href, icon, label, hasSubmenu = false, isActive = false }: Na
     <Link
       href={href}
       className={`flex items-center px-2 py-3 rounded-md group transition-colors ${
-        isActive ? "bg-blue-50 text-blue-800" : "text-gray-700 hover:bg-blue-50 hover:text-blue-800"
+        isActive ? "bg-blue-50 text-blue-800" : "text-foreground hover:bg-blue-50 hover:text-blue-800"
       }`}
     >
-      <span className={`mr-3 ${isActive ? "text-blue-800" : "text-gray-500 group-hover:text-blue-800"}`}>{icon}</span>
+      <span className={`mr-3 ${isActive ? "text-blue-800" : "text-foreground group-hover:text-blue-800"}`}>{icon}</span>
       <span className={`flex-1 ${isActive ? "text-blue-800" : "text-foreground group-hover:text-blue-800"}`}>{label}</span>
       {hasSubmenu && (
         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

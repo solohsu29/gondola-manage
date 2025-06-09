@@ -60,7 +60,7 @@ useEffect(() => {
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-gray-500">The project you're looking for doesn't exist or has been removed.</p>
+            <p className="text-foreground">The project you're looking for doesn't exist or has been removed.</p>
             <Button className="mt-4" asChild>
               <Link href="/projects">Back to Projects</Link>
             </Button>
@@ -104,15 +104,15 @@ useEffect(() => {
             <h2 className="text-lg font-semibold mb-4">Project Status</h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-500">Status:</span>
+                <span className="text-foreground">Status:</span>
                 <span className="font-medium capitalize">{project.status}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Gondolas:</span>
+                <span className="text-foreground">Gondolas:</span>
                 <span className="font-medium">{Array.isArray(project.gondolas) ? project.gondolas.length : 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Delivery Orders:</span>
+                <span className="text-foreground">Delivery Orders:</span>
                 <span className="font-medium">{project.deliveryOrders.length}</span>
               </div>
             </div>
@@ -126,21 +126,21 @@ useEffect(() => {
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
-                  <span className="text-gray-500">Start Date:</span>
+                  <span className="text-foreground">Start Date:</span>
                   <span className="font-medium">25 Apr 2025</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
-                  <span className="text-gray-500">End Date:</span>
+                  <span className="text-foreground">End Date:</span>
                   <span className="font-medium">{project.endDate?.split("T")[0] || "Not set"}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
-                  <span className="text-gray-500">Created:</span>
+                  <span className="text-foreground">Created:</span>
                   <span className="font-medium">23 Apr 2025</span>
                 </div>
               </div>

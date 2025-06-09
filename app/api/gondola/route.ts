@@ -19,6 +19,7 @@ export async function GET() {
     // Attach projects array and base64 photo to each gondola
     const gondolasWithProjects = gondolas.map(gondola => ({
       ...gondola,
+      createdAt: gondola.createdAt ? new Date(gondola.createdAt).toISOString() : null,
       projects: projectGondolaLinks
         .filter((link: any) => link.gondolaId === gondola.id)
         .map((link: any) => projects.find((p: any) => p.id === link.projectId))
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
       INSERT INTO "Gondola" (
         "id", "serialNumber", "location", "locationDetail", "status", "lastInspection", "nextInspection", "photoName", "photoData"
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *;
+      RETURNING *, "createdAt";
     `;
     const values = [
       id,
@@ -77,7 +78,10 @@ export async function POST(req: NextRequest) {
       photoData
     ];
     const result = await pool.query(insertQuery, values);
-    const gondola = result.rows[0];
+    let gondola = result.rows[0];
+    if (gondola && gondola.createdat) {
+      gondola = { ...gondola, createdAt: new Date(gondola.createdAt).toISOString() };
+    }
 
     // Insert into Photo table if image was uploaded
     if (imageFile && typeof imageFile === 'object' && photoData) {

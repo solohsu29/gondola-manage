@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
@@ -34,12 +35,13 @@ function StatusBadge({ status }: { status: string }) {
       return <Badge>{status}</Badge>
   }
 }
-export function GondolasDataTable() {
+export function GondolasDataTable({refresh}:{refresh:string}) {
   const { gondolas, gondolasLoading, gondolasError, fetchGondolas, projects } = useAppStore();
    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [editData,setEditData] = useState({})
     const [deleteData,setDeleteData] = useState({})
+    const [loading,setLoading] = useState(false)
     
     const columns: ColumnDef<Gondola & { projectId?: string; image?: string }, any>[] = [
       {
@@ -133,19 +135,8 @@ export function GondolasDataTable() {
     ];
   useEffect(() => {
     fetchGondolas();
-  }, []);
+  }, [refresh]);
 
-  console.log('gondolas',gondolas)
-
-  // If your backend includes linkedProject in gondola, map it here. Otherwise, you can join with project info as needed.
-  // For now, assume gondolas already include linkedProject if relevant.
-
-  // Map gondolas to include placeholder image and linkedProject for compatibility with the DataTable
-  // const rows = gondolas.map(g => ({
-  //   ...g,
-   
-  //   projectId: (g as any).projectId,
-  // }));
 
   const { updateGondolaAsync, deleteGondolaAsync } = useAppStore();
 
@@ -162,10 +153,11 @@ export function GondolasDataTable() {
   // Separate handlers for dialog actions
   const onUpdateGondola = async () => {
     if (!updateGondolaAsync) {
-      alert('Update function not available.');
+      toast.error("Update function not available.")
       return;
     }
     if (editFields?.serialNumber && editFields?.location && editFields?.status) {
+      setLoading(true)
       await updateGondolaAsync(editFields?.id, {
         serialNumber: editFields.serialNumber,
         location: editFields.location,
@@ -177,12 +169,12 @@ export function GondolasDataTable() {
   // ...(editFields.photoData ? { photoData: editFields.photoData } : {}),
       });
       setIsEditDialogOpen(false);
+      setLoading(false)
     } else {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields")
     }
   };
 
-console.log('editData',editData)
 
   const onDeleteGondola = async () => {
     if (!deleteGondolaAsync) {
@@ -197,7 +189,7 @@ console.log('editData',editData)
 
   return (
     <>
-    <DataTable columns={columns} data={gondolas} pageSize={10} />
+    <DataTable columns={columns} data={gondolas} pageSize={10} loading={gondolasLoading}/>
     {/* Edit Gondola Dialog */}
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <DialogContent className="sm:max-w-[500px]">
@@ -253,9 +245,10 @@ console.log('editData',editData)
           </Button>
           <Button
             type="submit"
+            disabled={loading}
             onClick={onUpdateGondola}
           >
-            Update Gondola
+           {loading ? "Updating...":"Update Gondola"}
           </Button>
         </DialogFooter>
       </DialogContent>

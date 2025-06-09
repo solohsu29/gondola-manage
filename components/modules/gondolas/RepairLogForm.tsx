@@ -14,12 +14,14 @@ export default function RepairLogForm({ gondolaId, onClose, onSubmit }:{gondolaI
     const [cost, setCost] = useState("")
     const [isChargeable, setIsChargeable] = useState(false)
     const [technician, setTechnician] = useState("")
+    const [loading,setLoading] = useState(false)
   
     const handleSubmit = () => {
       if (!description || !cost || !technician) {
         alert("Please fill in all required fields")
         return
       }
+      setLoading(true)
   
       const repairId = `RL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, "0")}`
       const newRepair = {
@@ -34,7 +36,9 @@ export default function RepairLogForm({ gondolaId, onClose, onSubmit }:{gondolaI
         status: "completed",
       }
       onSubmit(newRepair)
+      setLoading(false)
       onClose()
+     
     }
   
     return (
@@ -112,7 +116,7 @@ export default function RepairLogForm({ gondolaId, onClose, onSubmit }:{gondolaI
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button type="submit" onClick={handleSubmit} disabled={loading}>
             Log Repair/Part
           </Button>
         </DialogFooter>

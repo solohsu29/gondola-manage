@@ -261,7 +261,7 @@ useEffect(() => {
             {row.original.projectId?.slice(0,10)}
           </Link>
         ) : (
-          <span className="text-gray-500">Not Linked</span>
+          <span className="text-foreground">Not Linked</span>
         ),
     },
     {
@@ -576,11 +576,11 @@ useEffect(() => {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">DO Number</Label>
+                  <Label className="text-sm font-medium text-foreground">DO Number</Label>
                   <p className="text-sm">{selectedOrder.number}</p>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                  <Label className="text-sm font-medium text-foreground">Status</Label>
                   <div className="text-sm">
                     <StatusBadge status={selectedOrder.status} />
                   </div>
@@ -588,48 +588,48 @@ useEffect(() => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Client</Label>
+                  <Label className="text-sm font-medium text-foreground">Client</Label>
                   <p className="text-sm">{selectedOrder.client}</p>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Site</Label>
+                  <Label className="text-sm font-medium text-foreground">Site</Label>
                   <p className="text-sm">{selectedOrder.site}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Order Date</Label>
+                  <Label className="text-sm font-medium text-foreground">Order Date</Label>
                   <p className="text-sm">{selectedOrder.orderDate?.split("T")[0]}</p>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Delivery Date</Label>
+                  <Label className="text-sm font-medium text-foreground">Delivery Date</Label>
                   <p className="text-sm">{selectedOrder.deliveryDate?.split("T")[0]}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">PO Reference</Label>
+                  <Label className="text-sm font-medium text-foreground">PO Reference</Label>
                   <p className="text-sm">{selectedOrder.poReference}</p>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-500">Amount</Label>
+                  <Label className="text-sm font-medium text-foreground">Amount</Label>
                   <p className="text-sm">{selectedOrder.amount}</p>
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-500">Linked Project</Label>
+                <Label className="text-sm font-medium text-foreground">Linked Project</Label>
                 <p className="text-sm">
                   {selectedOrder.projectId ? (
                     <Link href={`/projects/${selectedOrder.projectId}`} className="text-blue-600 hover:underline">
                       {selectedOrder.projectId}
                     </Link>
                   ) : (
-                    <span className="text-gray-500">Not linked to any project</span>
+                    <span className="text-foreground">Not linked to any project</span>
                   )}
                 </p>
               </div>
               <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-500">Documents</Label>
+                <Label className="text-sm font-medium text-foreground">Documents</Label>
                 <div className="text-sm">
                   {selectedOrder.documents && selectedOrder.documents.length > 0 ? (
                     <div className="space-y-1">
@@ -640,7 +640,7 @@ useEffect(() => {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-gray-500">No documents attached</span>
+                    <span className="text-foreground">No documents attached</span>
                   )}
                 </div>
               </div>

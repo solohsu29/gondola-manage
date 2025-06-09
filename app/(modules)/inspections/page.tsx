@@ -36,13 +36,13 @@ export default function InspectionsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left p-4 font-medium text-gray-500">Inspection ID</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Gondola</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Type</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Date</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Inspector</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Status</th>
-                  <th className="text-left p-4 font-medium text-gray-500">Actions</th>
+                  <th className="text-left p-4 font-medium text-foreground">Inspection ID</th>
+                  <th className="text-left p-4 font-medium text-foreground">Gondola</th>
+                  <th className="text-left p-4 font-medium text-foreground">Type</th>
+                  <th className="text-left p-4 font-medium text-foreground">Date</th>
+                  <th className="text-left p-4 font-medium text-foreground">Inspector</th>
+                  <th className="text-left p-4 font-medium text-foreground">Status</th>
+                  <th className="text-left p-4 font-medium text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>

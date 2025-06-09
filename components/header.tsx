@@ -210,7 +210,7 @@ console.log('theme',theme)
                         <div className={`w-2 h-2 rounded-full mt-2 ${getNotificationColor(notification.type)}`} />
                         <div className="flex-1">
                           <p className="text-sm">{notification.message}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.date.toLocaleDateString()}</p>
+                          <p className="text-xs text-foreground mt-1">{notification.date.toLocaleDateString()}</p>
                           {notification.actionLink && (
                             <Button variant="link" size="sm" className="p-0 h-auto text-xs">
                               View Details
@@ -221,7 +221,7 @@ console.log('theme',theme)
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-gray-500">No notifications</div>
+                  <div className="p-4 text-center text-foreground">No notifications</div>
                 )}
               </div>
               <div className="p-2 border-t">
