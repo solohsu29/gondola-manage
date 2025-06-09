@@ -286,48 +286,48 @@ useEffect(() => {
                 <DialogTitle>Import Delivery Order from ERP</DialogTitle>
                 <DialogDescription>Import delivery order data from your ERP system.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="doNumber" className="text-right">
+              <div className="flex flex-col gap-4 py-4">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="doNumber" className="text-right w-[120px]">
                     DO Number
                   </Label>
                   <Input id="doNumber" placeholder="DO-YYYY-XXXX" className="col-span-3" value={manualEntry.number} onChange={e => setManualEntry({ ...manualEntry, number: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="client" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="client" className="text-right w-[120px]">
                     Client
                   </Label>
                   <Input id="client" placeholder="Client name" className="col-span-3" value={manualEntry.client} onChange={e => setManualEntry({ ...manualEntry, client: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="site" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="site" className="text-right w-[120px]">
                     Site
                   </Label>
                   <Input id="site" placeholder="Site location" className="col-span-3" value={manualEntry.site} onChange={e => setManualEntry({ ...manualEntry, site: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="orderDate" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="orderDate" className="text-right w-[120px]">
                     Order Date
                   </Label>
                   <Input id="orderDate" type="date" className="col-span-3" value={manualEntry.orderDate} onChange={e => setManualEntry({ ...manualEntry, orderDate: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="deliveryDate" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="deliveryDate" className="text-right w-[120px]">
                     Delivery Date
                   </Label>
                   <Input id="deliveryDate" type="date" className="col-span-3" value={manualEntry.deliveryDate} onChange={e => setManualEntry({ ...manualEntry, deliveryDate: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="poReference" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="poReference" className="text-right w-[120px]">
                     PO Reference
                   </Label>
                   <Input id="poReference" placeholder="PO Reference" className="col-span-3" value={manualEntry.poReference} onChange={e => setManualEntry({ ...manualEntry, poReference: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="file" className="text-right">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="file" className="text-right w-[120px]">
                     ERP File
                   </Label>
-                  <Input id="file" type="file" accept=".csv,.xlsx,.xml" className="col-span-3" onChange={e => setErpFile(e.target.files?.[0] ?? null)} />
+                  <Input id="file" type="file" accept=".csv,.xlsx,.xml" className="col-span-3 " onChange={e => setErpFile(e.target.files?.[0] ?? null)} />
                 </div>
               </div>
               <DialogFooter>

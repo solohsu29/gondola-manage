@@ -38,6 +38,9 @@ model DeliveryOrder {
   number       String
   date         DateTime
   fileUrl      String?
+  fileName     String?
+  fileType     String?
+  fileData     Bytes?
   client       String
   site         String
   orderDate    DateTime
