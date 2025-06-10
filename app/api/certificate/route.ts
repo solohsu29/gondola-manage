@@ -5,8 +5,15 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    // Join with Gondola to get serialNumber
-    const certificates = await prisma.certificate.findMany({
+    // Fetch documents where category, type, or title contains 'Certificate', and join with gondola for serialNumber
+    const certificates = await prisma.document.findMany({
+      where: {
+        OR: [
+          { category: { contains: 'Certificate', mode: 'insensitive' } },
+          { type: { contains: 'Certificate', mode: 'insensitive' } },
+          { title: { contains: 'Certificate', mode: 'insensitive' } },
+        ],
+      },
       include: {
         gondola: {
           select: { serialNumber: true }
@@ -14,9 +21,9 @@ export async function GET() {
       }
     });
     // Map to include serialNumber at top level
-    const certificatesWithSerial = certificates.map(cert => ({
-      ...cert,
-      serialNumber: cert.gondola?.serialNumber || '',
+    const certificatesWithSerial = certificates.map(doc => ({
+      ...doc,
+      serialNumber: doc.gondola?.serialNumber || '',
     }));
     return NextResponse.json(certificatesWithSerial);
   } catch (error) {

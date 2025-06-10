@@ -199,7 +199,7 @@ const columns: ColumnDef<Inspection>[] = [
 ];
 
 
-console.log('edit from',editForm)
+
 const handleEditInspection = async () => {
   // Compose ISO string for date+time
   
@@ -233,7 +233,6 @@ const handleEditInspection = async () => {
 };
 
 
-console.log('inspect',inspections)
   return (
     <Card>
       <CardContent className="p-0">

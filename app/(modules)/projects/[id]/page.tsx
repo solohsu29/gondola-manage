@@ -25,7 +25,7 @@ useEffect(() => {
    
     setLoading(true);
     setError(null);
-    console.log('here fetch')
+
     fetch(`/api/project/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch project');

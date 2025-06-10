@@ -99,7 +99,7 @@ export function DeliveryOrdersTab({id}:{id:string}) {
     // Unlink delivery order from project
    
   }
-  console.log('deliveryOrders',deliveryOrders)
+
   
   async function handleUnlinkDeliveryOrder(deliveryOrderId: string) {
   

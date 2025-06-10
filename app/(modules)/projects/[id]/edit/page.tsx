@@ -92,7 +92,7 @@ export default function EditProjectPage() {
       });
   }, [projectId]);
 
-  console.log('available gondola',gondolas)
+
 
   const availableGondolas = gondolas;
   const availableDOs = deliveryOrders?.filter((doItem)=>!doItem?.projectId)

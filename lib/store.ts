@@ -10,6 +10,7 @@ interface Certificate {
   status: string;
   expiryDate: string;
   serialNumber:string
+  expiry?:string
 }
 
 interface ProjectManager {
@@ -343,7 +344,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     await Promise.all([
       get().fetchProjects(),
       get().fetchGondolas(),
-      // get().fetchDocuments(), // Should be called with projectId, typically not in fetchAllData unless a default/active project is known
       get().fetchDeliveryOrders(),
       get().fetchShiftHistory(),
       get().fetchCertificates(),

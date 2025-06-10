@@ -245,7 +245,6 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
         const sessionDate = new Date(session.date);
         const isCompleted = sessionDate < now;
 
-        console.log('session',session)
         return (
 <div className="flex gap-2">
           <Button
@@ -271,7 +270,6 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
     },
   ];
 
-  console.log('edit data',editData)
   return (
     <Card>
       <CardContent className="p-0">

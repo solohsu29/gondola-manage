@@ -14,12 +14,12 @@ export async function PUT(
     const fullDate = date && time ? `${date}T${time}` : date;
 
     // Debug logging
-    console.log('PUT /orientation-sessions/:sessionId', { sessionId, gondolaId, body });
+    
     const selectResult = await pool.query(
       `SELECT * FROM "OrientationSession" WHERE id = $1 AND "gondolaId" = $2`,
       [sessionId, gondolaId]
     );
-    console.log('SELECT result:', selectResult.rows);
+
 
     const { rowCount } = await pool.query(
       `UPDATE "OrientationSession"

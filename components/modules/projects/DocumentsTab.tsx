@@ -34,7 +34,7 @@ useEffect(()=>{
     fetchDocuments(projectId);
   }
 },[projectId, fetchDocuments])
-console.log('documents',documents)
+
   const resetUploadForm = () => {
     setDocName('');
     setDocType('');

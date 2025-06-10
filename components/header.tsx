@@ -14,7 +14,6 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useUserInfo } from "@/hooks/useUserInfo"
 import getBase64 from "@/app/utils/getBase64"
-import { toast } from "sonner"
 import { useTheme } from "next-themes";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu"
 export interface Notification {
@@ -39,30 +38,11 @@ const getNotificationColor = (type: string) => {
   }
 }
 
-// Notification source (could come from props, store, etc.)
-const defaultNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "warning",
-    message: "MOM Certificate for GND-001-2023 expires in 30 days",
-    date: new Date(),
-    read: false,
-    actionLink: "/gondolas/GND-001-2023",
-  },
-  {
-    id: "2",
-    type: "info",
-    message: "Monthly inspection scheduled for GND-002-2023",
-    date: new Date(Date.now() - 86400000),
-    read: false,
-    actionLink: "/inspections",
-  },
-];
 
 export default function Header() {
   const [preferencesOpen, setPreferencesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-const {theme,setTheme} = useTheme()
+const {setTheme} = useTheme()
   const [preferencesSaveSuccess, setPreferencesSaveSuccess] = useState(false)
   const [ticketSubmitted, setTicketSubmitted] = useState(false)
   const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false)
@@ -82,7 +62,24 @@ const {theme,setTheme} = useTheme()
   const [darkMode, setDarkMode] = useState(() => profile?.darkMode === true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationPreferences, setNotificationPreferences] = useState<any>(null);
+const {removeAllData} = useUserInfo()
+const router = typeof window !== 'undefined' ? require('next/navigation').useRouter() : undefined;
 
+  // Sign out function: clear all data, remove cookie, redirect
+  const handleSignOut = async () => {
+    removeAllData();
+    // Remove auth cookies by expiring them (client-side, for non-HttpOnly cookies)
+    if (typeof document !== 'undefined') {
+      document.cookie = 'token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+      document.cookie = 'next-auth.session-token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+    }
+    // Redirect to login
+    if (router) {
+      router.push('/login');
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  };
 
   // Fetch notification preferences, profile, and notifications on mount
   useEffect(() => {
@@ -160,8 +157,7 @@ const {theme,setTheme} = useTheme()
     }, 2000)
   }
 
-console.log('darkMode',darkMode)
-console.log('theme',theme)
+
   return (
     <header className="border-b bg-background">
       <div className="flex h-16 items-center px-4 gap-4">
@@ -174,14 +170,14 @@ console.log('theme',theme)
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="px-4 cursor-pointer">
-        <DropdownMenuItem onClick={() => setTheme("light")} className="text-foreground text-sm py-1">
+      <DropdownMenuContent align="end" className="px-4 cursor-pointer focus:ring-0 focus:border-none">
+        <DropdownMenuItem onClick={() => setTheme("light")} className="text-foreground text-sm py-1 focus:ring-0 focus:border-none">
           Light
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")} className="text-foreground text-sm py-1">
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="text-foreground text-sm py-1 focus:ring-0 focus:border-none">
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}  className="text-foreground text-sm py-1">
+        <DropdownMenuItem onClick={() => setTheme("system")}  className="text-foreground text-sm py-1 focus:ring-0 focus:border-none">
           System
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -509,8 +505,7 @@ console.log('theme',theme)
               variant="destructive"
               onClick={() => {
                 setSignOutConfirmOpen(false)
-                alert("Signing out... Redirecting to login page.")
-                // In a real app, this would handle logout logic
+                handleSignOut();
               }}
             >
               Sign Out

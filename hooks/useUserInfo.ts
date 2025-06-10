@@ -15,7 +15,15 @@ export const useUserInfo = () => {
   const { getItem, setItem, removeItem } = useLocalStore();
 
   useEffect(() => {
-    fetchUser()
+    // Only fetch user info if not on auth pages
+    if (typeof window !== 'undefined') {
+      const authPages = ['/login', '/signup', '/forgot-password', '/reset-password'];
+      if (!authPages.includes(window.location.pathname)) {
+        fetchUser();
+      }
+    } else {
+      fetchUser(); // fallback for SSR, but should not happen on auth pages
+    }
     // Only handle localStorage for non-auth flows (email/code/role)
     const storedEmail = getItem("email");
     const storedCode = getItem("code");
@@ -32,7 +40,7 @@ export const useUserInfo = () => {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         const data = await res.json();
-        console.log('user data from api',data)
+
         setUser(data.user);
       } else {
         setUser(null);

@@ -59,15 +59,69 @@ type CertificateStatus = {
   title: string;
   serialNumber: string;
   status: string;
+  expiry?:string
 };
 
 export default function Dashboard() {
+  const [expiringCertificatesCount, setExpiringCertificatesCount] = useState(0);
   const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [pendingInspectionsCount, setPendingInspectionsCount] = useState(0);
+  const [inspectionsLoading, setInspectionsLoading] = useState(false);
 
+  const {fetchAllData,projects,certificates,certificatesLoading,gondolas,projectsLoading,gondolasLoading,documentsLoading,deliveryOrdersLoading,shiftHistoryLoading,fetchInspectionsByGondolaId} = useAppStore()
 
-  const {fetchAllData,projects,certificates,certificatesLoading,gondolas,projectsLoading,gondolasLoading,documentsLoading,deliveryOrdersLoading,shiftHistoryLoading} = useAppStore()
+  const loading = projectsLoading || gondolasLoading || documentsLoading || shiftHistoryLoading || deliveryOrdersLoading || certificatesLoading;
 
-  const loading = projectsLoading || gondolasLoading || documentsLoading || shiftHistoryLoading || deliveryOrdersLoading || certificatesLoading
+  useEffect(() => {
+     fetchAllData()
+  }, []);
+
+  useEffect(() => {
+    // Calculate expiring certificates (expiry within 30 days, not expired)
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const expiring = certificates.filter(cert => {
+      if (!cert.expiry) return false;
+      const expiryDate = new Date(cert.expiry);
+      expiryDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 30;
+    });
+    setExpiringCertificatesCount(expiring.length);
+  }, [certificates]);
+
+  useEffect(() => {
+    const fetchPendingInspections = async () => {
+      setInspectionsLoading(true);
+      try {
+        let allInspections: any[] = [];
+        for (const gondola of gondolas) {
+          const inspections = await fetchInspectionsByGondolaId(gondola.id);
+          if (inspections && Array.isArray(inspections)) {
+            allInspections = allInspections.concat(inspections);
+          }
+        }
+        const now = new Date('2025-06-10T10:32:07+06:30');
+        const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const pending = allInspections.filter(
+          (insp) =>
+            (!insp.status || insp.status.toLowerCase() !== 'completed') &&
+            insp.date &&
+            new Date(insp.date) >= now &&
+            new Date(insp.date) <= in7Days
+        );
+        setPendingInspectionsCount(pending.length);
+      } catch (err) {
+        setPendingInspectionsCount(0);
+      } finally {
+        setInspectionsLoading(false);
+      }
+    };
+    if (gondolas.length > 0) {
+      fetchPendingInspections();
+    }
+  }, []);
 
   const downloadPDF = () => {
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -80,9 +134,9 @@ export default function Dashboard() {
     pdf.text('Summary Statistics', 40, y);
     y += 20;
     pdf.setFontSize(12);
-    pdf.text(`Active Gondolas: ${activeGondolas}`, 40, y); y += 18;
+    pdf.text(`Active Gondolas: ${gondolas.filter((g: any) => g.status?.toLowerCase() === 'deployed').length}`, 40, y); y += 18;
     pdf.text(`Expiring Certificates: ${certificates.filter(cert => cert.status.toLowerCase().includes('expire')).length}`, 40, y); y += 18;
-    pdf.text(`Pending Inspections: ${certificates.filter(cert => cert.status.toLowerCase().includes('pending inspection')).length}`, 40, y); y += 18;
+    pdf.text(`Pending Inspections: ${pendingInspectionsCount}`, 40, y); y += 18;
     pdf.text(`Total Projects: ${projects.length}`, 40, y); y += 30;
 
     pdf.setFontSize(14);
@@ -105,14 +159,8 @@ export default function Dashboard() {
     pdf.save('dashboard-report.pdf');
   };
 
-
-  useEffect(() => {
-     fetchAllData()
-  }, []);
-
   const totalDeliveryOrders = projects.reduce((acc:number, project:Project) => acc + (project.deliveryOrders ? project.deliveryOrders.length : 0), 0);
-  const activeGondolas = gondolas.filter((g: any) => g.status === 'deployed').length;
-
+  const activeGondolas = gondolas.filter((g: any) => g.status?.toLowerCase() === 'deployed').length;
 
   return (
     <div className="p-6">
@@ -128,26 +176,26 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Active Gondolas"
-          value={loading ? <Spinner size={20} /> : activeGondolas.toString()}
+          value={gondolasLoading ? <Spinner size={20} /> : activeGondolas.toString()}
           description="Currently deployed equipment"
           icon={<Package className="h-6 w-6 text-blue-600" />}
         />
         <StatCard
           title="Expiring Certificates"
-          value="1"
+          value={certificatesLoading ? <Spinner size={20} /> : expiringCertificatesCount.toString()}
           description="Requiring attention within 30 days"
           icon={<FileWarning className="h-6 w-6 text-orange-500" />}
           accentColor="border-l-orange-500"
         />
         <StatCard
           title="Pending Inspections"
-          value="2"
+          value={inspectionsLoading ? <Spinner size={20} /> : pendingInspectionsCount.toString()}
           description="Due within the next 7 days"
           icon={<ClipboardCheck className="h-6 w-6 text-purple-600" />}
         />
         <StatCard
           title="Total Projects"
-          value={loading ? <Spinner size={20} /> : projects.length.toString()}
+          value={projectsLoading ? <Spinner size={20} /> : projects.length.toString()}
           description={`Active and completed deployments (${totalDeliveryOrders} DOs)`}
           icon={<FileText className="h-6 w-6 text-blue-600" />}
         />
@@ -181,15 +229,15 @@ export default function Dashboard() {
                 {certificatesLoading ? (
                   <Spinner size={20} />
                 ) : (
-                  certificates.map((cert: CertificateStatus, idx: number) => (
+                 certificates?.length === 0 ? <div className="text-foreground text-center">No Certificates Found</div> : (certificates.map((cert: CertificateStatus, idx: number) => (
                     <CertificateItem
                       key={idx}
                       title={cert.title}
                       serialNumber={cert.serialNumber}
-                      status={cert.status}
+                      expiry={cert.expiry}
                     />
                   ))
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -215,7 +263,7 @@ export default function Dashboard() {
                 </div>
                 <div className="border p-3 rounded-md">
                   <p className="text-sm text-foreground">Pending Inspections</p>
-                  <p className="text-xl font-bold">{certificates.filter(cert => cert.status.toLowerCase().includes('pending inspection')).length}</p>
+                  <p className="text-xl font-bold">{inspectionsLoading ? <Spinner size={20} /> : pendingInspectionsCount}</p>
                 </div>
                 <div className="border p-3 rounded-md">
                   <p className="text-sm text-foreground">Total Projects</p>

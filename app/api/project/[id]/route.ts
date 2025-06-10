@@ -85,7 +85,7 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
           console.warn('Gondola does not exist:', gondolaId);
           continue;
         }
-        console.log('Linking project', id, 'with gondola', gondolaId);
+   
         await pool.query('INSERT INTO "ProjectGondola" ("projectId", "gondolaId") VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, gondolaId]);
       }
     }

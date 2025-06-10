@@ -28,14 +28,6 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
       return NextResponse.json({ error: `Project with ID ${projectId} not found. Cannot upload document.` }, { status: 404 });
     }
 
-    console.log('Received document upload for project:', projectId);
-    console.log('Document Name:', docName);
-    console.log('Document Type:', docType);
-    console.log('File Name:', file.name);
-    console.log('File Size:', file.size);
-    console.log('Expiry Date:', expiryDate);
-    console.log('Status:', status);
-
     // Insert document record
     // Note: Ensure column names match your schema. Case sensitivity matters for quoted identifiers.
     // 'name' and 'type' store the actual file's name and MIME type for download purposes.

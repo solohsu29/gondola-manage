@@ -78,7 +78,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("")
   const [passwordStrength, setPasswordStrength] = useState(0)
   const {user} = useUserInfo()
-console.log('user',user)
+
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -102,7 +102,7 @@ console.log('user',user)
     }
   }, [profileData, user]);
 
-  console.log('profileData',profileData)
+
   const handleProfileSave = async () => {
     try {
       await updateProfile({

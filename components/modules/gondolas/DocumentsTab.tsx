@@ -30,7 +30,7 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
     fetchDocumentsByGondolaId(gondolaId);
   }, [gondolaId]);
 
-  console.log('doc',documents)
+
 
   // Define DataTable columns for documents
   const columns: ColumnDef<Document>[] = [
