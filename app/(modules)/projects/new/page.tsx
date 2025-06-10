@@ -56,12 +56,9 @@ export default function NewProjectPage() {
   const [primaryDOId, setPrimaryDOId] = useState<string | null>(null)
   const [primaryGondolaId, setPrimaryGondolaId] = useState<string | null>(null)
   const [gondolaSearch, setGondolaSearch] = useState<string>("")
-  const { projectManagers, projectManagersLoading, projectManagersError, fetchProjectManagers } = useAppStore();
 
 
-
-  // Available gondolas from store
-  const { gondolas, fetchGondolas, fetchDeliveryOrders, deliveryOrders, gondolasLoading, gondolasError, addProject } = useAppStore();
+  const {projectManagers, gondolas, fetchGondolas, fetchDeliveryOrders, deliveryOrders,fetchProjectManagers, projectsLoading, gondolasError, addProject } = useAppStore();
   
   useEffect(() => {
     fetchProjectManagers();
@@ -122,6 +119,7 @@ export default function NewProjectPage() {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
+    
     e.preventDefault();
 
     if (!formData.deliveryOrders || formData.deliveryOrders.length === 0) {
@@ -168,6 +166,7 @@ export default function NewProjectPage() {
 
     // Add the new project to the Zustand store
     addProject(newProject);
+    
     // Redirect after adding
     router.push("/projects");
   }
@@ -633,7 +632,7 @@ export default function NewProjectPage() {
               <Button type="button" variant="outline" onClick={() => router.push("/projects")}>
                 Cancel
               </Button>
-              <Button type="submit">Create Project</Button>
+              <Button type="submit" disabled={projectsLoading}>{projectsLoading?"Creating...":"Create Project"}</Button>
             </div>
           </form>
         </CardContent>

@@ -16,14 +16,15 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link";
+import {v4 as uuid} from 'uuid'
 
-
-export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,setRefresh:any}) {
+export default function GondolasTab({ gondolas }: { gondolas: any[] }) {
     const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false)
     const [selectedGondola, setSelectedGondola] = useState<any>(null)
     const [isScheduleInspectionDialogOpen, setIsScheduleInspectionDialogOpen] = useState(false)
     const [selectedGondolaForInspection, setSelectedGondolaForInspection] = useState<any>(null)
-  
+  const [success,setSuccess] = useState('')
+  const [loading,setLoading] = useState(false)
     // Schedule Inspection Form State
     const [scheduleInspectionData, setScheduleInspectionData] = useState({
       inspectionType: '',
@@ -36,10 +37,10 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
     });
   
     
-    const { shiftHistory,fetchShiftHistory } = useAppStore()
+    const { shiftHistory,fetchShiftHistory,shiftHistoryLoading } = useAppStore()
     useEffect(()=>{
       fetchShiftHistory()
-    },[])
+    },[success])
 
   
     const [shiftData, setShiftData] = useState({
@@ -57,6 +58,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
         return;
       }
       try {
+        setLoading(true)
         const res = await fetch(`/api/gondola/${selectedGondolaForInspection?.id}/schedule-inspection`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -68,15 +70,17 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
             const errorData = await res.json();
             if (errorData && errorData.error) errorMsg = errorData.error + (errorData.details ? `: ${errorData.details}` : '');
           } catch {}
-      
+      setLoading(false)
           toast.error( 'Error',{description: errorMsg, className: 'bg-destructive text-white' });
           return;
         }
-     
+     setLoading(false)
         toast.success( 'Success',{description: 'Inspection scheduled successfully!', className: 'bg-[#14AA4d] text-white' });
         setIsScheduleInspectionDialogOpen(false);
         setSelectedGondolaForInspection(null);
+        setSuccess(uuid())
       } catch (err) {
+        setLoading(false)
         let message = 'Failed to schedule inspection.';
         if (err instanceof Error) {
           message = err.message;
@@ -96,6 +100,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
         currentLocationDetail: selectedGondola?.locationDetail || '',
       };
       try {
+        setLoading(true)
         const res = await fetch(`/api/gondola/${selectedGondola?.id}/shift`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -115,10 +120,11 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
      
         toast.success( 'Success',{description: 'Gondola location updated and shift recorded.', className: 'bg-[#14AA4d] text-white' });
 
-        
+        setLoading(false)
         setIsShiftDialogOpen(false);
-       setRefresh()
+     setSuccess(uuid())
       } catch (err) {
+        setLoading(false)
         let message = 'Failed to shift gondola.';
         if (err instanceof Error) {
           message = err.message;
@@ -233,7 +239,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                 </div>
               ))}
             </div>
-          ) :   <div className="text-center py-8 text-foreground">
+          ) : shiftHistoryLoading ? <div className="text-center py-8 text-foreground"> Loading...</div> :  <div className="text-center py-8 text-foreground">
           <p>No gondolas linked to this project.</p>
          
         </div>}
@@ -246,7 +252,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="currentLocation">Current Location</Label>
-              <Input id="currentLocation" value={selectedGondola?.location || ""} disabled className="bg-gray-50" />
+              <Input id="currentLocation" value={selectedGondola?.location || ""} disabled readOnly className="bg-gray-50" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="newLocation">New Location *</Label>
@@ -287,9 +293,10 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
             <Button
               type="submit"
               onClick={handleShiftGondolaSubmit}
+              disabled={loading}
                
             >
-              Confirm Shift
+             {loading?"Confirming ...": "Confirm Shift"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -358,7 +365,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
               <Label htmlFor="inspectionNotes">Notes</Label>
               <Input id="inspectionNotes" placeholder="Any specific requirements or notes for the inspection" value={scheduleInspectionData.notes} onChange={e => setScheduleInspectionData(sd => ({ ...sd, notes: e.target.value }))} />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="notifyClient">Notify Client</Label>
               <Select name="notifyClient" value={scheduleInspectionData.notifyClient} onValueChange={val => setScheduleInspectionData(sd => ({ ...sd, notifyClient: val }))}>
                 <SelectTrigger>
@@ -370,7 +377,7 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
                   <SelectItem value="after">After inspection completion</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsScheduleInspectionDialogOpen(false)}>
@@ -378,9 +385,10 @@ export default function GondolasTab({ gondolas,setRefresh }: { gondolas: any[] ,
             </Button>
             <Button
               type="submit"
+              disabled={loading}
               onClick={handleScheduleInspectionSubmit}
             >
-              Schedule Inspection
+          {loading?"Scheduling ... ":"Schedule Inspection"}    
             </Button>
           </DialogFooter>
         </DialogContent>

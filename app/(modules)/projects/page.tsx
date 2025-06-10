@@ -76,29 +76,18 @@ function exportToCSV(data: Project[]) {
 }
 
 export default function ProjectsPage() {
-  const { projects,updateProject,fetchProjects } = useAppStore()
+  const { projects,updateProject,fetchProjects,projectsLoading } = useAppStore()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState({ client: "", site: "", status: "", endDate: "" });
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const handleEditClick = (project: Project) => {
-    setEditData({
-      client: project.client,
-      site: project.site,
-      status: project.status,
-      endDate: project.endDate
-        ? new Date(project.endDate).toISOString().split('T')[0]
-        : "",
-    });
-    setSelectedProjectId(project.id);
-    setIsEditDialogOpen(true);
-  };
+const [loading,setLoading] = useState(false)
 
 console.log('projects page',projects)
 
   const handleSaveEdit = async (projectId: string | null) => {
+    setLoading(true)
     if (!projectId) return;
     try {
       await updateProject(projectId, {
@@ -113,11 +102,13 @@ console.log('projects page',projects)
       });
       setIsEditDialogOpen(false);
       setSelectedProjectId(null);
+      setLoading(false)
     } catch (error) {
       toast.error("Update failed", {
         description: error instanceof Error ? error.message : "Unknown error",
         className: "bg-destructive text-destructive-foreground"
       });
+      setLoading(false)
     }
   };
 
@@ -255,13 +246,13 @@ console.log('projects page',projects)
             </div>
 
             <TabsContent value="all" className="mt-0">
-              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} />
+              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} loading={projectsLoading}/>
             </TabsContent>
             <TabsContent value="active" className="mt-0">
-              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} />
+              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} loading={projectsLoading}/>
             </TabsContent>
             <TabsContent value="completed" className="mt-0">
-              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} />
+              <DataTable columns={projectColumns} data={filteredProjects} pageSize={10} loading={projectsLoading}/>
             </TabsContent>
           </Tabs>
         </CardContent>

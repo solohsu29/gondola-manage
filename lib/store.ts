@@ -356,7 +356,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/project");
       if (!res.ok) throw new Error(`Failed to fetch projects (${res.status})`);
       const data = await res.json();
-      set({ projects: data });
+      set({ projects: data,projectsLoading:false });
     } catch (err: any) {
       set({ projectsError: err.message || 'Unknown error' });
     } finally {
@@ -411,7 +411,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/delivery-order");
       if (!res.ok) throw new Error(`Failed to fetch delivery orders (${res.status})`);
       const data = await res.json();
-      set({ deliveryOrders: data });
+      set({ deliveryOrders: data,deliveryOrdersLoading:false });
     } catch (err: any) {
       set({ deliveryOrdersError: err.message || 'Unknown error' });
     } finally {
@@ -424,7 +424,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/shift-history");
       if (!res.ok) throw new Error(`Failed to fetch shift history (${res.status})`);
       const data = await res.json();
-      set({ shiftHistory: data });
+      set({ shiftHistory: data,shiftHistoryLoading:false });
     } catch (err: any) {
       set({ shiftHistoryError: err.message || 'Unknown error' });
     } finally {
@@ -462,6 +462,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setActiveProjectId: (id) => set({ activeProjectId: id }),
   addProject: async (project) => {
+    set({projectsLoading:true})
     try {
       const res = await fetch('/api/project', {
         method: 'POST',
@@ -471,9 +472,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!res.ok) throw new Error('Failed to add project');
       const savedProject = await res.json();
       set((state) => ({ projects: [...state.projects, savedProject] }));
+      set({projectsLoading:false})
     } catch (err) {
       // Optionally: set error state or show error
       console.error(err);
+      set({projectsLoading:false})
     }
   },
   updateProject: async (id, project) => {

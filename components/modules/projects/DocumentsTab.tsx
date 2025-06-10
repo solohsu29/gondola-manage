@@ -105,15 +105,15 @@ console.log('documents',documents)
                   Fill in the details below and select a file to upload.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="docName" className="text-right">
+              <div className="flex flex-col gap-4 py-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <Label htmlFor="docName" className="text-right w-[120px]">
                     Document Name
                   </Label>
                   <Input id="docName" value={docName} onChange={(e) => setDocName(e.target.value)} className="col-span-3" placeholder="e.g., Site Safety Plan" />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="docType" className="text-right">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <Label htmlFor="docType" className="text-right w-[120px]">
                     Document Type
                   </Label>
                   <Select value={docType} onValueChange={setDocType}>
@@ -129,20 +129,20 @@ console.log('documents',documents)
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="file" className="text-right">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <Label htmlFor="file" className="text-right w-[120px]">
                     File
                   </Label>
                   <Input id="file" type="file" onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)} className="col-span-3" />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="expiryDate" className="text-right">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <Label htmlFor="expiryDate" className="text-right w-[120px]">
                     Expiry Date
                   </Label>
                   <Input id="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="col-span-3" />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="status" className="text-right">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <Label htmlFor="status" className="text-right w-[120px]">
                     Status
                   </Label>
                   <Select value={status} onValueChange={setStatus}>
@@ -165,8 +165,9 @@ console.log('documents',documents)
                 <Button
                   type="submit"
                   onClick={handleDocumentUploadSubmit}
+                  disabled={documentsLoading}
                 >
-                  Upload
+                 {documentsLoading ? "Uploading ...":"Upload"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -176,7 +177,7 @@ console.log('documents',documents)
         {documentsLoading && <p>Loading documents...</p>}
         {documentsError && <p className="text-red-500">Error loading documents: {documentsError}</p>}
         {!documentsLoading && !documentsError && (
-          <DataTable columns={documentColumns} data={documents as DocumentType[]} />
+          <DataTable columns={documentColumns} data={documents as DocumentType[]} loading={documentsLoading}/>
         )}
       </CardContent>
     </Card>

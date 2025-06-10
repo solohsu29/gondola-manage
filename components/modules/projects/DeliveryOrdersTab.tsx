@@ -1,5 +1,5 @@
 
-import {  useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,17 +17,37 @@ import {
 import { Label } from "@/components/ui/label"
 import {v4 as uuid} from 'uuid'
 
-export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefresh:any }) {
+export function DeliveryOrdersTab({id}:{id:string}) {
+  
     const [unlinkDialogOpen, setUnlinkDialogOpen] = useState<string | null>(null);
   
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
     const [selectedDeliveryOrders, setSelectedDeliveryOrders] = useState<any[]>([])
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false)
     const [selectedDeliveryOrderForView, setSelectedDeliveryOrderForView] = useState<any>(null)
-  const {deliveryOrders} = useAppStore()
+    const [success,setSuccess] = useState('')
+  const {deliveryOrders,fetchDeliveryOrders,deliveryOrdersLoading} = useAppStore()
+  const [loading,setLoading] = useState(false)
+  const [project,setProject] = useState<any>(null)
+  const [isLoading,setIsLoading] = useState(false)
+
   
   
-  
+  useEffect(()=>{
+    setIsLoading(true)
+    fetchDeliveryOrders()
+    fetch(`/api/project/${id}`)
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to fetch project');
+      return res.json();
+    })
+    .then(data => setProject(data))
+    .catch(err =>toast.error(err.message))
+    .finally(() => setIsLoading(false));
+
+  },[success])
+
+  const pjLoading = isLoading || deliveryOrdersLoading
   async function handleLinkSelectedDOs({
     selectedDeliveryOrders,
     setSelectedDeliveryOrders,
@@ -39,6 +59,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
       return;
     }
     try {
+      setLoading(true)
       // Use new endpoint to link delivery orders
       const res = await fetch(`/api/project/${project.id}/link-delivery-orders`, {
         method: 'POST',
@@ -56,16 +77,18 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
           const errorData = await res.json();
           if (errorData && errorData.error) errorMsg = errorData.error + (errorData.details ? `: ${errorData.details}` : '');
         } catch {}
-  
+  setLoading(false)
 
         toast.error( 'Error',{description: errorMsg, className: 'bg-destructive text-white' });
         return;
+      
       }
   
       toast.success( 'Success',{description:`${selectedDeliveryOrders.length} Delivery Order(s) linked successfully.`, className: 'bg-[#14AA4d] text-white' });
       setSelectedDeliveryOrders([]);
       setIsUploadDialogOpen(false);
-      setRefresh(uuid())
+     setSuccess(uuid())
+      setLoading(false)
    
    
     } catch (err: any) {
@@ -81,12 +104,13 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
   async function handleUnlinkDeliveryOrder(deliveryOrderId: string) {
   
     try {
+      setLoading(true)
       // Prepare new list of linked DOs (excluding the one to unlink)
-      const remainingDOIds = project.deliveryOrders
+      const remainingDOIds = project?.deliveryOrders
         .filter((d: any) => d.id !== deliveryOrderId)
         .map((d: any) => d.id);
   
-      const res = await fetch(`/api/project/${project.id}/link-delivery-orders`, {
+      const res = await fetch(`/api/project/${project?.id}/link-delivery-orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deliveryOrderIds: remainingDOIds }),
@@ -97,15 +121,17 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
           const errorData = await res.json();
           if (errorData && errorData.error) errorMsg = errorData.error + (errorData.details ? `: ${errorData.details}` : '');
         } catch {}
-      
-
+       
         toast.error( 'Error',{  description: errorMsg, className: 'bg-destructive text-white' });
         return;
       }
       toast.success( 'Unlinked',{   description: 'Delivery order has been unlinked from this project.', className: 'bg-[#14AA4d] text-white' });
       setUnlinkDialogOpen(null);
+      setSuccess(uuid())
+
+      setLoading(false)
       // Refresh project data
-      setRefresh(uuid())
+   
   
      
     } catch (err: any) {
@@ -113,6 +139,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
 
       toast.error( 'Error',{  description: err.message || 'Failed to unlink delivery orders.', className: 'bg-destructive text-white' });
       setUnlinkDialogOpen(null);
+      setLoading(false)
     }
   }
     return (
@@ -120,7 +147,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-xl font-semibold">Delivery Orders ({project.deliveryOrders.length})</h2>
+              <h2 className="text-xl font-semibold">Delivery Orders ({project?.deliveryOrders?.length || 0})</h2>
               <p className="text-foreground">Delivery orders assigned to this project</p>
             </div>
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
@@ -243,6 +270,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                   </Button>
                   <Button
                     type="submit"
+                    disabled={loading}
                     onClick={() => handleLinkSelectedDOs({
                     
                       selectedDeliveryOrders,
@@ -251,7 +279,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                      
                     })}
                   >
-                    Link Selected DOs
+                  {loading?"Linking ...":"Link Selected DOs"}  
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -259,21 +287,27 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
           </div>
   
           <div className="space-y-4">
-            {project.deliveryOrders.map((deliveryOrder: any, index: number) => (
+
+          {pjLoading ? <div className="text-center py-8 text-foreground">Loading ...</div> : project?.deliveryOrders?.length === 0 ?  (
+              <div className="text-center py-8 text-foreground">
+                <p>No delivery orders linked to this project.</p>
+                <p className="text-sm mt-2">Click "Link DO" to add delivery orders from the ERP system.</p>
+              </div>
+            ) : project?.deliveryOrders?.map((deliveryOrder: any, index: number) => (
               <div key={deliveryOrder.id} className="border rounded-md overflow-hidden">
                 <div className="p-4 bg-background border-b">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-medium">{deliveryOrder.number}</h3>
+                    <h3 className="font-medium">{deliveryOrder?.number}</h3>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        deliveryOrder.status === "delivered"
+                        deliveryOrder?.status === "delivered"
                           ? "bg-green-100 text-green-800"
-                          : deliveryOrder.status === "pending"
+                          : deliveryOrder?.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {deliveryOrder.status}
+                      {deliveryOrder?.status}
                     </span>
                   </div>
                 </div>
@@ -281,29 +315,29 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">Order Date</h4>
-                      <p>{deliveryOrder.orderDate?.split("T")[0]}</p>
+                      <p>{deliveryOrder?.orderDate?.split("T")[0]}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">Delivery Date</h4>
-                      <p>{deliveryOrder.deliveryDate?.split("T")[0]}</p>
+                      <p>{deliveryOrder?.deliveryDate?.split("T")[0]}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">PO Reference</h4>
-                      <p>{deliveryOrder.poReference}</p>
+                      <p>{deliveryOrder?.poReference}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">Amount</h4>
-                      <p>{deliveryOrder.amount}</p>
+                      <p>{deliveryOrder?.amount}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">Items</h4>
-                      <p>{deliveryOrder.items}</p>
+                      <p>{deliveryOrder?.items}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-1">Document</h4>
-                      {deliveryOrder.documentId ? (
+                      {deliveryOrder?.documentId ? (
                         <button
-                          onClick={() =>    window.open(`/api/document/${deliveryOrder.documentId}/serve`, "_blank")}
+                          onClick={() =>    window.open(`/api/document/${deliveryOrder?.documentId}/serve`, "_blank")}
                           className="text-blue-600 hover:underline text-sm"
                         >
                           View Document
@@ -324,13 +358,13 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                     >
                       View Details
                     </Button>
-                    <Dialog open={unlinkDialogOpen === deliveryOrder.id} onOpenChange={(open) => setUnlinkDialogOpen(open ? deliveryOrder.id : null)}>
+                    <Dialog open={unlinkDialogOpen === deliveryOrder?.id} onOpenChange={(open) => setUnlinkDialogOpen(open ? deliveryOrder.id : null)}>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-red-600 hover:text-red-700"
-                          onClick={() => setUnlinkDialogOpen(deliveryOrder.id)}
+                          onClick={() => setUnlinkDialogOpen(deliveryOrder?.id)}
                         >
                           Unlink
                         </Button>
@@ -339,7 +373,7 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                         <DialogHeader>
                           <DialogTitle>Unlink Delivery Order</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to unlink delivery order <b>{deliveryOrder.number}</b> from this project?
+                            Are you sure you want to unlink delivery order <b>{deliveryOrder?.number}</b> from this project?
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -348,9 +382,10 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                           </Button>
                           <Button
                             variant="destructive"
-                            onClick={() => handleUnlinkDeliveryOrder(deliveryOrder.id)}
+                            disabled={loading}
+                            onClick={() => handleUnlinkDeliveryOrder(deliveryOrder?.id)}
                           >
-                            Unlink
+                         {loading?"Unlinking ...":"Unlink"} 
                           </Button>
                         </DialogFooter>
                       </DialogContent>
@@ -358,14 +393,10 @@ export function DeliveryOrdersTab({ project,setRefresh }: { project: any,setRefr
                   </div>
                 </div>
               </div>
-            ))}
+            )) }
+
+           
   
-            {project.deliveryOrders.length === 0 && (
-              <div className="text-center py-8 text-foreground">
-                <p>No delivery orders linked to this project.</p>
-                <p className="text-sm mt-2">Click "Link DO" to add delivery orders from the ERP system.</p>
-              </div>
-            )}
           </div>
           {/* View Details Dialog */}
           <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>

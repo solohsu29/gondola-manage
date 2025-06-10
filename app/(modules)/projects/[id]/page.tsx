@@ -19,14 +19,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refresh,setRefresh] = useState(null)
-const {fetchDeliveryOrders} = useAppStore()
+
 
 useEffect(() => {
    
     setLoading(true);
     setError(null);
-    fetchDeliveryOrders()
     console.log('here fetch')
     fetch(`/api/project/${id}`)
       .then(res => {
@@ -37,7 +35,7 @@ useEffect(() => {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   
-  }, [id,refresh]);
+  }, [id]);
 
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "delivery-orders";
@@ -127,7 +125,7 @@ useEffect(() => {
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
                   <span className="text-foreground">Start Date:</span>
-                  <span className="font-medium">25 Apr 2025</span>
+                  <span className="font-medium">{project.startDate?.split("T")[0] ||''}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -141,7 +139,7 @@ useEffect(() => {
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
                   <span className="text-foreground">Created:</span>
-                  <span className="font-medium">23 Apr 2025</span>
+                  <span className="font-medium">{project?.createdAt?.split("T")[0]||''}</span>
                 </div>
               </div>
             </div>
@@ -156,10 +154,10 @@ useEffect(() => {
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
         <TabsContent value="delivery-orders">
-          <DeliveryOrdersTab project={project} setRefresh={setRefresh}/>
+          <DeliveryOrdersTab id={id}/>
         </TabsContent>
         <TabsContent value="gondolas">
-          <GondolasTab gondolas={Array.isArray(project.gondolas) ? project.gondolas : []} setRefresh={setRefresh}/>
+          <GondolasTab gondolas={Array.isArray(project.gondolas) ? project.gondolas : []}/>
         </TabsContent>
         <TabsContent value="documents">
           <DocumentsTab projectId={id} />
