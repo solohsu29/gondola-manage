@@ -6,10 +6,20 @@ export async function GET() {
     // Try to order by updatedAt DESC, fallback to orderDate DESC if updatedAt is missing
 let result;
 try {
-  result = await pool.query('SELECT * FROM "DeliveryOrder" ORDER BY "updatedAt" DESC');
+  result = await pool.query(`
+    SELECT d.*, doc.title as "documentTitle", doc.name as "documentName"
+    FROM "DeliveryOrder" d
+    LEFT JOIN "Document" doc ON d."documentId" = doc.id
+    ORDER BY d."updatedAt" DESC
+  `);
 } catch (err) {
   // If updatedAt column does not exist, fallback to orderDate
-  result = await pool.query('SELECT * FROM "DeliveryOrder" ORDER BY "orderDate" DESC');
+  result = await pool.query(`
+    SELECT d.*, doc.title as "documentTitle", doc.name as "documentName"
+    FROM "DeliveryOrder" d
+    LEFT JOIN "Document" doc ON d."documentId" = doc.id
+    ORDER BY d."orderDate" DESC
+  `);
 }
     return NextResponse.json(result.rows);
   } catch (error) {

@@ -221,7 +221,7 @@ export function GondolasDataTable({refresh, gondolas: gondolasProp}:{refresh:str
                 </SelectTrigger>
                 <SelectContent>
                 {GondolasStatus?.map((status)=>{
-                return <SelectItem value={status.value}>{status.label}</SelectItem>
+                return <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
               })}
                 </SelectContent>
               </Select>

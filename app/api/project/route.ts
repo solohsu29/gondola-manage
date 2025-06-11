@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
       client,
       site,
       created,
+      startDate,
       status,
       endDate,
       projectName,
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest) {
 
     // Insert the new project (now includes projectName and projectManagerId)
     const insertResult = await pool.query(
-      `INSERT INTO "Project" (id, client, site, created, status, "endDate", "projectName", "projectManagerId") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [id, client, site, created, status, endDate, projectName, projectManagerId]
+      `INSERT INTO "Project" (id, client, site, created, "startDate", status, "endDate", "projectName", "projectManagerId") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [id, client, site, created, startDate, status, endDate, projectName, projectManagerId]
     );
     const newProject = insertResult.rows[0];
 
@@ -68,12 +69,12 @@ export async function GET() {
     const projectGondolaLinks = projectGondolaResult.rows;
 
     // Attach deliveryOrders and gondolas (via join table) to each project
-    const projectsWithDOsAndGondolas = projects.map(project => ({
+    const projectsWithDOsAndGondolas = projects.map((project:any) => ({
       ...project,
-      deliveryOrders: deliveryOrders.filter(doItem => doItem.projectId === project.id),
+      deliveryOrders: deliveryOrders.filter((doItem:any) => doItem.projectId === project.id),
       gondolas: projectGondolaLinks
-        .filter(link => link.projectId === project.id)
-        .map(link => gondolas.find(g => g.id === link.gondolaId))
+        .filter((link:any) => link.projectId === project.id)
+        .map((link:any) => gondolas.find((g:any) => g.id === link.gondolaId))
         .filter(Boolean),
     }));
 

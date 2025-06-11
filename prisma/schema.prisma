@@ -34,7 +34,7 @@ model OTP {
 model DeliveryOrder {
   id           String    @id @default(uuid())
   projectId    String?
-  number       String
+  number       String   @unique
   date         DateTime
   fileUrl      String?
   client       String

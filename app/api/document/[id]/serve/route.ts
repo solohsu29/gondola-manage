@@ -31,15 +31,23 @@ export async function GET(request: NextRequest, context: { params: { id: string 
     }
 
     const headers = new Headers();
-    const mimeType = document.type || 'application/octet-stream';
+    let mimeType = document.type || 'application/octet-stream';
+
+    const fileName =document.name || document.title  || 'download';
+    if (fileName.endsWith('.xlsx')) {
+      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else if (fileName.endsWith('.xls')) {
+      mimeType = 'application/vnd.ms-excel';
+    } else if (fileName.endsWith('.csv')) {
+      mimeType = 'text/csv';
+    }
     headers.set('Content-Type', mimeType);
-    // Decide how to serve based on file type
-    // Inline for PDF and images, attachment for others
+    // Inline for PDF and images, attachment for others (including Excel/CSV)
     let dispositionMode = 'attachment';
     if (mimeType.startsWith('image/') || mimeType === 'application/pdf') {
       dispositionMode = 'inline';
     }
-    headers.set('Content-Disposition', `${dispositionMode}; filename="${document.title || document.name || 'download'}"`);
+    headers.set('Content-Disposition', `${dispositionMode}; filename="${fileName}"`);
 
     return new NextResponse(document.fileData, {
       status: 200,

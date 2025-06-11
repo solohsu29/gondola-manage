@@ -100,21 +100,17 @@ export const columns: ColumnDef<Document>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const document = row.original
-
-      return (
-         <Button variant="outline" size="sm">
-         <Link 
-                href={document.fileUrl || '#'}
-                download={document.name} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={!document.fileUrl ? { pointerEvents: 'none', opacity: 0.5 } : {}}
-              >
-                View
-              </Link>
-       </Button>
-      )
+      const doc = row.original;
+      const documentUrl = (doc as any).fileUrl || `/api/document/${doc.id}/serve`;     
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(documentUrl, '_blank')}
+          >
+            View
+          </Button>
+        )
     },
   },
 ]

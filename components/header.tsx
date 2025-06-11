@@ -241,7 +241,7 @@ const router = typeof window !== 'undefined' ? require('next/navigation').useRou
                   ) : profile && profile.photoUrl ? (
                     <img src={profile.photoUrl} alt={profile.firstName || ''} className="h-8 w-8 rounded-full object-cover" />
                   ) : (
-                    <AvatarFallback>{profile && profile.firstName ? profile.firstName[0] : 'U'}</AvatarFallback>
+                    <AvatarFallback>{profile && profile.firstName ? profile.firstName[0] : user?.email?.[0] || 'U'}</AvatarFallback>
                   )}
                 </Avatar>
               </Button>
@@ -391,10 +391,10 @@ const router = typeof window !== 'undefined' ? require('next/navigation').useRou
             <DialogTitle>Help & Support</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="faq" className="mt-4">
-            <TabsList className="grid grid-cols-2 mb-4">
+            {/* <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="faq">FAQ</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
-            </TabsList>
+            </TabsList> */}
             <TabsContent value="faq" className="space-y-4">
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg">
@@ -427,7 +427,7 @@ const router = typeof window !== 'undefined' ? require('next/navigation').useRou
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="contact" className="space-y-4">
+            {/* <TabsContent value="contact" className="space-y-4">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg text-center">
@@ -477,7 +477,7 @@ const router = typeof window !== 'undefined' ? require('next/navigation').useRou
                   </div>
                 </div>
               </div>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
           <DialogFooter>
             <Button variant="outline" onClick={() => setHelpOpen(false)}>

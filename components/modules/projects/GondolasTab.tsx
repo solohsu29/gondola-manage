@@ -224,7 +224,7 @@ export default function GondolasTab({ gondolas }: { gondolas: any[] }) {
                       >
                         Shift Location
                       </Button>
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
@@ -233,7 +233,7 @@ export default function GondolasTab({ gondolas }: { gondolas: any[] }) {
                         }}
                       >
                         Schedule Inspection
-                      </Button>
+                      </Button> */}
                     </div>
                   </div>
                 </div>

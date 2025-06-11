@@ -25,23 +25,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/common/data-table";
 
 import { ColumnDef } from "@tanstack/react-table";
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case "delivered":
-      return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">Delivered</Badge>
-    case "pending":
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100">Pending</Badge>
-    case "cancelled":
-      return <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-100">Cancelled</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
-}
-
-
-
-
-
 
 export default function ERPDOPage() {
   const { projects, deliveryOrders, fetchDeliveryOrders, addDeliveryOrder, deliveryOrdersLoading } = useAppStore();
@@ -65,6 +48,7 @@ export default function ERPDOPage() {
   });
   const [erpFile, setErpFile] = useState<File | null>(null);
 const [importing, setImporting] = useState(false);
+const [deletedOrder,setDeletedOrder] = useState<any>()
 const [open, setOpen] = React.useState(false);
   // Export handler for CSV/Excel
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -115,6 +99,7 @@ useEffect(() => {
 
 
   const filteredOrders = allDeliveryOrders.filter((order) => {
+    console.log('order',!!order.projectId)
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -125,17 +110,13 @@ useEffect(() => {
         order.poReference.toLowerCase().includes(query)
       )
     }
-
-    // Filter by tab
-    if (activeTab === "pending") return order.status === "pending"
-    if (activeTab === "delivered") return order.status === "delivered"
-    if (activeTab === "cancelled") return order.status === "cancelled"
     if (activeTab === "linked") return !!order.projectId
     if (activeTab === "unlinked") return !order.projectId
 
     // "all" tab
     return true
   })
+
 
   // Handle confirm delete from Actions dialog
   async function handleDeleteOrderConfirm(orderId: string, closeDialog: () => void) {
@@ -210,7 +191,6 @@ useEffect(() => {
       toast.error("Please fill in all required fields (marked with *)", { className: 'bg-destructive text-white' });
       return;
     }
-    console.log('manual entry',manualEntry)
     // Prepare form data
     const formData = new FormData();
     // Sanitize amount to ensure it's a valid integer
@@ -279,6 +259,7 @@ useEffect(() => {
       id: "actions",
       cell: ({ row, table }) => {
         const order = row.original;
+        console.log('order',order)
       
         return (
           <div className="flex gap-2">
@@ -288,31 +269,15 @@ useEffect(() => {
             <Button variant="outline" size="sm" onClick={() => handleEditOrder(order)}>
               Edit
             </Button>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+          
+              <Button variant="outline" size="sm" onClick={() => {
+                setOpen(true)
+                setDeletedOrder(order)
+              }
+              }>
                 Delete
               </Button>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Delete Delivery Order</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to delete delivery order {order.number}? This action cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => handleDeleteOrderConfirm(order.id, () => setOpen(false))}
-                  >
-                    Delete
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+             
           </div>
         )
       },
@@ -435,7 +400,7 @@ useEffect(() => {
                     <Label htmlFor="manualDoNumber">DO Number *</Label>
                     <Input id="manualDoNumber" placeholder="DO-2025-001" value={manualEntry.number} onChange={e => setManualEntry({ ...manualEntry, number: e.target.value })} />
                   </div>
-                  <div className="grid gap-2">
+                  {/* <div className="grid gap-2">
                     <Label htmlFor="manualStatus">Status</Label>
                     <select
                       id="manualStatus"
@@ -447,7 +412,11 @@ useEffect(() => {
                       <option value="delivered">Delivered</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
-                  </div>
+                  </div> */}
+                   <div className="grid gap-2">
+                  <Label htmlFor="manualItems">Items Description</Label>
+                  <Input id="manualItems" placeholder="Description of items" value={manualEntry.items || ''} onChange={e => setManualEntry({ ...manualEntry, items: e.target.value })} />
+                </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
@@ -479,10 +448,7 @@ useEffect(() => {
                     <Input id="manualAmount" placeholder="$0.00" value={manualEntry.amount} onChange={e => setManualEntry({ ...manualEntry, amount: e.target.value })} />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="manualItems">Items Description</Label>
-                  <Input id="manualItems" placeholder="Description of items" value={manualEntry.items || ''} onChange={e => setManualEntry({ ...manualEntry, items: e.target.value })} />
-                </div>
+               
                 <div className="grid gap-2">
                   <Label htmlFor="manualDocuments">Documents</Label>
                   <Input
@@ -510,7 +476,28 @@ useEffect(() => {
           </Dialog>
         </div>
       </div>
-
+      <Dialog open={open} onOpenChange={setOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Delete Delivery Order</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete delivery order {deletedOrder?.number}? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => handleDeleteOrderConfirm(deletedOrder?.id, () => setOpen(false))}
+                  >
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
       <Card>
         <CardContent className="p-0">
           <div className="p-4 flex flex-col sm:flex-row gap-4 border-b">
@@ -539,9 +526,9 @@ useEffect(() => {
               <TabsList>
                 <TabsTrigger value="all">All Orders</TabsTrigger>
                 <TabsTrigger value="linked">
-                  Linked ({projects.reduce((acc, p) => acc + p.deliveryOrders.length, 0)})
+                  Linked ({deliveryOrders.filter((order)=>!!order.projectId)?.length})
                 </TabsTrigger>
-                <TabsTrigger value="unlinked">Unlinked ({deliveryOrders.length})</TabsTrigger>
+                <TabsTrigger value="unlinked">Unlinked ({deliveryOrders.filter((order)=>!order.projectId)?.length})</TabsTrigger>
               </TabsList>
             </div>
 
@@ -590,12 +577,24 @@ useEffect(() => {
                   <Label className="text-sm font-medium text-foreground">DO Number</Label>
                   <p className="text-sm">{selectedOrder.number}</p>
                 </div>
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label className="text-sm font-medium text-foreground">Status</Label>
                   <div className="text-sm">
                     <StatusBadge status={selectedOrder.status} />
                   </div>
-                </div>
+                </div> */}
+                <div className="grid gap-2">
+                <Label className="text-sm font-medium text-foreground">Linked Project</Label>
+                <p className="text-sm">
+                  {selectedOrder.projectId ? (
+                    <Link href={`/projects/${selectedOrder.projectId}`} className="text-blue-600 hover:underline">
+                      {selectedOrder.projectId}
+                    </Link>
+                  ) : (
+                    <span className="text-foreground">Not linked to any project</span>
+                  )}
+                </p>
+              </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -627,28 +626,17 @@ useEffect(() => {
                   <p className="text-sm">{selectedOrder.amount}</p>
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-foreground">Linked Project</Label>
-                <p className="text-sm">
-                  {selectedOrder.projectId ? (
-                    <Link href={`/projects/${selectedOrder.projectId}`} className="text-blue-600 hover:underline">
-                      {selectedOrder.projectId}
-                    </Link>
-                  ) : (
-                    <span className="text-foreground">Not linked to any project</span>
-                  )}
-                </p>
-              </div>
+              
               <div className="grid gap-2">
                 <Label className="text-sm font-medium text-foreground">Documents</Label>
                 <div className="text-sm">
-                  {selectedOrder.documents && selectedOrder.documents.length > 0 ? (
+                  {selectedOrder.documentId ? (
                     <div className="space-y-1">
-                      {selectedOrder.documents.map((doc: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <span className="text-blue-600 hover:underline cursor-pointer">{doc}</span>
-                        </div>
-                      ))}
+                     
+                        <Link href={`/api/document/${selectedOrder.documentId}/serve`} className="flex items-center gap-2 underline" target="_blank">
+                          <span className="text-blue-600 hover:underline cursor-pointer">{selectedOrder.documentTitle}</span>
+                        </Link>
+                     
                     </div>
                   ) : (
                     <span className="text-foreground">No documents attached</span>
@@ -674,12 +662,12 @@ useEffect(() => {
           </DialogHeader>
           {selectedOrder && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="editDoNumber">DO Number</Label>
                   <Input id="editDoNumber" defaultValue={selectedOrder.number} />
                 </div>
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="editStatus">Status</Label>
                   <select
                     id="editStatus"
@@ -690,7 +678,7 @@ useEffect(() => {
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
-                </div>
+                </div> */}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">

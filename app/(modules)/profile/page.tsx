@@ -15,7 +15,7 @@ import { ArrowLeft, Camera, Save, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useUserInfo } from "@/hooks/useUserInfo"
 import { toast } from "sonner"
-
+import * as yup from 'yup';
 import { useSessionInfo } from '../../../components/modules/profile/sessionHooks';
 import getBase64 from "@/app/utils/getBase64"
 
@@ -156,15 +156,28 @@ const [confirmPassword, setConfirmPassword] = useState("");
 const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
 const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
 
+
+
+const passwordChangeSchema = yup.object().shape({
+  currentPassword: yup.string().required('Current password is required'),
+  newPassword: yup.string()
+    .required('New password is required')
+    .min(6, 'New password must be at least 6 characters')
+    .notOneOf([yup.ref('currentPassword')], 'New password must be different from current password'),
+  confirmPassword: yup.string()
+    .required('Confirm password is required')
+    .oneOf([yup.ref('newPassword')], 'New passwords do not match'),
+});
+
 const handlePasswordChange = async () => {
   setPasswordChangeError(null);
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    setPasswordChangeError("All password fields are required.");
-    return;
-  }
-  if (newPassword !== confirmPassword) {
-    setPasswordChangeError("New passwords do not match.");
-    return;
+  try {
+    await passwordChangeSchema.validate({ currentPassword, newPassword, confirmPassword });
+  } catch (err) {
+    if (err instanceof yup.ValidationError) {
+      setPasswordChangeError(err.errors[0]);
+      return;
+    }
   }
   setPasswordChangeLoading(true);
   try {
@@ -240,7 +253,7 @@ return (
                                     ) : localProfile && localProfile.photoUrl ? (
                                       <img src={localProfile.photoUrl} alt={localProfile.firstName || ''} className="h-20 w-20 rounded-full object-cover" />
                                     ) : (
-                                      <AvatarFallback>{localProfile && localProfile.firstName ? localProfile.firstName[0] : 'U'}</AvatarFallback>
+                                      <AvatarFallback>{localProfile && localProfile.firstName ? localProfile.firstName[0] : user?.email?.[0] || 'U'}</AvatarFallback>
                                     )}
                   </Avatar>
 

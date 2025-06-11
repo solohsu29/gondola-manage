@@ -37,6 +37,8 @@ useEffect(() => {
   
   }, [id]);
 
+  console.log('project',project)
+
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "delivery-orders";
 
@@ -139,7 +141,7 @@ useEffect(() => {
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div className="flex justify-between w-full">
                   <span className="text-foreground">Created:</span>
-                  <span className="font-medium">{project?.createdAt?.split("T")[0]||''}</span>
+                  <span className="font-medium">{project?.created?.split("T")[0]||''}</span>
                 </div>
               </div>
             </div>
