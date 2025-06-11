@@ -96,6 +96,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const { id } = await params;
 
     // Manually delete all related records due to ON DELETE RESTRICT on foreign keys
+    await pool.query('DELETE FROM "OrientationSession" WHERE "gondolaId" = $1', [id]);
     await pool.query('DELETE FROM "Inspection" WHERE "gondolaId" = $1', [id]);
     await pool.query('DELETE FROM "Certificate" WHERE "gondolaId" = $1', [id]);
     await pool.query('DELETE FROM "ShiftHistory" WHERE "gondolaId" = $1', [id]);

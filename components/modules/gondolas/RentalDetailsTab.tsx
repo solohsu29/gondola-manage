@@ -19,8 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
-
-
+import {v4 as uuid} from 'uuid'
 import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
@@ -41,6 +40,21 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
     certificates: null as FileList | null,
     additionalNotes: ""
   });
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
+  const [isGenerateDDDialogOpen, setIsGenerateDDDialogOpen] = useState(false)
+  const [isUploadCOSDialogOpen, setIsUploadCOSDialogOpen] = useState(false)
+  const [isCertAlertsDialogOpen, setIsCertAlertsDialogOpen] = useState(false)
+  // Certificate Alerts State
+  const [alertEmail, setAlertEmail] = useState("");
+  const [alertFrequency, setAlertFrequency] = useState("");
+  const [alertThreshold, setAlertThreshold] = useState("");
+  const [certAlertLoading, setCertAlertLoading] = useState(false);
+  const [success,setSuccess] = useState('')
+  const [cosNotes, setCosNotes] = useState("");
+    const {
+      documents, documentsLoading, documentsError, fetchDocumentsByGondolaId,
+      rentalDetails, rentalDetailsLoading, rentalDetailsError, fetchRentalDetailsByGondolaId
+    } = useAppStore();
 
   const handleDdFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, files } = e.target as HTMLInputElement;
@@ -63,94 +77,113 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
       { value: ddForm.siteContactName, name: "Site Contact Name" },
       { value: ddForm.siteContactPhone, name: "Site Contact Phone" },
       { value: ddForm.siteContactEmail, name: "Site Contact Email" },
+
+      
     ];
     const missingFields = requiredFields.filter((field) => !field.value.trim());
     if (missingFields.length > 0) {
-
-
       toast.error("Missing Required Fields!",{description: `Please fill in the following required fields:\n${missingFields.map((field) => `- ${field.name}`).join("\n")}`,className:"bg-destructive text-white"})
       return;
     }
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(ddForm.siteContactEmail)) {
-    
-      toast.error("Invalid Email!",{description:"Please enter a valid email address for Site Contact Email",className:"bg-destructive text-white"})
-      return;
+    setCertAlertLoading(true)
+    // Generate PDF using jsPDF
+    try {
+      // Dynamically import jsPDF and template utility (for SSR compatibility)
+      import('./ddPdfTemplate').then(({ generateDDPdf }) => {
+        const doc = generateDDPdf(ddForm);
+        doc.save('DeploymentDetails.pdf');
+        toast.success('Deployment Details PDF generated!');
+        setCertAlertLoading(false)
+        setIsGenerateDDDialogOpen(false)
+      });
+    } catch (err: any) {
+      toast.error('Failed to generate PDF', { description: err.message });
+      setCertAlertLoading(false)
+      setIsGenerateDDDialogOpen(false)
     }
-    const attachments = ddForm.certificates
-      ? Array.from(ddForm.certificates).map((file) => file.name).join(", ")
-      : "None";
-    const deploymentDocument = {
-      ddId: ddForm.ddId,
-      gondolaId: gondolaId,
-      deploymentDate: ddForm.deploymentDate,
-      projectSiteName: ddForm.projectSiteName,
-      clientCompany: ddForm.clientCompany,
-      leadTechnician: {
-        name: ddForm.leadTechnicianName,
-        id: ddForm.leadTechnicianId,
-      },
-      siteAddress: ddForm.siteAddress,
-      siteContact: {
-        name: ddForm.siteContactName,
-        phone: ddForm.siteContactPhone,
-        email: ddForm.siteContactEmail,
-      },
-      attachments: attachments,
-      additionalNotes: ddForm.additionalNotes || "None",
-      generatedAt: new Date().toISOString(),
-    };
-    console.log("Generated Deployment Document:", deploymentDocument);
-    alert(
-      `Deployment Document generated successfully!\n\nDD ID: ${deploymentDocument.ddId}\nGondola: ${deploymentDocument.gondolaId}\nDeployment Date: ${deploymentDocument.deploymentDate}\nProject/Site: ${deploymentDocument.projectSiteName}\nClient: ${deploymentDocument.clientCompany}\nLead Technician: ${deploymentDocument.leadTechnician.name} (ID: ${deploymentDocument.leadTechnician.id})\nSite Address: ${deploymentDocument.siteAddress}\nSite Contact: ${deploymentDocument.siteContact.name}\nPhone: ${deploymentDocument.siteContact.phone}\nEmail: ${deploymentDocument.siteContact.email}\nAttachments: ${deploymentDocument.attachments}\nNotes: ${deploymentDocument.additionalNotes}\n\nDocument has been generated and is ready for download.`,
-    );
-    setIsGenerateDDDialogOpen(false);
-    // Reset form fields
-    setDdForm({
-      ddId: `DD-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, "0")}`,
-      deploymentDate: new Date().toISOString().split("T")[0],
-      projectSiteName: "Marina Bay Tower",
-      clientCompany: "Apex Construction",
-      leadTechnicianName: "",
-      leadTechnicianId: "",
-      siteAddress: "",
-      siteContactName: "",
-      siteContactPhone: "",
-      siteContactEmail: "",
-      certificates: null,
-      additionalNotes: ""
-    });
   };
+
+   
   // --- End Generate DD Dialog state and handlers ---
 
-  const [isGenerateDDDialogOpen, setIsGenerateDDDialogOpen] = useState(false)
-  const [isUploadCOSDialogOpen, setIsUploadCOSDialogOpen] = useState(false)
-  const [isCertAlertsDialogOpen, setIsCertAlertsDialogOpen] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
+
+  // Upload COS Handler
+  const handleUploadCOS = async () => {
+    if (!selectedFiles || selectedFiles.length === 0) {
+      toast.error("Please select a file to upload");
+      return;
+    }
+    const file = selectedFiles[0]; // Support single file upload for now
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'COS'); // Document type/category
+    formData.append('name', file.name); // Use file name as title
+    formData.append('notes', cosNotes);
+    // Optional: add expiry if needed (formData.append('expiry', ...))
+    setCertAlertLoading(true)
+    try {
+      const res = await fetch(`/api/gondola/${gondolaId}/documents`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to upload COS');
+      toast.success('Certificate of Serviceability uploaded successfully!');
+      setIsUploadCOSDialogOpen(false);
+      setSelectedFiles(null);
+      setCosNotes('');
+      setCertAlertLoading(false)
+      setSuccess(uuid())
+    } catch (err: any) {
+      toast.error('Failed to upload COS', { description: err.message });
+      setCertAlertLoading(false)
+    }
+  };
+
+
+
+  // Cert Alert Submit Handler (API)
+  const handleCertAlertSave = async () => {
+    if (!alertEmail) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    setCertAlertLoading(true);
+    try {
+      const res = await fetch("/api/send-cert-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gondolaId,
+          email: alertEmail,
+         
+        })
+      });
+      if (!res.ok) throw new Error("Failed to send alert email");
+      toast.success("Test alert email sent to " + alertEmail);
+      setIsCertAlertsDialogOpen(false);
+      setAlertEmail('')
+      setAlertFrequency('')
+      setAlertThreshold('')
+    } catch (err: any) {
+      toast.error("Failed to send alert email", { description: err.message });
+    } finally {
+      setCertAlertLoading(false);
+    }
+  };
+
 
 
 
   useEffect(() => {
-    if (gondolaId) fetchRentalDetailsByGondolaId(gondolaId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (gondolaId){
+      fetchRentalDetailsByGondolaId(gondolaId);
+    } 
   }, [gondolaId]);
 
-  // All needed state from store (single destructure)
-  const {
-    documents, documentsLoading, documentsError, fetchDocumentsByGondolaId,
-    rentalDetails, rentalDetailsLoading, rentalDetailsError, fetchRentalDetailsByGondolaId
-  } = useAppStore();
-
-  useEffect(() => {
-    if (gondolaId) fetchRentalDetailsByGondolaId(gondolaId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gondolaId]);
 
   useEffect(() => {
     if (gondolaId) fetchDocumentsByGondolaId(gondolaId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gondolaId]);
+  }, [gondolaId,success]);
 
   if (rentalDetailsLoading) {
     return <div className="p-6">Loading rental details...</div>;
@@ -196,6 +229,17 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
       header: 'Type',
       accessorKey: 'type',
       cell: info => info.getValue(),
+    },
+    {
+      header: 'Name',
+      accessorKey: 'name',
+      cell: info => {
+        const name = info.getValue() as string;
+        const truncated = name && name.length > 24 ? name.slice(0, 24) + '…' : name;
+        return (
+          <span title={name}>{truncated}</span>
+        );
+      },
     },
     {
       header: 'Issue Date',
@@ -280,6 +324,7 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                       value={ddForm.ddId}
                       disabled
                       className="bg-gray-50"
+                      readOnly
                     />
                   </div>
                   <div className="space-y-2">
@@ -351,8 +396,9 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                   <Button
                     type="submit"
                     onClick={onGenerateDD}
+                    disabled={certAlertLoading}
                   >
-                    Generate Document
+                  {certAlertLoading ? "Generating ...":"Generate Document"}  
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -391,7 +437,12 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cosNotes">Additional Notes</Label>
-                    <Textarea id="cosNotes" placeholder="Any additional information or notes about the COS" />
+                    <Textarea
+  id="cosNotes"
+  placeholder="Any additional information or notes about the COS"
+  value={cosNotes}
+  onChange={e => setCosNotes(e.target.value)}
+/>
                   </div>
                 </div>
                 <DialogFooter>
@@ -399,26 +450,11 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                     Cancel
                   </Button>
                   <Button
-                    type="submit"
-                    onClick={() => {
-                      const cosNotesInput = document.getElementById("cosNotes") as HTMLTextAreaElement
-
-                      if (selectedFiles && selectedFiles.length > 0) {
-                        alert(
-                          `Certificate of Serviceability uploaded successfully!\n\nGondola: ${gondolaId}\nFiles: ${Array.from(
-                            selectedFiles,
-                          )
-                            .map((file) => file.name)
-                            .join(", ")}\nNotes: ${cosNotesInput.value || "None"}`,
-                        )
-                        setIsUploadCOSDialogOpen(false)
-                        setSelectedFiles(null)
-                      } else {
-                        alert("Please select a file to upload")
-                      }
-                    }}
+                    type="button"
+                    onClick={handleUploadCOS}
+                    disabled={certAlertLoading}
                   >
-                    Upload COS
+                   {certAlertLoading ? "Uploading...":"Upload COS"} 
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -439,11 +475,17 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                 <div className="grid gap-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="alertEmail">Alert Email</Label>
-                    <Input id="alertEmail" type="email" placeholder="Enter email address for alerts" />
+                    <Input
+  id="alertEmail"
+  type="email"
+  placeholder="Enter email address for alerts"
+  value={alertEmail}
+  onChange={e => setAlertEmail(e.target.value)}
+/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="alertFrequency">Alert Frequency</Label>
-                    <Select name="alertFrequency">
+                    <Select name="alertFrequency" value={alertFrequency} onValueChange={setAlertFrequency}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
@@ -457,10 +499,12 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                   <div className="space-y-2">
                     <Label htmlFor="alertThreshold">Alert Threshold (Days)</Label>
                     <Input
-                      id="alertThreshold"
-                      type="number"
-                      placeholder="Number of days before expiry to start sending alerts"
-                    />
+  id="alertThreshold"
+  type="number"
+  placeholder="Number of days before expiry to start sending alerts"
+  value={alertThreshold}
+  onChange={e => setAlertThreshold(e.target.value)}
+/>
                   </div>
                 </div>
                 <DialogFooter>
@@ -468,21 +512,11 @@ export default function RentalDetailsTab({ gondolaId }: { gondolaId: string }) {
                     Cancel
                   </Button>
                   <Button
-                    type="submit"
-                    onClick={() => {
-                      const alertEmailInput = document.getElementById("alertEmail") as HTMLInputElement
-                      const alertFrequencySelect = document.querySelector(
-                        '[name="alertFrequency"]',
-                      ) as HTMLSelectElement
-                      const alertThresholdInput = document.getElementById("alertThreshold") as HTMLInputElement
-
-                      alert(
-                        `Certificate expiry alerts configured successfully!\n\nGondola: ${gondolaId}\nEmail: ${alertEmailInput.value}\nFrequency: ${alertFrequencySelect.value}\nThreshold: ${alertThresholdInput.value} days`,
-                      )
-                      setIsCertAlertsDialogOpen(false)
-                    }}
+                    type="button"
+                    onClick={handleCertAlertSave}
+                    disabled={certAlertLoading}
                   >
-                    Save Settings
+                 {certAlertLoading ? "Saving ...":"Save Settings"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

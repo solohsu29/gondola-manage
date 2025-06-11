@@ -20,10 +20,12 @@ import { Textarea } from "@/components/ui/textarea"
 import {v4 as uuid} from 'uuid'
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner"
+import { GondolasStatus } from "@/types"
 
 export default function GondolasPage() {
   const [isNewGondolaDialogOpen, setIsNewGondolaDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
   const { gondolas, fetchGondolas } = useAppStore();
   const [createLoading,setCreateLoading] = useState(false)
   const [refresh,setRefresh] = useState('')
@@ -123,6 +125,16 @@ export default function GondolasPage() {
     document.body.removeChild(link);
   };
 
+  const filteredData = gondolas.filter(g => {
+    // Status filter
+    const statusMatch = selectedStatus === "all" || (g.status?.trim().toLowerCase() === selectedStatus.trim().toLowerCase());
+    // Search filter
+    const query = search.trim().toLowerCase();
+    const searchMatch = !query || [g.serialNumber, g.location, g.locationDetail, g.status]
+      .filter(Boolean)
+      .some(field => field?.toLowerCase().includes(query));
+    return statusMatch && searchMatch;
+  })
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Gondolas</h1>
@@ -130,7 +142,13 @@ export default function GondolasPage() {
       <div className="bg-background border rounded-lg overflow-hidden">
         <div className="p-4 flex flex-col sm:flex-row gap-4 border-b">
           <div className="relative flex-1">
-            <Input type="search" placeholder="Search gondolas..." className="pl-10" />
+            <Input
+  type="search"
+  placeholder="Search gondolas..."
+  className="pl-10"
+  value={search}
+  onChange={e => setSearch(e.target.value)}
+/>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="absolute left-3 top-3 h-4 w-4 text-gray-400"
@@ -156,11 +174,9 @@ export default function GondolasPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Deployed">Deployed</SelectItem>
-                <SelectItem value="In Use">In Use</SelectItem>
-                <SelectItem value="Under Inspection">Under Inspection</SelectItem>
-                <SelectItem value="Maintenance">Maintenance</SelectItem>
-                <SelectItem value="Off-hired">Off-hired</SelectItem>
+              {GondolasStatus?.map((status)=>{
+                return <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+              })}
               </SelectContent>
             </Select>
             <Button
@@ -230,11 +246,10 @@ export default function GondolasPage() {
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="In Use">In Use</SelectItem>
-              <SelectItem value="Maintenance">Maintenance</SelectItem>
-              <SelectItem value="Ready for Deployment">Ready for Deployment</SelectItem>
-              <SelectItem value="Deployed">Deployed</SelectItem>
-              <SelectItem value="Off-Hire">Off-Hire</SelectItem>
+              {GondolasStatus?.map((status)=>{
+                return <SelectItem value={status.value}>{status.label}</SelectItem>
+              })}
+             
             </SelectContent>
           </Select>
         </div>
@@ -295,7 +310,10 @@ export default function GondolasPage() {
 
         <div className="overflow-x-auto">
           {/* DataTable for gondolas */}
-          <GondolasDataTable refresh={refresh}/>
+          <GondolasDataTable
+  refresh={refresh}
+  gondolas={filteredData}
+/>
         </div>
        
 

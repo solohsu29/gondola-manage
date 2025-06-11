@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAppStore } from "@/lib/store"
-import ProfilePhotoUpload from "./ProfilePhotoUpload"
+import ProfilePhotoUpload from "../../../components/modules/profile/ProfilePhotoUpload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,7 +16,7 @@ import Link from "next/link"
 import { useUserInfo } from "@/hooks/useUserInfo"
 import { toast } from "sonner"
 
-import { useSessionInfo } from './sessionHooks';
+import { useSessionInfo } from '../../../components/modules/profile/sessionHooks';
 import getBase64 from "@/app/utils/getBase64"
 
 export default function ProfilePage() {

@@ -44,7 +44,7 @@ model DeliveryOrder {
   poReference  String
   status       String
   amount       String
-  items        Int
+  items        String
   documentId   String?   @unique
   updatedAt    DateTime  @default(now()) @updatedAt
   fileData     Bytes?

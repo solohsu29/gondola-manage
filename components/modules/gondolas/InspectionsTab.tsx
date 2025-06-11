@@ -562,7 +562,7 @@ const handleEditInspection = async () => {
               >
                 Close
               </Button>
-              {(() => {
+              {/* {(() => {
                 // Use same logic as status display for determining if editable
                 const now = new Date("2025-06-06T09:45:00+06:30"); // use current local time
                 const inspDate = viewInspection?.date ? new Date(viewInspection.date) : null;
@@ -574,7 +574,7 @@ const handleEditInspection = async () => {
                   );
                 }
                 return null;
-              })()}
+              })()} */}
 
             </DialogFooter>
           </DialogContent>

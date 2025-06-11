@@ -66,6 +66,9 @@ export default function ERPDOPage() {
   const [erpFile, setErpFile] = useState<File | null>(null);
 const [importing, setImporting] = useState(false);
 const [open, setOpen] = React.useState(false);
+  // Export handler for CSV/Excel
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [loading,setLoading] = useState(false)
 
   async function handleImportFromERP() {
     if (!manualEntry.number || !manualEntry.client || !erpFile) {
@@ -147,9 +150,8 @@ useEffect(() => {
     }
   }
 
-  // Export handler for CSV/Excel
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | null>(null);
+
+
 
   function handleExport() {
     if (!filteredOrders.length) {
@@ -208,18 +210,23 @@ useEffect(() => {
       toast.error("Please fill in all required fields (marked with *)", { className: 'bg-destructive text-white' });
       return;
     }
+    console.log('manual entry',manualEntry)
     // Prepare form data
     const formData = new FormData();
+    // Sanitize amount to ensure it's a valid integer
+    let safeAmount = parseInt(manualEntry.amount, 10);
+    if (isNaN(safeAmount)) safeAmount = 0;
     formData.append("manualEntry", JSON.stringify({
       ...manualEntry,
       items: manualEntry.items || '',
       status: manualEntry.status || 'pending',
-      amount: manualEntry.amount || '0',
+      amount: String(safeAmount),
     }));
     if (manualEntry.documents && manualEntry.documents.length > 0) {
       // Only upload the first file for now (backend expects one file)
       formData.append("file", manualEntry.documents[0]);
     }
+    setLoading(true)
     try {
       const res = await fetch("/api/delivery-order/import", {
         method: "POST",
@@ -230,12 +237,15 @@ useEffect(() => {
         setIsManualEntryDialogOpen(false);
         setManualEntry({ number: "", client: "", site: "", orderDate: "", deliveryDate: "", poReference: "", amount: "", items: "", status: "pending", documents: [] });
         fetchDeliveryOrders();
+        setLoading(false)
       } else {
         const errMsg = await res.text();
         toast.error(`Backend error: ${errMsg}`, { className: 'bg-destructive text-white' });
+        setLoading(false)
       }
     } catch (err: any) {
       toast.error("Failed to create delivery order.", { className: 'bg-destructive text-white' });
+      setLoading(false)
     }
   }
   const deliveryOrderColumns: ColumnDef<any>[] = [
@@ -314,14 +324,14 @@ useEffect(() => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">ERP Delivery Orders</h1>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             variant="outline"
             className="flex items-center gap-2"
             onClick={handleExport}
           >
             <Download className="h-4 w-4" />
             <span>Export</span>
-          </Button>
+          </Button> */}
           <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -491,8 +501,9 @@ useEffect(() => {
                 <Button
                   type="submit"
                   onClick={handleCreateManualDD}
+                  disabled={loading}
                 >
-                  Create Delivery Order
+               {loading ? "Creating ..." :"Create Delivery Order"}   
                 </Button>
               </DialogFooter>
             </DialogContent>

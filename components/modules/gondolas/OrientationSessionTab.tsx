@@ -413,7 +413,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
                 
 
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          {/* <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <h4 className="font-medium text-blue-900 mb-2">Orientation Requirements</h4>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• All operators must complete initial orientation before gondola operation</li>
@@ -421,7 +421,7 @@ export default function OrientationSessionTab({ gondolaId }: { gondolaId: string
               <li>• Equipment training must be renewed annually</li>
               <li>• Emergency procedure training is mandatory for all operators</li>
             </ul>
-          </div>
+          </div> */}
         </div>
         {/* View Session Dialog */}
         <Dialog open={isViewSessionDialogOpen} onOpenChange={setIsViewSessionDialogOpen}>

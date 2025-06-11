@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { GondolasStatus } from "@/types";
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
@@ -35,8 +36,9 @@ function StatusBadge({ status }: { status: string }) {
       return <Badge>{status}</Badge>
   }
 }
-export function GondolasDataTable({refresh}:{refresh:string}) {
-  const { gondolas, gondolasLoading, gondolasError, fetchGondolas, projects } = useAppStore();
+export function GondolasDataTable({refresh, gondolas: gondolasProp}:{refresh:string, gondolas?: any[]}) {
+  const { gondolas: storeGondolas, gondolasLoading, gondolasError, fetchGondolas, projects } = useAppStore();
+  const gondolas = gondolasProp ?? storeGondolas;
    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [editData,setEditData] = useState({})
@@ -218,10 +220,9 @@ export function GondolasDataTable({refresh}:{refresh:string}) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Deployed">Deployed</SelectItem>
-                  <SelectItem value="In Use">In Use</SelectItem>
-                  <SelectItem value="Maintenance">Maintenance</SelectItem>
-                  <SelectItem value="Off-Hired">Off-Hired</SelectItem>
+                {GondolasStatus?.map((status)=>{
+                return <SelectItem value={status.value}>{status.label}</SelectItem>
+              })}
                 </SelectContent>
               </Select>
             </div>
