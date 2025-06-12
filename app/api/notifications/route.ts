@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   if (projectId) {
     actionLink = `/projects/${projectId}`;
   } else if (gondolaIdentifier) {
-    actionLink = `/gondolas/${gondolaIdentifier}`;
+    actionLink = `/gondolas/${cert.gondolaId}`;
   } else {
     actionLink = '';
   }
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   return {
     id: `cert-${cert.id}`,
     type: 'warning',
-    message: gondolaIdentifier ? `${cert.title} for ${gondolaIdentifier} expires in 30 days` : projectId ? `${cert.title} for ${projectId} expires in 30 days`: `${cert.title} expires in 30 days`,
+    message: cert.gondolaId ? `${cert.title} for ${gondolaIdentifier} expires in 30 days` : projectId ? `${cert.title} for ${projectId} expires in 30 days`: `${cert.title} expires in 30 days`,
     date: cert.expiry,
     read: false,
     actionLink,
