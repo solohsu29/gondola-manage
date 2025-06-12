@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
     `);
 
     const certNotifications = certsResult.rows.map((cert: any) => {
-  const gondolaIdentifier = cert.serialNumber || cert.gondolaId || "unknown";
+  const gondolaIdentifier = cert.serialNumber || cert.gondolaId || "";
+
   return {
     id: `cert-${cert.id}`,
     type: 'warning',

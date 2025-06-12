@@ -154,6 +154,7 @@ export default function Header () {
     }
   }
 
+  console.log('noti',notifications)
 
 
   return (
