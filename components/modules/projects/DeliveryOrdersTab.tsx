@@ -207,7 +207,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         .map((deliveryOrder: any) => (
                           <div
                             key={deliveryOrder.id}
-                            className='flex items-start space-x-3 p-3 border-b last:border-b-0 hover:bg-gray-50'
+                            className='flex items-start space-x-3 p-3 border-b last:border-b-0 hover:bg-background'
                           >
                             <input
                               type='checkbox'

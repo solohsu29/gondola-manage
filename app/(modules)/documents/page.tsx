@@ -24,7 +24,7 @@ export default function DocumentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-gray-50">
+                <tr className="border-b bg-background">
                   <th className="text-left p-4 font-medium text-foreground">Gondola</th>
                   <th className="text-left p-4 font-medium text-foreground">Type</th>
                   <th className="text-left p-4 font-medium text-foreground">Name</th>
@@ -95,7 +95,7 @@ interface DocumentRowProps {
 
 function DocumentRow({ gondola, type, name, uploaded, expiry, status }: DocumentRowProps) {
   return (
-    <tr className="border-b hover:bg-gray-50">
+    <tr className="border-b hover:bg-background">
       <td className="p-4">{gondola}</td>
       <td className="p-4">{type}</td>
       <td className="p-4">{name}</td>

@@ -23,7 +23,7 @@ export function useNotifications(prefs?: NotificationPreferences) {
     async function fetchNotifications() {
       setLoading(true);
       try {
-        const res = await fetch('/api/notifications');
+        const res = await fetch('/api/notifications', { credentials: 'include' });
         const data = await res.json();
         let notifs: Notification[] =
           data.notifications?.map((n: any) => ({

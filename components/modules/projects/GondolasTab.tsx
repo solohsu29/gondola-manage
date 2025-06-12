@@ -185,7 +185,7 @@ export default function GondolasTab ({ gondolas }: { gondolas: any[] }) {
                 key={gondola.id}
                 className='border rounded-md overflow-hidden'
               >
-                <div className='p-6 border-b bg-gray-50'>
+                <div className='p-6 border-b bg-background'>
                   <div className='flex items-center'>
                     <h3 className='text-lg font-medium'>
                       Gondola {gondola.serialNumber}

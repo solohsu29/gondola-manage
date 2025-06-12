@@ -35,7 +35,7 @@ export default function InspectionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-gray-50">
+                <tr className="border-b bg-background">
                   <th className="text-left p-4 font-medium text-foreground">Inspection ID</th>
                   <th className="text-left p-4 font-medium text-foreground">Gondola</th>
                   <th className="text-left p-4 font-medium text-foreground">Type</th>
@@ -106,7 +106,7 @@ interface InspectionRowProps {
 
 function InspectionRow({ id, gondola, type, date, inspector, status }: InspectionRowProps) {
   return (
-    <tr className="border-b hover:bg-gray-50">
+    <tr className="border-b hover:bg-background">
       <td className="p-4">
         <Link href={`/inspections/${id}`} className="text-blue-600 hover:underline">
           {id}

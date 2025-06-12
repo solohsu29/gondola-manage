@@ -5,6 +5,8 @@ import { verifyJwt } from '@/app/utils/jwt';
 // GET /api/notifications - Get notifications for the authenticated user
 export async function GET(req: NextRequest) {
   const token = req.cookies.get('token')?.value;
+
+  console.log('token',token)
   if (!token) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const user = verifyJwt(token) as { id: number; email: string } | null;
   if (!user) return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
@@ -26,7 +28,7 @@ export async function GET(req: NextRequest) {
         d.category ILIKE '%Certificate%' OR d.type ILIKE '%Certificate%' OR d.title ILIKE '%Certificate%'
       )
       AND d.expiry IS NOT NULL
-      AND d.expiry BETWEEN NOW() AND NOW() + INTERVAL '30 days'
+      AND d.expiry::date BETWEEN NOW()::date AND (NOW() + INTERVAL '30 days')::date
     `);
 
   const certNotifications = certsResult.rows.map((cert: any) => {
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
     const notifications = [...dbNotifications, ...certNotifications].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return NextResponse.json({ notifications });
   } catch (err) {
+    console.error(err)
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
   }
 }

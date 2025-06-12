@@ -396,7 +396,7 @@ export default function NewProjectPage () {
                       {availableDOs?.map(deliveryOrder => (
                         <div
                           key={deliveryOrder.id}
-                          className='flex items-start space-x-3 p-3 border-b last:border-b-0 hover:bg-gray-50'
+                          className='flex items-start space-x-3 p-3 border-b last:border-b-0 hover:bg-background'
                         >
                           <input
                             type='checkbox'
@@ -455,7 +455,7 @@ export default function NewProjectPage () {
                       Selected Delivery Orders (
                       {formData.deliveryOrders?.length || 0})
                     </h3>
-                    <div className='max-h-64 overflow-y-auto border rounded-md bg-gray-50'>
+                    <div className='max-h-64 overflow-y-auto border rounded-md bg-background'>
                       {formData.deliveryOrders &&
                       formData.deliveryOrders.length > 0 ? (
                         <div className='space-y-2 p-3'>
@@ -591,7 +591,7 @@ export default function NewProjectPage () {
                         return filteredGondolas.map(gondola => (
                           <div
                             key={gondola.id}
-                            className='flex items-center space-x-3 p-3 border-b last:border-b-0 hover:bg-gray-50'
+                            className='flex items-center space-x-3 p-3 border-b last:border-b-0 hover:bg-background'
                           >
                             <input
                               type='checkbox'
@@ -705,7 +705,7 @@ export default function NewProjectPage () {
                     <h3 className='text-sm font-medium mb-4'>
                       Selected Gondolas ({formData.gondolas?.length || 0})
                     </h3>
-                    <div className='max-h-64 overflow-y-auto border rounded-md bg-gray-50'>
+                    <div className='max-h-64 overflow-y-auto border rounded-md bg-background'>
                       {formData.gondolas && formData.gondolas.length > 0 ? (
                         <div className='space-y-2 p-3'>
                           {formData.gondolas.map((gondola, index) => (
