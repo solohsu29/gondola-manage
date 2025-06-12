@@ -8,20 +8,20 @@ export const metadata: Metadata = {
     generator: 'v0.dev'
 }
 
+import ThemeSwitcher from "@/components/ThemeSwitcher";
+
 export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-  
-       
-          
-           
-    <div className="w-full">{children}</div>
-          
-
-      
-    
-  )
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <div className="flex justify-end items-center h-16 px-4">
+        <ThemeSwitcher />
+      </div>
+      <main className="flex-1 overflow-auto bg-background">{children}</main>
+    </div>
+  );
 }
+

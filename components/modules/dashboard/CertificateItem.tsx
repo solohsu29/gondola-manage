@@ -20,6 +20,9 @@ export default function CertificateItem({ title, serialNumber, expiry }: Certifi
     if (diffDays < 0) {
       statusText = "Expired";
       badgeClass = "bg-red-100 text-red-800 border-red-200";
+    } else if (diffDays === 0) {
+      statusText = "Expiring today";
+      badgeClass = "bg-yellow-100 text-yellow-800 border-yellow-200";
     } else if (diffDays <= 30) {
       statusText = `Expiring in ${diffDays} day${diffDays === 1 ? '' : 's'}`;
       badgeClass = "bg-yellow-100 text-yellow-800 border-yellow-200";

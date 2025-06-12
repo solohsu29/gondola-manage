@@ -1,174 +1,192 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import * as yup from "yup";
-import { yupResolver } from '@hookform/resolvers/yup';
-import { InputOTP, InputOTPSlot } from '@/components/ui/input-otp';
-import { Form, FormItem, FormLabel, FormControl, FormMessage, FormField } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { useUserInfo } from "@/hooks/useUserInfo";
-import { useRouter } from "next/navigation";
+'use client'
+import React, { useState, useEffect, useRef } from 'react'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { InputOTP, InputOTPSlot } from '@/components/ui/input-otp'
+import {
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormField
+} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import { useUserInfo } from '@/hooks/useUserInfo'
+import { useRouter } from 'next/navigation'
 
-import { useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useSearchParams } from 'next/navigation'
+import { useForm } from 'react-hook-form'
 
-export default function OtpVerifyForgotPassword() {
-  const searchParams = useSearchParams();
-  const emailFromQuery = searchParams.get("email") || "";
-  const { email: emailFromStore, storeEmail, removeAllData } = useUserInfo();
+export default function OtpVerifyForgotPassword () {
+  const searchParams = useSearchParams()
+  const emailFromQuery = searchParams.get('email') || ''
+  const { email: emailFromStore, storeEmail, removeAllData } = useUserInfo()
   const schema = yup.object().shape({
-    otp: yup.string().required('OTP is required').matches(/^\d{6}$/, 'OTP must be 6 digits'),
-  });
+    otp: yup
+      .string()
+      .required('OTP is required')
+      .matches(/^\d{6}$/, 'OTP must be 6 digits')
+  })
 
   const form = useForm({
     defaultValues: { otp: '' },
-    resolver: yupResolver(schema),
-  });
-  const [otp, setOtp] = useState("");
-  const [email, setEmail] = useState(emailFromQuery || emailFromStore || "");
-  const [loading, setLoading] = useState(false);
+    resolver: yupResolver(schema)
+  })
+  const [otp, setOtp] = useState('')
+  const [email, setEmail] = useState(emailFromQuery || emailFromStore || '')
+  const [loading, setLoading] = useState(false)
 
   // On mount, if emailFromQuery exists, store it in localStorage/state
   useEffect(() => {
     if (emailFromQuery) {
-      setEmail(emailFromQuery);
-      storeEmail(emailFromQuery);
+      setEmail(emailFromQuery)
+      storeEmail(emailFromQuery)
     }
-  }, [emailFromQuery, storeEmail]);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  }, [emailFromQuery, storeEmail])
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendError, setResendError] = useState("");
-  const [resendSuccess, setResendSuccess] = useState("");
-  const [timer, setTimer] = useState(60);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendError, setResendError] = useState('')
+  const [resendSuccess, setResendSuccess] = useState('')
+  const [timer, setTimer] = useState(60)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const router = useRouter();
+  const router = useRouter()
 
   // Countdown timer logic
   useEffect(() => {
     if (timer === 0 && timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-      return;
+      clearInterval(timerRef.current)
+      timerRef.current = null
+      return
     }
     if (timer > 0 && !timerRef.current) {
       timerRef.current = setInterval(() => {
-        setTimer((t) => t - 1);
-      }, 1000);
+        setTimer(t => t - 1)
+      }, 1000)
     }
     return () => {
       if (timerRef.current && timer === 0) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+        clearInterval(timerRef.current)
+        timerRef.current = null
       }
-    };
-  }, [timer]);
-
+    }
+  }, [timer])
 
   const handleResend = async () => {
-    setResendLoading(true);
-    setResendError("");
-    setResendSuccess("");
+    setResendLoading(true)
+    setResendError('')
+    setResendSuccess('')
     try {
-      const res = await fetch("/api/auth/resend-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to resend OTP");
-      setResendSuccess("OTP resent! Please check your email.");
-      setTimer(60);
+      const res = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to resend OTP')
+      setResendSuccess('OTP resent! Please check your email.')
+      setTimer(60)
     } catch (err: any) {
-      setResendError(err.message);
+      setResendError(err.message)
     } finally {
-      setResendLoading(false);
+      setResendLoading(false)
     }
-  };
+  }
 
-  const onSubmit = async (values:{otp:string}) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
+  const onSubmit = async (values: { otp: string }) => {
+    setLoading(true)
+    setError('')
+    setSuccess('')
     try {
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp:values.otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "OTP verification failed");
-      setSuccess("OTP verified! Redirecting to password reset...");
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: values.otp })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'OTP verification failed')
+      setSuccess('OTP verified! Redirecting to password reset...')
       setTimeout(() => {
-        router.push(`/reset-password?email=${encodeURIComponent(email ?? '')}`);
-      }, 1000);
+        router.push(`/reset-password?email=${encodeURIComponent(email ?? '')}`)
+      }, 1000)
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className='min-h-screen flex items-center justify-center bg-background px-4'>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background p-8 rounded shadow-md w-full max-w-md space-y-6">
-          <h1 className="text-2xl font-bold mb-4 text-center">Verify OTP (Forgot Password)</h1>
-        {error && <div className="text-red-600">{error}</div>}
-        {success && <div className="text-green-600">{success}</div>}
-        <FormField
-          control={form.control}
-          name="otp"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>OTP</FormLabel>
-              <FormControl>
-                <InputOTP
-                  value={field.value}
-                  onChange={field.onChange}
-                  maxLength={6}
-                  containerClassName="justify-center mb-6"
-                  className="w-12 h-12 text-2xl border rounded text-center mx-1"
-                  autoFocus
-                >
-                  {[...Array(6)].map((_, i) => (
-                    <InputOTPSlot key={i} index={i} />
-                  ))}
-                </InputOTP>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Verifying..." : "Verify OTP"}
-        </Button>
-      
-
-
-         <div className="flex flex-col items-center mb-2">
-                  <span className="text-sm text-muted-foreground mb-1">
-                    Didn't receive OTP?
-                  </span>
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="p-0 h-auto text-blue-600 disabled:text-gray-400"
-                    onClick={handleResend}
-                    disabled={timer > 0 || resendLoading}
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='bg-background p-8 rounded shadow-md w-full max-w-md space-y-6'
+        >
+          <h1 className='text-2xl font-bold mb-4 text-center'>
+            Verify OTP (Forgot Password)
+          </h1>
+          {error && <div className='text-red-600'>{error}</div>}
+          {success && <div className='text-green-600'>{success}</div>}
+          <FormField
+            control={form.control}
+            name='otp'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>OTP</FormLabel>
+                <FormControl>
+                  <InputOTP
+                    value={field.value}
+                    onChange={field.onChange}
+                    maxLength={6}
+                    containerClassName='justify-center mb-6'
+                    className='w-12 h-12 text-2xl border rounded text-center mx-1'
+                    autoFocus
                   >
-                    {resendLoading
-                      ? "Resending..."
-                      : timer > 0
-                        ? `Resend OTP in ${timer}s`
-                        : "Resend OTP"}
-                  </Button>
-                  {resendSuccess && <span className="text-green-600 text-sm ml-2">{resendSuccess}</span>}
-                  {resendError && <span className="text-red-600 text-sm ml-2">{resendError}</span>}
-                </div>
-      </form>
+                    {[...Array(6)].map((_, i) => (
+                      <InputOTPSlot key={i} index={i} />
+                    ))}
+                  </InputOTP>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type='submit' className='w-full' disabled={loading}>
+            {loading ? 'Verifying...' : 'Verify OTP'}
+          </Button>
+
+          <div className='flex flex-col items-center mb-2'>
+            <span className='text-sm text-muted-foreground mb-1'>
+              Didn't receive OTP?
+            </span>
+            <Button
+              type='button'
+              variant='link'
+              className='p-0 h-auto text-blue-600 disabled:text-gray-400'
+              onClick={handleResend}
+              disabled={timer > 0 || resendLoading}
+            >
+              {resendLoading
+                ? 'Resending...'
+                : timer > 0
+                ? `Resend OTP in ${timer}s`
+                : 'Resend OTP'}
+            </Button>
+            {resendSuccess && (
+              <span className='text-green-600 text-sm ml-2'>
+                {resendSuccess}
+              </span>
+            )}
+            {resendError && (
+              <span className='text-red-600 text-sm ml-2'>{resendError}</span>
+            )}
+          </div>
+        </form>
       </Form>
     </div>
-  );
+  )
 }

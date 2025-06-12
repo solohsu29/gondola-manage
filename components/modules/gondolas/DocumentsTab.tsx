@@ -12,25 +12,6 @@ import { DataTable } from '@/components/common/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Document } from '@/types/document';
 
-function DocumentsTab({ gondolaId }: { gondolaId: string }) {
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const documents = useAppStore((s) => s.documents);
-  const fetchDocumentsByGondolaId = useAppStore((s) => s.fetchDocumentsByGondolaId);
-  const documentsLoading = useAppStore(s=>s.documentsLoading)
-
-  // Controlled form state for upload
-  const [uploadType, setUploadType] = useState("");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadName, setUploadName] = useState("");
-  const [uploadExpiry, setUploadExpiry] = useState("");
-  const [uploadNotes, setUploadNotes] = useState("");
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    fetchDocumentsByGondolaId(gondolaId);
-  }, [gondolaId]);
-
-
 
   // Define DataTable columns for documents
   const columns: ColumnDef<Document>[] = [
@@ -79,6 +60,26 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
       },
     },
   ];
+
+function DocumentsTab({ gondolaId }: { gondolaId: string }) {
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const documents = useAppStore((s) => s.documents);
+  const fetchDocumentsByGondolaId = useAppStore((s) => s.fetchDocumentsByGondolaId);
+  const documentsLoading = useAppStore(s=>s.documentsLoading)
+
+  // Controlled form state for upload
+  const [uploadType, setUploadType] = useState("");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploadExpiry, setUploadExpiry] = useState("");
+  const [uploadNotes, setUploadNotes] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    fetchDocumentsByGondolaId(gondolaId);
+  }, [gondolaId]);
+
+
 
   const handleUploadDocument = async () => {
     if (!uploadType || !uploadFile) {

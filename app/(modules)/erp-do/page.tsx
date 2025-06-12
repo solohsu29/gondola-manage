@@ -415,7 +415,7 @@ useEffect(() => {
                   </div> */}
                    <div className="grid gap-2">
                   <Label htmlFor="manualItems">Items Description</Label>
-                  <Input id="manualItems" placeholder="Description of items" value={manualEntry.items || ''} onChange={e => setManualEntry({ ...manualEntry, items: e.target.value })} />
+                  <Input type="text" id="manualItems" placeholder="Description of items" value={manualEntry.items || ''} onChange={e => setManualEntry({ ...manualEntry, items: e.target.value })} />
                 </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
