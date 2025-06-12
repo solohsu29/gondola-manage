@@ -8,6 +8,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Input } from '@/components/ui/input';
 import { Form, FormItem, FormLabel, FormControl, FormMessage, FormField } from '@/components/ui/form';
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { MoveLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const schema = yup.object().shape({
@@ -70,6 +72,7 @@ const router = useRouter()
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Sending..." : "Send OTP"}
           </Button>
+          <Link  href={'/login'} className="flex gap-3 items-center justify-center text-center w-full"><MoveLeft/> Back To Login</Link>
         </form>
       </Form>
     </div>

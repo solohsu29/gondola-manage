@@ -20,7 +20,7 @@ export default function AuthLayout({
       <div className="flex justify-end items-center h-16 px-4">
         <ThemeSwitcher />
       </div>
-      <main className="flex-1 overflow-auto bg-background">{children}</main>
+      <main className="flex-1 overflow-hidden max-h-screen bg-background">{children}</main>
     </div>
   );
 }
