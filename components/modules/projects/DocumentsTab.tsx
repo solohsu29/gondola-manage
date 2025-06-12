@@ -35,9 +35,9 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [expiryDate, setExpiryDate] = useState('')
   const [status, setStatus] = useState('')
-  const { fetchDocuments, documents, documentsLoading, documentsError } =
-    useAppStore()
-
+  const [loading,setLoading] = useState(false)
+  const { fetchDocuments, documents, documentsLoading, documentsError } = useAppStore();
+ 
   useEffect(() => {
     if (projectId) {
       // Ensure projectId is available
@@ -78,7 +78,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
     formData.append('file', selectedFile)
     if (expiryDate) formData.append('expiryDate', expiryDate)
     if (status) formData.append('status', status)
-
+setLoading(true)
     try {
       const res = await fetch(`/api/project/${projectId}/document`, {
         method: 'POST',
@@ -89,6 +89,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
         const errorData = await res
           .json()
           .catch(() => ({ error: 'Failed to upload document.' }))
+          setLoading(false)
         throw new Error(errorData.error || 'Server error during upload.')
       }
 
@@ -96,9 +97,11 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
         description: 'Document uploaded successfully!',
         className: 'bg-[#14A44d] text-white'
       })
+      setLoading(false)
       handleDialogChange(false) // This will also reset the form
       if (projectId) fetchDocuments(projectId) // Refresh documents list
     } catch (err) {
+      setLoading(false)
       let message = 'Failed to upload document.'
       if (err instanceof Error) message = err.message
       toast.error(" 'Upload Error'", {
@@ -215,9 +218,9 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
                 <Button
                   type='submit'
                   onClick={handleDocumentUploadSubmit}
-                  disabled={documentsLoading}
+                  disabled={loading}
                 >
-                  {documentsLoading ? 'Uploading ...' : 'Upload'}
+                  {loading ? 'Uploading ...' : 'Upload'}
                 </Button>
               </DialogFooter>
             </DialogContent>

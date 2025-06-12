@@ -11,6 +11,7 @@ interface Certificate {
   expiryDate: string;
   serialNumber:string
   expiry?:string
+  projectName?:string
 }
 
 interface ProjectManager {

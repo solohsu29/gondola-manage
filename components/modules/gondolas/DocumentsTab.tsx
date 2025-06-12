@@ -30,9 +30,7 @@ function DocumentsTab({ gondolaId }: { gondolaId: string }) {
   });
 const [loading,setLoading] = useState(false)
 const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-const documents = useAppStore((s) => s.documents);
-const fetchDocumentsByGondolaId = useAppStore((s) => s.fetchDocumentsByGondolaId);
-const documentsLoading = useAppStore(s=>s.documentsLoading)
+const {documents,fetchDocumentsByGondolaId,documentsLoading} = useAppStore()
 
 // Controlled form state for upload
 const [uploadType, setUploadType] = useState("");

@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import jsPDF from 'jspdf'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -63,7 +62,7 @@ const projectColumns: ColumnDef<Project>[] = [
       </Link>
     )
   },
-  { accessorKey: 'created', header: 'Created' },
+  { accessorKey: 'created', header: 'Created',  cell: ({ row }) => row?.original?.created?.split("T")[0] },
   {
     accessorKey: 'status',
     header: 'Status',
@@ -91,6 +90,7 @@ type CertificateStatus = {
   serialNumber: string
   status: string
   expiry?: string
+  projectName?:string
 }
 
 export default function Dashboard () {
@@ -168,7 +168,7 @@ export default function Dashboard () {
   const activeGondolas = gondolas.filter(
     (g: any) => g.status?.toLowerCase() === 'deployed'
   ).length
-
+console.log('certif',certificates)
   return (
     <div className='p-6'>
       <div className='flex justify-between items-center mb-6'>
@@ -252,9 +252,9 @@ export default function Dashboard () {
         </div>
         {/* Certificate Expiry Table */}
         <div>
-          <Card>
+          <Card className='overflow-y-auto max-h-[400px] relative'>
             <CardContent className='p-0'>
-              <div className='p-4 border-b'>
+              <div className='p-4 border-b sticky top-0 z-10 bg-background'>
                 <h2 className='text-lg font-semibold'>
                   Certificate Expiry Status
                 </h2>
@@ -271,7 +271,8 @@ export default function Dashboard () {
                     <CertificateItem
                       key={idx}
                       title={cert.title}
-                      serialNumber={cert.serialNumber}
+                      serialNumber={cert?.serialNumber ||''}
+                      projectName = {cert.projectName ||''}
                       expiry={cert.expiry}
                     />
                   ))
@@ -356,7 +357,7 @@ export default function Dashboard () {
                     >
                       <span>
                         {cert.title}{' '}
-                        {cert.serialNumber ? `${cert.serialNumber}` : ''}
+                        {cert.serialNumber ? `${cert.serialNumber}` : `${cert?.projectName}` ||''}
                       </span>
                       <span
                         className={

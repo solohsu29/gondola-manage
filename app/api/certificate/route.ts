@@ -4,9 +4,11 @@ import pool from '@/lib/db';
 export async function GET(req: Request) {
   try {
     const query = `
-      SELECT d.id, d.title, d.expiry, d."gondolaId", d.category, d.type, d.status, g."serialNumber"
+      SELECT d.id, d.title, d.expiry, d."gondolaId", d.category, d.type, d.status, g."serialNumber",
+             d."projectId", p."projectName"
       FROM "Document" d
       LEFT JOIN "Gondola" g ON d."gondolaId" = g.id
+      LEFT JOIN "Project" p ON d."projectId" = p.id
       WHERE (
         d.category ILIKE '%Certificate%' OR
         d.type ILIKE '%Certificate%' OR
