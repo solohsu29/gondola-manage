@@ -39,7 +39,7 @@ interface Project {
   gondolas: Gondola[]
   deliveryOrders: DeliveryOrder[]
   projectName: string
-  projectManagerId?: number
+  projectManager?: string
   description: string
   primaryGondolaId?: string
   primaryDOId?: string
@@ -61,7 +61,7 @@ export default function NewProjectPage () {
     gondolas: [],
     deliveryOrders: [],
     projectName: '',
-    projectManagerId: undefined,
+    projectManager: '',
     description: ''
   })
 
@@ -176,7 +176,7 @@ export default function NewProjectPage () {
       startDate: formData.startDate || new Date(),
       deliveryOrders: formData.deliveryOrders!,
       projectName: formData.projectName!,
-      projectManagerId: formData.projectManagerId,
+      projectManager: formData.projectManager,
       description: formData.description || '',
       primaryGondolaId: primaryGondolaId || undefined,
       primaryDOId: primaryDOId || undefined
@@ -361,28 +361,15 @@ export default function NewProjectPage () {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='projectManagerId'>Project Manager</Label>
-                <Select
-                  value={
-                    formData.projectManagerId
-                      ? String(formData.projectManagerId)
-                      : ''
-                  }
-                  onValueChange={value =>
-                    handleChange('projectManagerId', Number(value))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select project manager' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projectManagers.map(manager => (
-                      <SelectItem key={manager.id} value={String(manager.id)}>
-                        {manager.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor='projectManager'>Project Manager</Label>
+                
+                <Input
+                  id='project-manager'
+                  placeholder='Enter Project Manager Name'
+                  value={formData.projectManager}
+                  onChange={e => handleChange('projectManager', e.target.value)}
+                  required
+                />
               </div>
             </div>
 

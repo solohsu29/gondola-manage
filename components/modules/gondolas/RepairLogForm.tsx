@@ -105,18 +105,13 @@ export default function RepairLogForm ({
       </div>
       <div className='space-y-2'>
         <Label htmlFor='technician'>Technician *</Label>
-        <Select name='technician' onValueChange={value => setTechnician(value)}>
-          <SelectTrigger>
-            <SelectValue placeholder='Select technician' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='Mike Johnson'>Mike Johnson</SelectItem>
-            <SelectItem value='Sarah Wilson'>Sarah Wilson</SelectItem>
-            <SelectItem value='John Smith'>John Smith</SelectItem>
-            <SelectItem value='Jane Doe'>Jane Doe</SelectItem>
-            <SelectItem value='Other'>Other</SelectItem>
-          </SelectContent>
-        </Select>
+        <Input
+          id='technician'
+          type='technician'
+          placeholder='Enter Technician'
+          value={technician}
+          onChange={e => setTechnician(e.target.value)}
+        />
       </div>
       <div className='flex items-center space-x-2'>
         <input

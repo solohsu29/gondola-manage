@@ -37,6 +37,7 @@ import { v4 as uuid } from 'uuid'
 import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
+import { ExpiryStatusBadge } from '@/app/utils/statusUtils'
 
 export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) {
   // --- Generate DD Dialog state and handlers ---
@@ -66,6 +67,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
   const [alertThreshold, setAlertThreshold] = useState('')
   const [certAlertLoading, setCertAlertLoading] = useState(false)
   const [success, setSuccess] = useState('')
+  const [uploadExpiry, setUploadExpiry] = useState("");
   const [cosNotes, setCosNotes] = useState('')
   const {
     documents,
@@ -144,6 +146,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     formData.append('type', 'COS') // Document type/category
     formData.append('name', file.name) // Use file name as title
     formData.append('notes', cosNotes)
+    formData.append("expiry", uploadExpiry);
     // Optional: add expiry if needed (formData.append('expiry', ...))
     setCertAlertLoading(true)
     try {
@@ -209,8 +212,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
   if (rentalDetailsError) {
     return <div className='p-6 text-red-600'>Error: {rentalDetailsError}</div>
   }
-  // Support multiple rental infos (one per project)
-  const gondola = rentalDetails?.gondola || {}
+
   const projects = rentalDetails?.projects || []
 
   const certificates = (documents || []).map((doc: any) => {
@@ -276,12 +278,10 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     {
       header: 'Status',
       accessorKey: 'status',
-      cell: info => (
-        <div className='flex items-center gap-2'>
-          {getCertificateStatusIcon(info.row.original.status)}
-          {getCertificateStatusBadge(info.row.original.status)}
-        </div>
-      )
+        cell: ({ row }) => {
+            const expiry = row.getValue("expiryDate") as string | undefined | null;
+            return <ExpiryStatusBadge expiry={expiry} />;
+          },
     },
     {
       header: 'Actions',
@@ -298,44 +298,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     }
   ]
 
-  const getCertificateStatusIcon = (status: string) => {
-    switch (status) {
-      case 'valid':
-        return <CheckCircle className='h-4 w-4 text-green-600' />
-      case 'expiring':
-        return <Clock className='h-4 w-4 text-yellow-600' />
-      case 'expired':
-        return <XCircle className='h-4 w-4 text-red-600' />
-      default:
-        return <Clock className='h-4 w-4 text-gray-600' />
-    }
-  }
-
-  const getCertificateStatusBadge = (status: string) => {
-    switch (status) {
-      case 'valid':
-        return (
-          <Badge className='bg-green-100 text-green-800 border-green-200'>
-            Valid
-          </Badge>
-        )
-      case 'expiring':
-        return (
-          <Badge className='bg-yellow-100 text-yellow-800 border-yellow-200'>
-            Expiring Soon
-          </Badge>
-        )
-      case 'expired':
-        return (
-          <Badge className='bg-red-100 text-red-800 border-red-200'>
-            Expired
-          </Badge>
-        )
-      default:
-        return <Badge variant='outline'>{status}</Badge>
-    }
-  }
-
+ 
   return (
     <Card>
       <CardContent className='p-0'>
@@ -566,6 +529,10 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
                       onChange={e => setCosNotes(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="expiryDate">Expiry Date (if applicable)</Label>
+                  <Input id="expiryDate" type="date" value={uploadExpiry} onChange={e => setUploadExpiry(e.target.value)} />
+                </div>
                 </div>
                 <DialogFooter>
                   <Button

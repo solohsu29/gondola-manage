@@ -40,7 +40,7 @@ interface Project {
   gondolas: Gondola[]
   deliveryOrders: DeliveryOrder[]
   projectName: string
-  projectManagerId?: number
+  manager?: string
   description: string
   primaryGondolaId?: string
   primaryDOId?: string
@@ -65,7 +65,7 @@ export default function EditProjectPage () {
     gondolas: [],
     deliveryOrders: [],
     projectName: '',
-    projectManagerId: undefined,
+    manager: '',
     description: ''
   })
 
@@ -115,7 +115,6 @@ export default function EditProjectPage () {
   useEffect(() => {
     fetchGondolas()
     fetchDeliveryOrders()
-    fetchProjectManagers()
     if (!projectId) return
     setLoading(true)
     setError(null)
@@ -211,7 +210,7 @@ export default function EditProjectPage () {
       startDate: formData.startDate || new Date(),
       deliveryOrders: formData.deliveryOrders!,
       projectName: formData.projectName!,
-      projectManagerId: formData.projectManagerId,
+      manager: formData.manager,
       description: formData.description || '',
       primaryGondolaId: primaryGondolaId || undefined,
       primaryDOId: primaryDOId || undefined
@@ -231,7 +230,7 @@ export default function EditProjectPage () {
         startDate: updatedProject.startDate,
         deliveryOrders: updatedProject.deliveryOrders,
         projectName: updatedProject.projectName,
-        projectManagerId: updatedProject.projectManagerId,
+        manager: updatedProject.manager,
         description: updatedProject.description,
         ...(primaryGondolaId ? { primaryGondolaId } : {}),
         ...(primaryDOId ? { primaryDOId } : {})
@@ -408,28 +407,15 @@ export default function EditProjectPage () {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='projectManagerId'>Project Manager</Label>
-                <Select
-                  value={
-                    formData.projectManagerId
-                      ? String(formData.projectManagerId)
-                      : ''
-                  }
-                  onValueChange={value =>
-                    handleChange('projectManagerId', Number(value))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select project manager' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projectManagers.map(manager => (
-                      <SelectItem key={manager.id} value={String(manager.id)}>
-                        {manager.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor='projectManager'>Project Manager</Label>
+
+                <Input
+                  id='project-manager'
+                  placeholder='Enter Project Manager Name'
+                  value={formData.manager}
+                  onChange={e => handleChange('manager', e.target.value)}
+                  required
+                />
               </div>
             </div>
 

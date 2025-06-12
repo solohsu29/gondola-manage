@@ -8,4 +8,5 @@ export interface Document {
   status: 'Valid' | 'Expiring' | 'Expired';
   category?:string
   title?:string
+  notes?:string
 }

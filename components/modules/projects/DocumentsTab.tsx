@@ -1,7 +1,7 @@
 import {
   columns as documentColumns,
   Document as DocumentType
-} from '@/components/ui/document-columns'
+} from '@/components/modules/projects/document-columns'
 import { DataTable } from '@/components/common/data-table'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -187,7 +187,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
                     className='col-span-3'
                   />
                 </div>
-                <div className='flex flex-col md:flex-row md:items-center gap-4'>
+                {/* <div className='flex flex-col md:flex-row md:items-center gap-4'>
                   <Label htmlFor='status' className='text-right w-[120px]'>
                     Status
                   </Label>
@@ -202,7 +202,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
                       <SelectItem value='archived'>Archived</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
               </div>
               <DialogFooter>
                 <Button

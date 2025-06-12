@@ -60,6 +60,11 @@ const projectColumns: ColumnDef<Project>[] = [
     )
   },
   {
+    accessorKey: 'name',
+    header: 'Name',
+    cell: ({ row }) => row.original.projectName || '-'
+  },
+  {
     accessorKey: 'client',
     header: 'Client',
     cell: ({ row }) => row.original.client || '-'

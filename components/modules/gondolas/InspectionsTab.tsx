@@ -363,22 +363,15 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='inspector'>Inspector</Label>
-                  <Select
+                 
+                  <Input
                     name='inspector'
+                    required
                     value={form.inspector}
-                    onValueChange={v => handleFormChange('inspector', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select inspector' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='John Smith'>John Smith</SelectItem>
-                      <SelectItem value='Jane Doe'>Jane Doe</SelectItem>
-                      <SelectItem value='Mike Johnson'>Mike Johnson</SelectItem>
-                      <SelectItem value='Sarah Wilson'>Sarah Wilson</SelectItem>
-                      <SelectItem value='unassigned'>To be assigned</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={e =>
+                      handleFormChange('inspector', e.target.value)
+                    }
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='priority'>Priority</Label>
@@ -409,7 +402,7 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
                 </div>
               </div>
               <DialogFooter>
-                <Button type='button' variant='outline'>
+                <Button type='button' variant='outline' onClick={()=>setUploadDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
@@ -514,24 +507,14 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='editInspector'>Inspector</Label>
-                  <Select
-                    name='editInspector'
+                  <Input
+                    name='inspector'
+                    required
                     value={editForm.inspector}
-                    onValueChange={v =>
-                      setEditForm(f => ({ ...f, inspector: v }))
+                    onChange={e =>
+                      setEditForm(f => ({ ...f, inspector: e.target.value }))
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select inspector' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='John Smith'>John Smith</SelectItem>
-                      <SelectItem value='Jane Doe'>Jane Doe</SelectItem>
-                      <SelectItem value='Mike Johnson'>Mike Johnson</SelectItem>
-                      <SelectItem value='Sarah Wilson'>Sarah Wilson</SelectItem>
-                      <SelectItem value='unassigned'>To be assigned</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='editPriority'>Priority</Label>

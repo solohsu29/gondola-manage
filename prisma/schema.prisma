@@ -39,8 +39,8 @@ model DeliveryOrder {
   fileUrl      String?
   client       String
   site         String
-  orderDate    DateTime
-  deliveryDate DateTime
+  orderDate    String
+  deliveryDate String
   poReference  String
   status       String
   amount       String
@@ -70,6 +70,7 @@ model Project {
   gondolasOne      Gondola[]        @relation("ProjectToGondola")
   projectManager   ProjectManager?  @relation("Project_projectManagerId", fields: [projectManagerId], references: [id])
   projectGondolas  ProjectGondola[]
+  manager          String?
 }
 
 model Gondola {
@@ -133,7 +134,7 @@ model Document {
   type          String
   name          String
   uploaded      DateTime
-  expiry        DateTime?
+  expiry        String?
   status        String?
   filePath      String?
   fileData      Bytes?

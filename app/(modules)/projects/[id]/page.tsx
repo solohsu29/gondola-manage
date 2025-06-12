@@ -36,7 +36,6 @@ export default function ProjectDetailPage ({
       .finally(() => setLoading(false))
   }, [id])
 
-  console.log('project', project)
 
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') || 'delivery-orders'

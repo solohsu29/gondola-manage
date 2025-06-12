@@ -305,7 +305,7 @@ export default function Dashboard () {
                   <p className='text-xl font-bold'>
                     {
                       certificates.filter(cert =>
-                        cert.status.toLowerCase().includes('expire')
+                        cert?.status?.toLowerCase().includes('expire')
                       ).length
                     }
                   </p>

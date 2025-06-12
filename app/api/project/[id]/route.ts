@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
   const body = await req.json();
 
   // Build dynamic SQL for partial update
-  const allowedFields = ['client', 'site', 'created', 'status','startDate', 'endDate', 'projectName', 'projectManagerId'];
+  const allowedFields = ['client', 'site', 'created', 'status','startDate', 'endDate', 'projectName', 'manager'];
   const updates = [];
   const values = [];
   let idx = 1;

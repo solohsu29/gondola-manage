@@ -47,7 +47,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={isPasswordVisible ? "text" : type}
             className={cn(
               error ? "border border-destructive" : "border border-grey-normal",
-              "flex h-[52px] w-full rounded-lg  bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-grey-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+              "flex h-[52px] w-full rounded-lg  bg-transparent px-3 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-grey-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
               type === "tel" ? "pl-[70px]" : preicon ? "pl-[40px]" : "",
               className
             )}

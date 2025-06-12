@@ -12,4 +12,5 @@ export interface Project {
   status: ProjectStatus;
   endDate?: string;
   deliveryOrders: DeliveryOrder[];
+  projectName?:string
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell} from 'lucide-react'
+import { Bell, Link} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -154,8 +154,6 @@ export default function Header () {
     }
   }
 
-  console.log('noti',notifications)
-
 
   return (
     <header className='border-b bg-background'>
@@ -195,11 +193,13 @@ export default function Header () {
                           <p className='text-xs text-foreground mt-1'>
                             {notification.date.toLocaleString()}
                           </p>
-                          {notification.actionLink && (
+                          {notification?.actionLink && (
                             <Button
-                              variant='link'
-                              size='sm'
-                              className='p-0 h-auto text-xs'
+                            size={"sm"}
+                              onClick={()=>router.push(notification?.actionLink)}
+                               className='p-0 h-auto text-xs'
+                               variant={"link"}
+                             
                             >
                               View Details
                             </Button>

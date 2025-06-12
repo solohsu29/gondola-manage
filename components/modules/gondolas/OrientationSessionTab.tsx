@@ -319,6 +319,44 @@ export default function OrientationSessionTab ({
     }
   ]
 
+
+  const handleEditSession = ()=>{
+    
+      setIsViewSessionDialogOpen(false)
+      if (selectedSession) {
+        setEditData({
+          session_type:
+            selectedSession.type ||
+            selectedSession.session_type ||
+            '',
+          date: selectedSession.date
+            ? selectedSession.date.split('T')[0]
+            : '',
+          time:
+            selectedSession.time ||
+            (selectedSession.date
+              ? (selectedSession.date.split('T')[1] || '').slice(
+                  0,
+                  5
+                )
+              : ''),
+          duration: selectedSession.duration
+            ? String(selectedSession.duration)
+            : '',
+          instructor:
+            selectedSession.instructor ||
+            selectedSession.instructor ||
+            '',
+          location: selectedSession.location || '',
+          max_participants: selectedSession.max_participants
+            ? String(selectedSession.max_participants)
+            : '',
+          notes: selectedSession.notes || ''
+        })
+      }
+      setIsEditSessionDialogOpen(true)
+    
+  }
   return (
     <Card>
       <CardContent className='p-0'>
@@ -424,29 +462,14 @@ export default function OrientationSessionTab ({
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='instructor'>Instructor *</Label>
-                  <Select
-                    name='instructor'
+
+                  <Input
+                    id='instructor'
+                    type='text'
+                    required
                     value={instructor}
-                    onValueChange={setInstructor}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select instructor' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='john_smith'>
-                        John Smith - Senior Trainer
-                      </SelectItem>
-                      <SelectItem value='sarah_wilson'>
-                        Sarah Wilson - Safety Officer
-                      </SelectItem>
-                      <SelectItem value='mike_johnson'>
-                        Mike Johnson - Technical Lead
-                      </SelectItem>
-                      <SelectItem value='jane_doe'>
-                        Jane Doe - Operations Manager
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={e => setInstructor(e.target.value)}
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='maxParticipants'>Max Participants</Label>
@@ -642,7 +665,7 @@ export default function OrientationSessionTab ({
                     <Label className='text-sm font-medium text-foreground'>
                       Instructor
                     </Label>
-                    <p className='font-medium'>John Smith</p>
+                    <p className='font-medium'>{selectedSession?.instructor}</p>
                   </div>
                   <div className='space-y-2'>
                     <Label className='text-sm font-medium text-foreground'>
@@ -718,47 +741,7 @@ export default function OrientationSessionTab ({
               >
                 Close
               </Button>
-              {!isCompleted && (
-                <Button
-                  onClick={() => {
-                    setIsViewSessionDialogOpen(false)
-                    if (selectedSession) {
-                      setEditData({
-                        session_type:
-                          selectedSession.type ||
-                          selectedSession.session_type ||
-                          '',
-                        date: selectedSession.date
-                          ? selectedSession.date.split('T')[0]
-                          : '',
-                        time:
-                          selectedSession.time ||
-                          (selectedSession.date
-                            ? (selectedSession.date.split('T')[1] || '').slice(
-                                0,
-                                5
-                              )
-                            : ''),
-                        duration: selectedSession.duration
-                          ? String(selectedSession.duration)
-                          : '',
-                        instructor:
-                          selectedSession.instructor ||
-                          selectedSession.instructor ||
-                          '',
-                        location: selectedSession.location || '',
-                        max_participants: selectedSession.max_participants
-                          ? String(selectedSession.max_participants)
-                          : '',
-                        notes: selectedSession.notes || ''
-                      })
-                    }
-                    setIsEditSessionDialogOpen(true)
-                  }}
-                >
-                  Edit Session
-                </Button>
-              )}
+           
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -861,31 +844,18 @@ export default function OrientationSessionTab ({
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='editInstructor'>Instructor *</Label>
-                  <Select
-                    name='editInstructor'
+                  <Input
+                    id='editInstructor'
+                    type='text'
                     value={editData.instructor || ''}
-                    onValueChange={v =>
-                      setEditData((prev: any) => ({ ...prev, instructor: v }))
+                    onChange={e =>
+                      setEditData((prev: any) => ({
+                        ...prev,
+                        instructor: e.target.value
+                      }))
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select instructor' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='john_smith'>
-                        John Smith - Senior Trainer
-                      </SelectItem>
-                      <SelectItem value='sarah_wilson'>
-                        Sarah Wilson - Safety Officer
-                      </SelectItem>
-                      <SelectItem value='mike_johnson'>
-                        Mike Johnson - Technical Lead
-                      </SelectItem>
-                      <SelectItem value='jane_doe'>
-                        Jane Doe - Operations Manager
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    required
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='editLocation'>Location *</Label>

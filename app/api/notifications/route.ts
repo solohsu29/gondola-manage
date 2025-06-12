@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch expiring certificates for calculated notifications
     const certsResult = await pool.query(`
-      SELECT d.id, d.title, d.expiry, d."gondolaId", g."serialNumber"
+      SELECT d.id, d.title, d.expiry, d."gondolaId", d."projectId", g."serialNumber"
       FROM "Document" d
       LEFT JOIN "Gondola" g ON d."gondolaId" = g.id
       WHERE (
@@ -29,16 +29,26 @@ export async function GET(req: NextRequest) {
       AND d.expiry BETWEEN NOW() AND NOW() + INTERVAL '30 days'
     `);
 
-    const certNotifications = certsResult.rows.map((cert: any) => {
+  const certNotifications = certsResult.rows.map((cert: any) => {
   const gondolaIdentifier = cert.serialNumber || cert.gondolaId || "";
+  const projectId = cert.projectId;
+
+  let actionLink = '';
+  if (projectId) {
+    actionLink = `/projects/${projectId}`;
+  } else if (gondolaIdentifier) {
+    actionLink = `/gondolas/${gondolaIdentifier}`;
+  } else {
+    actionLink = '';
+  }
 
   return {
     id: `cert-${cert.id}`,
     type: 'warning',
-    message: gondolaIdentifier? `${cert.title} for ${gondolaIdentifier} expires in 30 days` : `${cert.title} expires in 30 days` ,
+    message: gondolaIdentifier ? `${cert.title} for ${gondolaIdentifier} expires in 30 days` : projectId ? `${cert.title} for ${projectId} expires in 30 days`: `${cert.title} expires in 30 days`,
     date: cert.expiry,
     read: false,
-    actionLink: `/gondolas/${gondolaIdentifier}`,
+    actionLink,
   };
 });
 

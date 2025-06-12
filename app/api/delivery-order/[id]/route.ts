@@ -26,8 +26,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   let idx = 1;
   for (const key of allowedFields) {
     if (body[key] !== undefined) {
-      updates.push(`"${key}" = $${idx}`);
-      values.push(body[key]);
+      if (key === 'orderDate' || key === 'deliveryDate') {
+        // Store only the YYYY-MM-DD part
+        let dateStr = body[key];
+        if (typeof dateStr === 'string' && dateStr.length >= 10) {
+          dateStr = dateStr.slice(0, 10);
+        }
+        updates.push(`"${key}" = $${idx}`);
+        values.push(dateStr);
+      } else {
+        updates.push(`"${key}" = $${idx}`);
+        values.push(body[key]);
+      }
       idx++;
     }
   }
