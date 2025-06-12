@@ -20,22 +20,22 @@ export default function ThemeSwitcher() {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="px-4 cursor-pointer focus:ring-0 focus:border-none">
+      <DropdownMenuContent align="end" className="px-4 cursor-pointer focus:ring-0 focus:outline-none focus:border-none">
         <button
           onClick={() => setTheme("light")}
-          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:border-none"
+          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:outline-none focus:border-none"
         >
           Light
         </button>
         <button
           onClick={() => setTheme("dark")}
-          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:border-none"
+          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:outline-none focus:border-none"
         >
           Dark
         </button>
         <button
           onClick={() => setTheme("system")}
-          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:border-none"
+          className="text-foreground text-sm py-1 w-full text-left focus:ring-0 focus:outline-none focus:border-none"
         >
           System
         </button>
