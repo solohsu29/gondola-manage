@@ -50,5 +50,6 @@ export function useNotifications(prefs?: NotificationPreferences) {
     fetchNotifications();
   }, [prefs]);
 
-  return { notifications, loading };
+  return { notifications, loading, setNotifications };
+
 }

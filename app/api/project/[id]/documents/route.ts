@@ -21,6 +21,7 @@ export async function GET(request: Request, context: { params: { id: string } })
         uploaded, 
         expiry, 
         status, 
+        notes,
         "projectId", 
         "gondolaId",
         "fileUrl" 

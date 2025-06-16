@@ -29,14 +29,7 @@ import { useUserInfo } from '@/hooks/useUserInfo'
 import getBase64 from '@/app/utils/getBase64'
 import { useNotifications } from './useNotifications'
 import ThemeSwitcher from './ThemeSwitcher'
-export interface Notification {
-  id: string
-  type: 'info' | 'warning' | 'error' | 'success'
-  message: string
-  date: Date
-  read: boolean
-  actionLink?: string
-}
+import type { Notification } from './useNotifications';
 
 const getNotificationColor = (type: string) => {
   switch (type) {
@@ -52,6 +45,44 @@ const getNotificationColor = (type: string) => {
 }
 
 export default function Header () {
+  // ...existing state and hooks...
+
+  // Mark all notifications as read
+  // Mark all notifications as read and persist to backend
+  const handleMarkAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.read && n.id && !n.id.startsWith('cert-')).map(n => n.id);
+    // Only persist for DB notifications (not cert- notifications)
+    if (unreadIds.length > 0) {
+      await fetch('/api/notifications/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: unreadIds })
+      });
+    }
+    if (typeof setNotifications === 'function') {
+      setNotifications((prev: Notification[]) => prev.map(n => ({ ...n, read: true })));
+    } else {
+      notifications.forEach(n => n.read = true);
+    }
+  };
+
+  // Mark a single notification as read and persist, then navigate
+  const handleViewDetails = async (notification: Notification) => {
+    if (!notification.read && notification.id && !notification.id.startsWith('cert-')) {
+      await fetch('/api/notifications/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [notification.id] })
+      });
+    }
+    if (typeof setNotifications === 'function') {
+      setNotifications((prev: Notification[]) => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
+    }
+    if (notification.actionLink && router) {
+      router.push(notification.actionLink);
+    }
+  };
+
   const [preferencesOpen, setPreferencesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [preferencesSaveSuccess, setPreferencesSaveSuccess] = useState(false)
@@ -78,7 +109,7 @@ export default function Header () {
   const [notificationPreferences, setNotificationPreferences] =
     useState<any>(null)
     // If you have notification preferences from state or props, pass them in:
-    const { notifications, loading } = useNotifications(notificationPreferences)
+    const { notifications, loading, setNotifications } = useNotifications(notificationPreferences)
   const { removeAllData } = useUserInfo()
 
   
@@ -178,9 +209,7 @@ export default function Header () {
                   notifications.map(notification => (
                     <div
                       key={notification.id}
-                      className={`p-4 border-b bg-background${
-                        !notification.read ? '' : ''
-                      }`}
+                      className={`p-4 border-b bg-background ${!notification.read ? 'bg-blue-50' : ''}`}
                     >
                       <div className='flex items-start gap-3 text-foreground'>
                         <div
@@ -195,11 +224,10 @@ export default function Header () {
                           </p>
                           {notification?.actionLink && (
                             <Button
-                            size={"sm"}
-                              onClick={()=>router.push(notification?.actionLink)}
-                               className='p-0 h-auto text-xs'
-                               variant={"link"}
-                             
+                              size={"sm"}
+                              onClick={() => handleViewDetails(notification)}
+                              className='p-0 h-auto text-xs'
+                              variant={"link"}
                             >
                               View Details
                             </Button>
@@ -215,7 +243,12 @@ export default function Header () {
                 )}
               </div>
               <div className='p-2 border-t'>
-                <Button variant='ghost' size='sm' className='w-full'>
+                <Button 
+                  variant='ghost' 
+                  size='sm' 
+                  className='w-full'
+                  onClick={handleMarkAllAsRead}
+                >
                   Mark all as read
                 </Button>
               </div>

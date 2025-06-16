@@ -322,10 +322,7 @@ const [uploading, setUploading] = useState(false);
                 <Label htmlFor="editDocExpiry">Expiry Date</Label>
                 <Input id="editDocExpiry" type="date" value={editState.expiry} onChange={e => setEditState(s => ({ ...s, expiry: e.target.value }))} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="editDocStatus">Status</Label>
-                <Input id="editDocStatus" value={editState.status} onChange={e => setEditState(s => ({ ...s, status: e.target.value }))} />
-              </div>
+            
               <div className="space-y-2">
                 <Label htmlFor="editDocNotes">Notes</Label>
                 <Textarea id="editDocNotes" value={editState.notes} onChange={e => setEditState(s => ({ ...s, notes: e.target.value }))} />

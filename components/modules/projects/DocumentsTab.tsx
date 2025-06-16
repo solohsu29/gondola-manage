@@ -1,7 +1,4 @@
-import {
-  columns as documentColumns,
-  Document as DocumentType
-} from '@/components/modules/projects/document-columns'
+import { ExpiryStatusBadge } from "@/app/utils/statusUtils";
 import { DataTable } from '@/components/common/data-table'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -27,8 +24,84 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { ColumnDef } from '@tanstack/react-table';
 
+export type DocumentType = {
+  id: string
+  name: string    
+  type: string   
+  title?: string | null   
+  category?: string | null 
+  uploaded: string
+  expiry?: string | null
+  status?: string | null 
+  fileUrl?: string | null 
+  notes?:string
+}
 export default function DocumentsTab ({ projectId }: { projectId: string }) {
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDoc, setEditDoc] = useState<DocumentType | null>(null);
+  const [editState, setEditState] = useState({
+    title: '',
+    category: '',
+    expiry: '',
+    notes: ''
+  });
+
+  // Open the edit dialog and populate state
+  const handleEditDialogOpen = (doc: DocumentType) => {
+    setEditDoc(doc);
+    let expiryValue = '';
+    if (typeof doc.expiry === 'string' && doc.expiry.length >= 10) {
+      expiryValue = doc.expiry.slice(0, 10);
+    }
+    setEditState({
+      title: doc.title || '',
+      category: doc.category || '',
+      expiry: expiryValue,
+      notes: doc.notes || ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Save changes to the document
+  const handleEditSave = async () => {
+    if (!editDoc) return;
+    try {
+      setLoading(true);
+      const payload = {
+        title: editState.title,
+        category: editState.category,
+        expiry: editState.expiry,
+        notes: editState.notes
+      };
+      const res = await fetch(`/api/project/${projectId}/document/${editDoc.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update document');
+      }
+      toast.success('Document updated', {
+        description: `${editState.title || 'Document'} updated successfully.`,
+        className: 'bg-[#14A44D] text-white'
+      });
+      setEditDialogOpen(false);
+      setEditDoc(null);
+      if (projectId) fetchDocuments(projectId);
+      setLoading(false);
+    } catch (err: any) {
+      toast.error('Update failed', {
+        description: err.message || 'Unknown error',
+        className: 'bg-destructive text-white'
+      });
+      setLoading(false);
+    }
+  };
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [docName, setDocName] = useState('')
   const [docType, setDocType] = useState('')
@@ -37,6 +110,89 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
   const [status, setStatus] = useState('')
   const [loading,setLoading] = useState(false)
   const { fetchDocuments, documents, documentsLoading, documentsError } = useAppStore();
+
+  // Custom columns for DataTable, with edit button in actions
+  const columns : ColumnDef<DocumentType>[]  = [
+    {
+      accessorKey: "id",
+     header:"Document ID",
+      cell: ({ row }) => {
+      
+        // Display user-provided title, fallback to actual filename if title is not set
+        return <div className="font-medium">{row?.original?.id?.slice(0,10)}</div>
+      }
+    },
+    {
+      accessorKey: "title", // Primarily sort/filter by title
+      header: "Document Name",
+      cell: ({ row }) => {
+        const document = row.original;
+        // Display user-provided title, fallback to actual filename if title is not set
+        return <div className="font-medium">{document.title || document.name}</div>
+      }
+    },
+    {
+      accessorKey: "category", // Primarily sort/filter by category
+      header: "Type", // Keep header label as "Type"
+      cell: ({ row }) => {
+        const document = row.original;
+        // Display user-provided category, fallback to actual MIME type if category is not set
+        return <div className="font-medium">{document.category || document.type}</div>
+      }
+    },
+    {
+      accessorKey: "uploaded",
+      header: "Uploaded Date",
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("uploaded"))
+        return <div className="font-medium">{date.toLocaleDateString()}</div>
+      },
+    },
+    {
+      accessorKey: "expiry",
+      header: "Expiry Date",
+      cell: ({ row }) => {
+        const expiryDate = row.getValue("expiry") as string | undefined | null;
+        if (!expiryDate) return <div className="text-foreground">N/A</div>;
+        const date = new Date(expiryDate);
+        return <div className="font-medium">{date.toLocaleDateString()}</div>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const expiry = row.getValue("expiry") as string | undefined | null;
+        return <ExpiryStatusBadge expiry={expiry} />;
+      },
+    },
+   
+    {
+      id: 'actions',
+      cell: ({ row }: { row: any }) => {
+        const doc = row.original;
+        const documentUrl = (doc as any).fileUrl || `/api/document/${doc.id}/serve`;
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(documentUrl, '_blank')}
+            >
+              View
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEditDialogOpen(doc)}
+            >
+              Edit
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
  
   useEffect(() => {
     if (projectId) {
@@ -113,6 +269,7 @@ setLoading(true)
 
   return (
     <Card>
+      
       <CardContent className='p-6'>
         <div className='flex justify-between items-center mb-6'>
           <h2 className='text-xl font-semibold'>Deployment Documents</h2>
@@ -235,12 +392,50 @@ setLoading(true)
         )}
         {!documentsLoading && !documentsError && (
           <DataTable
-            columns={documentColumns}
+            columns={columns}
             data={documents as DocumentType[]}
             loading={documentsLoading}
           />
         )}
       </CardContent>
+
+        {/* Edit Document Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Document</DialogTitle>
+            <DialogDescription>Edit document details</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editDocTitle">Document Name</Label>
+              <Input id="editDocTitle" value={editState.title} onChange={e => setEditState(s => ({ ...s, title: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editDocType">Document Type</Label>
+              <Input id="editDocType" value={editState.category} onChange={e => setEditState(s => ({ ...s, category: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editDocExpiry">Expiry Date</Label>
+              <Input id="editDocExpiry" type="date" value={editState.expiry} onChange={e => setEditState(s => ({ ...s, expiry: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editDocNotes">Notes</Label>
+              <Input id="editDocNotes" value={editState.notes} onChange={e => setEditState(s => ({ ...s, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleEditSave} disabled={loading}>
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
+
+    
   )
 }
