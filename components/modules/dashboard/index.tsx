@@ -23,6 +23,7 @@ import StatCard from './StatCard'
 import CertificateItem from './CertificateItem'
 import { useMemo } from 'react'
 import { downloadPDF } from './downloadPDF'
+import { getExpiryStatus } from '@/app/utils/statusUtils'
 export interface DeliveryOrder {
   id: string
   number: string
@@ -359,16 +360,8 @@ console.log('certif',certificates)
                         {cert.title}{' '}
                         {cert.serialNumber ? `${cert.serialNumber}` : `${cert?.projectName}` ||''}
                       </span>
-                      <span
-                        className={
-                          cert?.status?.toLowerCase().includes('expired')
-                            ? 'text-red-600 font-medium'
-                            : cert?.status?.toLowerCase().includes('expire')
-                            ? 'text-yellow-600 font-medium'
-                            : 'text-green-600 font-medium'
-                        }
-                      >
-                        {cert?.status ? cert.status : ''}
+                      <span>
+                        {cert?.expiry ? getExpiryStatus(cert.expiry).statusText : ''}
                       </span>
                     </div>
                   ))

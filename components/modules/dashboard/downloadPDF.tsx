@@ -10,8 +10,8 @@ import jsPDF from "jspdf";
     pdf.text('Summary Statistics', 40, y);
     y += 20;
     pdf.setFontSize(12);
-    pdf.text(`Active Gondolas: ${gondolas.filter((g: any) => g.status?.toLowerCase() === 'deployed').length}`, 40, y); y += 18;
-    pdf.text(`Expiring Certificates: ${certificates.filter((cert:any) => cert.status.toLowerCase().includes('expire')).length}`, 40, y); y += 18;
+    pdf.text(`Active Gondolas: ${gondolas.filter((g: any) => typeof g.status === 'string' && g.status.toLowerCase() === 'deployed').length}`, 40, y); y += 18;
+    pdf.text(`Expiring Certificates: ${certificates.filter((cert:any) => typeof cert.status === 'string' && cert.status.toLowerCase().includes('expire')).length}`, 40, y); y += 18;
     pdf.text(`Pending Inspections: ${pendingInspectionsCount}`, 40, y); y += 18;
     pdf.text(`Total Projects: ${projects.length}`, 40, y); y += 30;
 
@@ -27,8 +27,11 @@ import jsPDF from "jspdf";
     pdf.setFontSize(14);
     pdf.text('Certificate Status', 40, y); y += 20;
     pdf.setFontSize(12);
+    // Dynamically import getExpiryStatus for server/client compatibility
+    const { getExpiryStatus } = require("@/app/utils/statusUtils");
     certificates.forEach((cert:any, idx:any) => {
-      pdf.text(`${idx + 1}. ${cert.title} ${cert.serialNumber ? `(${cert.serialNumber})` : ''} - ${cert.status}`, 40, y); y += 16;
+      const expiryStatus = getExpiryStatus(cert.expiry);
+      pdf.text(`${idx + 1}. ${cert.title} ${cert.serialNumber ? `(${cert.serialNumber})` : ''} - ${expiryStatus.statusText}`, 40, y); y += 16;
       if (y > 780) { pdf.addPage(); y = 40; }
     });
 
