@@ -383,7 +383,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                   <div className='p-4 bg-background border-b'>
                     <div className='flex justify-between items-center'>
                       <h3 className='font-medium'>{deliveryOrder?.number}</h3>
-                      <span
+                      {/* <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
                           deliveryOrder?.status === 'delivered'
                             ? 'bg-green-100 text-green-800'
@@ -393,7 +393,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         }`}
                       >
                         {deliveryOrder?.status}
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                   <div className='p-4'>
@@ -538,7 +538,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         {selectedDeliveryOrderForView.number}
                       </p>
                     </div>
-                    <div>
+                    {/* <div>
                       <Label className='text-sm font-medium text-foreground'>
                         Status
                       </Label>
@@ -556,7 +556,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                           {selectedDeliveryOrderForView.status}
                         </span>
                       </p>
-                    </div>
+                    </div> */}
                     <div>
                       <Label className='text-sm font-medium text-foreground'>
                         Order Date
@@ -627,7 +627,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                     </div>
                   </div>
 
-                  <div className='border-t pt-4'>
+                  {/* <div className='border-t pt-4'>
                     <Label className='text-sm font-medium text-foreground'>
                       Additional Information
                     </Label>
@@ -651,7 +651,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         </p>
                       )}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>

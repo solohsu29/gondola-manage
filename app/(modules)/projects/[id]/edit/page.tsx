@@ -653,8 +653,8 @@ export default function EditProjectPage () {
                           })
                           .filter(
                             gondola =>
-                              gondola.status?.toLowerCase() === 'deployed' ||
-                              gondola.status?.toLowerCase() === 'in use'
+                              gondola.status?.toLowerCase() === 'ready for deployment'
+                              
                           )
                         return filteredGondolas.map(gondola => (
                           <div
