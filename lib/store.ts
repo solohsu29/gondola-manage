@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import type { Project, Gondola, Document, DeliveryOrder, ShiftHistory, GondolaStatus, ProjectStatus } from '../types';
+import type { Project, Gondola, Document, DeliveryOrder, ShiftHistory} from '../types';
 import type { Inspection } from '../types/inspection';
 
 interface Certificate {

@@ -678,8 +678,7 @@ export default function NewProjectPage () {
                           })
                           .filter(
                             gondola =>
-                              gondola.status === 'deployed' ||
-                              gondola.status === 'in use'
+                              gondola.status?.toLowerCase() === "ready for deployment"
                           )
                         return (
                           filteredGondolas.length === 0 && (
