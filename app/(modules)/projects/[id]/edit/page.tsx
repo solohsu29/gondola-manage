@@ -336,7 +336,7 @@ export default function EditProjectPage () {
                 <Input
                   id='client'
                   placeholder='Enter client name'
-                  value={formData.client}
+                  value={formData.client ||''}
                   onChange={e => handleChange('client', e.target.value)}
                   required
                 />
@@ -347,7 +347,7 @@ export default function EditProjectPage () {
                 <Input
                   id='site'
                   placeholder='Enter site location'
-                  value={formData.site}
+                  value={formData.site||''}
                   onChange={e => handleChange('site', e.target.value)}
                   required
                 />
@@ -412,7 +412,7 @@ export default function EditProjectPage () {
                 <Input
                   id='project-manager'
                   placeholder='Enter Project Manager Name'
-                  value={formData.manager}
+                  value={formData.manager || ''}
                   onChange={e => handleChange('manager', e.target.value)}
                   required
                 />
@@ -629,7 +629,7 @@ export default function EditProjectPage () {
                       <Input
                         type='search'
                         placeholder='Search by ID, serial number, or location...'
-                        value={gondolaSearch}
+                        value={gondolaSearch ||''}
                         onChange={e => setGondolaSearch(e.target.value)}
                         className='text-sm'
                       />

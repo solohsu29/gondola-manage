@@ -53,8 +53,29 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
   const handleEditDialogOpen = (doc: DocumentType) => {
     setEditDoc(doc);
     let expiryValue = '';
-    if (typeof doc.expiry === 'string' && doc.expiry.length >= 10) {
-      expiryValue = doc.expiry.slice(0, 10);
+    if (typeof doc.expiry === 'string') {
+      if (doc.expiry.length >= 10) {
+        expiryValue = doc.expiry.slice(0, 10);
+      } else if (doc.expiry.length > 0) {
+        expiryValue = doc.expiry;
+      }
+    } else if ((doc.expiry as any) instanceof Date) {
+      if (doc.expiry != null) {
+        const expiryDate: Date = doc.expiry as Date;
+        expiryValue = expiryDate.toISOString().slice(0, 10);
+      } else {
+        expiryValue = '';
+      }
+
+    } else if (doc.expiry !== null && doc.expiry !== undefined) {
+      // Unexpected type, log for debugging
+      // eslint-disable-next-line no-console
+      console.warn('Document expiry is not a string or Date:', doc.expiry, typeof doc.expiry);
+      try {
+        expiryValue = String(doc.expiry).slice(0, 10);
+      } catch (e) {
+        expiryValue = '';
+      }
     }
     setEditState({
       title: doc.title || '',
@@ -409,19 +430,19 @@ setLoading(true)
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="editDocTitle">Document Name</Label>
-              <Input id="editDocTitle" value={editState.title} onChange={e => setEditState(s => ({ ...s, title: e.target.value }))} />
+              <Input id="editDocTitle" value={editState.title ?? ''} onChange={e => setEditState(s => ({ ...s, title: e.target.value ?? '' }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="editDocType">Document Type</Label>
-              <Input id="editDocType" value={editState.category} onChange={e => setEditState(s => ({ ...s, category: e.target.value }))} />
+              <Input id="editDocType" value={editState.category ?? ''} onChange={e => setEditState(s => ({ ...s, category: e.target.value ?? '' }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="editDocExpiry">Expiry Date</Label>
-              <Input id="editDocExpiry" type="date" value={editState.expiry} onChange={e => setEditState(s => ({ ...s, expiry: e.target.value }))} />
+              <Input id="editDocExpiry" type="date" value={editState.expiry ?? ''} onChange={e => setEditState(s => ({ ...s, expiry: e.target.value ?? '' }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="editDocNotes">Notes</Label>
-              <Input id="editDocNotes" value={editState.notes} onChange={e => setEditState(s => ({ ...s, notes: e.target.value }))} />
+              <Input id="editDocNotes" value={editState.notes ?? ''} onChange={e => setEditState(s => ({ ...s, notes: e.target.value ?? '' }))} />
             </div>
           </div>
           <DialogFooter>
