@@ -173,24 +173,49 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
       toast.error('Please enter a valid email address.')
       return
     }
+    if (!alertFrequency) {
+      toast.error('Please select an alert frequency.')
+      return
+    }
+    if (!alertThreshold || isNaN(Number(alertThreshold)) || Number(alertThreshold) <= 0) {
+      toast.error('Please enter a valid alert threshold (days).')
+      return
+    }
     setCertAlertLoading(true)
     try {
+      // 1. Save subscription
+      const subRes = await fetch('/api/cert-alert-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gondolaId,
+          email: alertEmail,
+          frequency: alertFrequency,
+          threshold: alertThreshold
+        })
+      })
+      if (!subRes.ok) {
+        throw new Error('Failed to save alert subscription')
+      }
+      // 2. Send test alert email
       const res = await fetch('/api/send-cert-alert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           gondolaId,
-          email: alertEmail
+          email: alertEmail,
+          frequency: alertFrequency,
+          threshold: alertThreshold
         })
       })
       if (!res.ok) throw new Error('Failed to send alert email')
-      toast.success('Test alert email sent to ' + alertEmail)
+      toast.success('Alert subscription saved and test email sent to ' + alertEmail)
       setIsCertAlertsDialogOpen(false)
       setAlertEmail('')
       setAlertFrequency('')
       setAlertThreshold('')
     } catch (err: any) {
-      toast.error('Failed to send alert email', { description: err.message })
+      toast.error('Failed to save alert subscription or send test email', { description: err.message })
     } finally {
       setCertAlertLoading(false)
     }

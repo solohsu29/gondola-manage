@@ -259,6 +259,18 @@ model Notification {
   user       User     @relation(fields: [userId], references: [id])
 }
 
+model CertAlertSubscription {
+  id         String   @id @default(uuid())
+  gondolaId  String
+  email      String
+  threshold  Int
+  frequency  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([gondolaId, email])
+}
+
 enum OTPType {
   SIGNUP
   LOGIN

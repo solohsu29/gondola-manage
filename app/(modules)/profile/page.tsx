@@ -51,7 +51,9 @@ export default function ProfilePage () {
     certificateExpiry: true,
     maintenanceReminders: true,
     projectUpdates: false,
-    weeklyReports: true
+    weeklyReports: true,
+    projectReminders: true,
+    projectStatusUpdates: true
   })
   const { user } = useUserInfo()
 
@@ -110,7 +112,9 @@ export default function ProfilePage () {
           certificateExpiry: prefs.certificateExpiry ?? true,
           maintenanceReminders: prefs.maintenanceReminders ?? true,
           projectUpdates: prefs.projectUpdates ?? false,
-          weeklyReports: prefs.weeklyReports ?? true
+          weeklyReports: prefs.weeklyReports ?? true,
+          projectReminders: prefs.projectReminders ?? true,
+          projectStatusUpdates: prefs.projectStatusUpdates ?? true
         })
       } catch (err: any) {
         toast.error('Failed to load notification preferences')
@@ -164,7 +168,9 @@ export default function ProfilePage () {
           certificateExpiry: prefs.certificateExpiry ?? true,
           maintenanceReminders: prefs.maintenanceReminders ?? true,
           projectUpdates: prefs.projectUpdates ?? false,
-          weeklyReports: prefs.weeklyReports ?? true
+          weeklyReports: prefs.weeklyReports ?? true,
+          projectReminders: prefs.projectReminders ?? true,
+          projectStatusUpdates: prefs.projectStatusUpdates ?? true
         })
       }
       toast.success('Preferences saved!', {
@@ -548,22 +554,94 @@ export default function ProfilePage () {
                 <div className='space-y-4'>
                   <h3 className='text-lg font-medium'>General Notifications</h3>
                   <div className='space-y-4'>
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <p className='font-medium'>Email Notifications</p>
-                        <p className='text-sm text-foreground'>
-                          Receive notifications via email
-                        </p>
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex items-center justify-between'>
+                        <div>
+                          <p className='font-medium'>Email Notifications</p>
+                          <p className='text-sm text-foreground'>
+                            Receive notifications via email
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notifications.emailNotifications}
+                          onCheckedChange={checked =>
+                            setNotifications({
+                              ...notifications,
+                              emailNotifications: checked
+                            })
+                          }
+                        />
                       </div>
-                      <Switch
-                        checked={notifications.emailNotifications}
-                        onCheckedChange={checked =>
-                          setNotifications({
-                            ...notifications,
-                            emailNotifications: checked
-                          })
-                        }
-                      />
+                      <div className='flex flex-col gap-2'>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <p className='font-medium'>Certificate Expiry Reminders</p>
+                            <p className='text-sm text-foreground'>
+                              Receive email reminders before certificates expire
+                            </p>
+                          </div>
+                          <Switch
+                            checked={notifications.certificateExpiry}
+                            onCheckedChange={checked =>
+                              setNotifications({
+                                ...notifications,
+                                certificateExpiry: checked
+                              })
+                            }
+                          />
+                        </div>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <p className='font-medium'>Project Reminders</p>
+                            <p className='text-sm text-foreground'>
+                              Get email reminders for important project milestones
+                            </p>
+                          </div>
+                          <Switch
+                            checked={notifications.projectReminders}
+                            onCheckedChange={checked =>
+                              setNotifications({
+                                ...notifications,
+                                projectReminders: checked
+                              })
+                            }
+                          />
+                        </div>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <p className='font-medium'>Project Status Updates</p>
+                            <p className='text-sm text-foreground'>
+                              Receive email updates about project status changes
+                            </p>
+                          </div>
+                          <Switch
+                            checked={notifications.projectStatusUpdates}
+                            onCheckedChange={checked =>
+                              setNotifications({
+                                ...notifications,
+                                projectStatusUpdates: checked
+                              })
+                            }
+                          />
+                        </div>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <p className='font-medium'>Weekly Reports</p>
+                            <p className='text-sm text-foreground'>
+                              Receive a weekly summary report (same as dashboard generate DD)
+                            </p>
+                          </div>
+                          <Switch
+                            checked={notifications.weeklyReports}
+                            onCheckedChange={checked =>
+                              setNotifications({
+                                ...notifications,
+                                weeklyReports: checked
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className='flex items-center justify-between'>
                       <div>
