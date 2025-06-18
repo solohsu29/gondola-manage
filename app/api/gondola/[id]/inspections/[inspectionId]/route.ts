@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// DELETE /api/gondola/[id]/inspections/[inspectionId] - delete an inspection for a gondola
+export async function DELETE(req: NextRequest, { params }: { params: { id: string, inspectionId: string } }) {
+  try {
+    const { id: gondolaId, inspectionId } = params;
+    // Check if inspection exists
+    const check = await pool.query('SELECT id FROM "Inspection" WHERE id = $1 AND "gondolaId" = $2', [inspectionId, gondolaId]);
+    if (check.rowCount === 0) {
+      return NextResponse.json({ error: 'Inspection not found' }, { status: 404 });
+    }
+    // Delete inspection
+    await pool.query('DELETE FROM "Inspection" WHERE id = $1 AND "gondolaId" = $2', [inspectionId, gondolaId]);
+    return NextResponse.json({ success: true, id: inspectionId });
+  } catch (error) {
+    console.error('Failed to delete inspection:', error);
+    return NextResponse.json({ error: (error as Error).message || 'Failed to delete inspection' }, { status: 500 });
+  }
+}
+
 // PUT /api/gondola/[id]/inspections/[inspectionId] - update an inspection for a gondola
 export async function PUT(req: NextRequest, { params }: { params: { id: string, inspectionId: string } }) {
   try {

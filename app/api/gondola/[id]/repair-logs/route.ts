@@ -16,10 +16,10 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
       }
       throw dbErr;
     }
-    // Convert date fields to ISO strings for frontend
+    // Return date as plain string (no timezone conversion)
     const repairLogs = result.rows.map((row: any) => ({
       ...row,
-      date: row.date ? new Date(row.date).toISOString().split('T')[0] : null,
+      date: row.date ? (typeof row.date === 'string' ? row.date.slice(0, 10) : row.date) : null,
     }));
     return NextResponse.json(repairLogs);
   } catch (error) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     const insertQuery = `INSERT INTO "RepairLog" (id, "gondolaId", date, type, description, "partName", cost, "isChargeable", technician, status) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, "gondolaId", date, type, description, "partName", cost, "isChargeable", technician, status`;
     const values = [
       gondolaId,
-      date,
+      date, // Expecting 'YYYY-MM-DD' string
       type,
       description,
       partName,

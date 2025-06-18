@@ -72,8 +72,8 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     // Convert date fields to ISO strings for frontend
     const shiftHistory = result.rows.map((row: any) => ({
       ...row,
-      shiftDate: row.shiftdate ? new Date(row.shiftdate).toISOString().split('T')[0] : null,
-      createdAt: row.createdat ? new Date(row.createdat).toISOString() : null,
+      shiftDate: row.shiftDate ? new Date(row.shiftDate).toISOString().split('T')[0] : null,
+      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : null,
     }));
     return NextResponse.json(shiftHistory);
   } catch (error) {

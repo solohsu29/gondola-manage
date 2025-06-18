@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     }
     // Generate OTP
     const code = generateOtp();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 10); // 10 min expiry
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 1); // 1 min expiry
     await prisma.oTP.create({
       data: {
         code,

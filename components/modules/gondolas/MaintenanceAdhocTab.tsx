@@ -14,12 +14,13 @@ import { useState, useEffect } from 'react'
 import RepairLogForm from './RepairLogForm'
 import { DataTable } from '@/components/common/data-table'
 import type { ColumnDef } from '@tanstack/react-table'
+import { formatDateDMY } from '@/app/utils/formatDate';
 
-export default function MaintenanceAdhocTab ({
-  gondolaId
-}: {
-  gondolaId: string
-}) {
+export default function MaintenanceAdhocTab ({ gondolaId }: { gondolaId: string }) {
+  // State for delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [isRepairDialogOpen, setIsRepairDialogOpen] = useState(false)
   const [isViewRepairDialogOpen, setIsViewRepairDialogOpen] = useState(false)
   const [selectedRepairLog, setSelectedRepairLog] = useState<any>(null)
@@ -34,9 +35,13 @@ export default function MaintenanceAdhocTab ({
       accessorKey: 'id',
       cell: ({ row }) => row.original.id?.slice(0, 10)
     },
+   
     {
       header: 'Date',
-      accessorKey: 'date'
+      accessorKey: 'date',
+      cell: (info) => {
+        return formatDateDMY(info.row.original.date) || 'N/A';
+      },
     },
     {
       header: 'Type',
@@ -90,20 +95,69 @@ export default function MaintenanceAdhocTab ({
     {
       header: 'Actions',
       id: 'actions',
-      cell: ({ row }) => (
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() => {
-            setSelectedRepairLog(row.original)
-            setIsViewRepairDialogOpen(true)
-          }}
-        >
-          View Details
-        </Button>
-      )
+      cell: ({ row }) => {
+        return (
+          <div className='flex gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                setSelectedRepairLog(row.original)
+                setIsViewRepairDialogOpen(true)
+              }}
+            >
+              View
+            </Button>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                setSelectedRepairLog(row.original)
+                setIsRepairDialogOpen(true)
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                setSelectedRepairLog(row.original)
+                setDeleteDialogOpen(true)
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        )
+      }
     }
   ]
+
+  // Handler for deleting a repair log
+  const handleDeleteRepairLog = async () => {
+    if (!selectedRepairLog) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/gondola/${gondolaId}/repair-logs/${selectedRepairLog.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete repair log');
+      setDeleteDialogOpen(false);
+      setSelectedRepairLog(null);
+      setDeleteLoading(false);
+      await fetchRepairLogs();
+      // @ts-ignore
+      if (typeof toast === 'function') toast('Repair log deleted successfully!', { type: 'success' });
+    } catch (err: any) {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      setSelectedRepairLog(null);
+      // @ts-ignore
+      if (typeof toast === 'function') toast(err.message || 'Failed to delete repair log', { type: 'error' });
+    }
+  };
 
   // Fetch repair logs from backend
   const fetchRepairLogs = async () => {
@@ -121,7 +175,7 @@ export default function MaintenanceAdhocTab ({
     } catch (err: any) {
       setError(err.message || 'Failed to fetch repair logs')
       setRepairLogs([])
-    } finally {
+  } finally {
       setLoading(false)
     }
   }
@@ -131,30 +185,75 @@ export default function MaintenanceAdhocTab ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gondolaId])
 
-  // Add repair log to backend
+  // Add or update repair log to backend
   const handleAddRepairLog = async (newRepair: any) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/gondola/${gondolaId}/repair-logs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRepair)
-      })
-      if (!res.ok)
-        throw new Error((await res.json()).error || 'Failed to add repair log')
-      await fetchRepairLogs()
-      setLoading(false)
+      let res;
+      if (selectedRepairLog && selectedRepairLog.id) {
+        // Editing: use PUT
+        res = await fetch(`/api/gondola/${gondolaId}/repair-logs/${selectedRepairLog.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newRepair)
+        });
+      } else {
+        // Creating: use POST
+        res = await fetch(`/api/gondola/${gondolaId}/repair-logs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newRepair)
+        });
+      }
+      if (!res.ok) {
+        const errMsg = (await res.json()).error || (selectedRepairLog ? 'Failed to update repair log' : 'Failed to add repair log');
+        throw new Error(errMsg);
+      }
+      await fetchRepairLogs();
+      setLoading(false);
+      // @ts-ignore
+      if (typeof toast === 'function') toast(selectedRepairLog ? 'Repair log updated successfully!' : 'Repair log added successfully!', { type: 'success' });
     } catch (err: any) {
-      setError(err.message || 'Failed to add repair log')
+      setError(err.message || (selectedRepairLog ? 'Failed to update repair log' : 'Failed to add repair log'));
+      // @ts-ignore
+      if (typeof toast === 'function') toast(err.message || 'Failed to save repair log', { type: 'error' });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
     <Card>
       <CardContent className='p-0'>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Repair Log</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this repair log? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='destructive'
+                onClick={handleDeleteRepairLog}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className='p-6 border-b flex justify-between items-center'>
           <div>
             <h2 className='text-xl font-semibold'>Adhoc Deployment</h2>
@@ -180,8 +279,12 @@ export default function MaintenanceAdhocTab ({
                 </DialogHeader>
                 <RepairLogForm
                   gondolaId={gondolaId}
-                  onClose={() => setIsRepairDialogOpen(false)}
+                  onClose={() => {
+                    setIsRepairDialogOpen(false);
+                    setSelectedRepairLog(null);
+                  }}
                   onSubmit={handleAddRepairLog}
+                  initialData={selectedRepairLog}
                 />
               </DialogContent>
             </Dialog>

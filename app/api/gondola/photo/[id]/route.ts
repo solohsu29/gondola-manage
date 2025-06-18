@@ -29,3 +29,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Failed to fetch photo' }, { status: 500 });
   }
 }
+
+
+// DELETE /api/gondola/photo/[id]
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+  try {
+    // Check if photo exists
+    const check = await pool.query('SELECT id FROM "Photo" WHERE id = $1', [id]);
+    if (check.rowCount === 0) {
+      return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
+    }
+    await pool.query('DELETE FROM "Photo" WHERE id = $1', [id]);
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete photo' }, { status: 500 });
+  }
+}

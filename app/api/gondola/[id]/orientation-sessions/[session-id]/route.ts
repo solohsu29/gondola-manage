@@ -47,3 +47,20 @@ export async function PUT(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// DELETE: delete an orientation session for a gondola
+export async function DELETE(req: NextRequest, { params }: { params: { id: string; sessionId: string } }) {
+  const gondolaId = params.id;
+  const sessionId = params.sessionId;
+  try {
+    // Check if session exists
+    const check = await pool.query('SELECT id FROM "OrientationSession" WHERE id = $1 AND "gondolaId" = $2', [sessionId, gondolaId]);
+    if (check.rowCount === 0) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+    await pool.query('DELETE FROM "OrientationSession" WHERE id = $1 AND "gondolaId" = $2', [sessionId, gondolaId]);
+    return NextResponse.json({ success: true, id: sessionId });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to delete session' }, { status: 500 });
+  }
+}

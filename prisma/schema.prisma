@@ -117,7 +117,7 @@ model RepairLog {
   updatedAt    DateTime @default(now()) @updatedAt
   id           String   @id @default(uuid())
   gondolaId    String?
-  date         DateTime
+  date         String
   type         String
   description  String
   partName     String?

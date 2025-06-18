@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAppStore } from '@/lib/store'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function ShiftHistoryTab ({ gondolaId }: { gondolaId: string }) {
   const {
@@ -31,6 +32,28 @@ export default function ShiftHistoryTab ({ gondolaId }: { gondolaId: string }) {
         return reason
     }
   }
+  type Shift = {
+    id: string;
+    createdAt: string;
+    fromLocation: string;
+    fromLocationDetail: string;
+    toLocation: string;
+    toLocationDetail: string;
+    shiftDate: string;
+    shiftedBy: string;
+    reason: string;
+    notes?: string;
+  };
+
+  const sortedShiftHistory = useMemo(() => {
+    return (shiftHistory as Shift[])
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+      );
+  }, [shiftHistory]);
 
   return (
     <Card>
@@ -50,15 +73,9 @@ export default function ShiftHistoryTab ({ gondolaId }: { gondolaId: string }) {
           <div className='p-6 text-center text-red-500'>
             {shiftHistoryError}
           </div>
-        ) : shiftHistory.length > 0 ? (
+        ) : sortedShiftHistory.length > 0 ? (
           <div className='divide-y'>
-            {shiftHistory
-              .sort(
-                (a, b) =>
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime()
-              )
-              .map(shift => (
+            {sortedShiftHistory.map((shift: Shift) => (
                 <div key={shift.id} className='p-6'>
                   <div className='flex items-start justify-between mb-4'>
                     <div className='flex items-center gap-3'>
@@ -109,7 +126,7 @@ export default function ShiftHistoryTab ({ gondolaId }: { gondolaId: string }) {
                     <div>
                       <span className='text-foreground'>Shift Date:</span>
                       <span className='ml-2 font-medium'>
-                        {shift.shiftDate}
+                        {formatDateDMY(shift.shiftDate)}
                       </span>
                     </div>
                     <div>

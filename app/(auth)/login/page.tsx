@@ -81,7 +81,7 @@ const router = useRouter()
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} />
+                  <Input type="email" {...field} placeholder="Enter Email"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,7 +94,7 @@ const router = useRouter()
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <Input type="password" {...field} placeholder="Enter Password"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>

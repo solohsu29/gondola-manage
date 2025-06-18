@@ -24,6 +24,7 @@ import CertificateItem from './CertificateItem'
 import { useMemo } from 'react'
 import { downloadPDF } from './downloadPDF'
 import { getExpiryStatus } from '@/app/utils/statusUtils'
+import { formatDateDMY } from '@/app/utils/formatDate'
 export interface DeliveryOrder {
   id: string
   number: string
@@ -63,7 +64,7 @@ const projectColumns: ColumnDef<Project>[] = [
       </Link>
     )
   },
-  { accessorKey: 'created', header: 'Created',  cell: ({ row }) => row?.original?.created?.split("T")[0] },
+  { accessorKey: 'created', header: 'Created',  cell: ({ row }) =>formatDateDMY(row?.original?.created?.split("T")[0]) },
   {
     accessorKey: 'status',
     header: 'Status',

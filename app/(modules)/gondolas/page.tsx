@@ -299,7 +299,7 @@ export default function GondolasPage () {
                         <SelectContent>
                           {GondolasStatus?.map(status => {
                             return (
-                              <SelectItem value={status.value}>
+                              <SelectItem value={status.value} key={status.value}>
                                 {status.label}
                               </SelectItem>
                             )
@@ -371,6 +371,7 @@ export default function GondolasPage () {
                             image: e.target.files?.[0] || null
                           })
                         }
+                        
                       />
                       <p className='text-xs text-foreground mt-1'>
                         Upload an image of the gondola (JPG, PNG, max 5MB)
@@ -378,6 +379,7 @@ export default function GondolasPage () {
                     </div>
                   </div>
                   <DialogFooter>
+                    <div className='flex items-center justify-between w-full py-3 mt-5'>
                     <Button
                       type='button'
                       variant='outline'
@@ -388,6 +390,7 @@ export default function GondolasPage () {
                     <Button type='submit' disabled={createLoading}>
                       {createLoading ? 'Creating...' : 'Create Gondola'}
                     </Button>
+                    </div>
                   </DialogFooter>
                 </form>
               </DialogContent>

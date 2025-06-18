@@ -26,7 +26,7 @@ import { DataTable } from '@/components/common/data-table'
 import { ColumnDef } from '@tanstack/react-table'
 
 export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
-  // ...existing state and handlers...
+
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedInspection, setSelectedInspection] =
@@ -238,12 +238,43 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
                 Edit
               </Button>
             )}
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => handleDeleteInspection(insp)}
+            >
+              Delete
+            </Button>
           </div>
         )
       }
     }
   ]
+  // State for delete confirmation dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<any>(null);
 
+  const handleDeleteInspection = (inspection: any) => {
+    setInspectionToDelete(inspection);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteInspection = async () => {
+    if (!inspectionToDelete) return;
+    try {
+      const res = await fetch(`/api/gondola/${inspectionToDelete.gondolaId}/inspections/${inspectionToDelete.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete inspection');
+      toast.success('Inspection deleted successfully');
+      setDeleteDialogOpen(false);
+      setInspectionToDelete(null);
+      if (typeof fetchInspectionsByGondolaId === 'function') fetchInspectionsByGondolaId(inspectionToDelete.gondolaId);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete inspection');
+    }
+  }
   const handleEditInspection = async () => {
     // Compose ISO string for date+time
 
@@ -435,8 +466,8 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
               )
             }
             return <DataTable columns={columns} data={inspections} />
-          })()}
-        </div>
+                      })()}
+                    </div>
 
         {/* Edit Inspection Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -752,6 +783,33 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle>Delete Inspection</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete <span className="font-semibold">{inspectionToDelete?.type}</span>? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteDialogOpen(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={confirmDeleteInspection}
+                      disabled={loading}
+                    >
+                      {loading ? 'Deleting...' : 'Delete'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
       </CardContent>
     </Card>
   )

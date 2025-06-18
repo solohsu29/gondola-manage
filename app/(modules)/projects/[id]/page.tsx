@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation'
 import DocumentsTab from '@/components/modules/projects/DocumentsTab'
 import { DeliveryOrdersTab } from '@/components/modules/projects/DeliveryOrdersTab'
 import GondolasTab from '@/components/modules/projects/GondolasTab'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function ProjectDetailPage ({
   params
@@ -132,7 +133,7 @@ export default function ProjectDetailPage ({
                 <div className='flex justify-between w-full'>
                   <span className='text-foreground'>Start Date:</span>
                   <span className='font-medium'>
-                    {project.startDate?.split('T')[0] || ''}
+                    {formatDateDMY(project.startDate?.split('T')[0]) || ''}
                   </span>
                 </div>
               </div>
@@ -141,7 +142,7 @@ export default function ProjectDetailPage ({
                 <div className='flex justify-between w-full'>
                   <span className='text-foreground'>End Date:</span>
                   <span className='font-medium'>
-                    {project.endDate?.split('T')[0] || 'Not set'}
+                    {formatDateDMY(project.endDate?.split('T')[0]) || 'Not set'}
                   </span>
                 </div>
               </div>
@@ -150,7 +151,7 @@ export default function ProjectDetailPage ({
                 <div className='flex justify-between w-full'>
                   <span className='text-foreground'>Created:</span>
                   <span className='font-medium'>
-                    {project?.created?.split('T')[0] || ''}
+                    {formatDateDMY(project?.created?.split('T')[0]) || ''}
                   </span>
                 </div>
               </div>

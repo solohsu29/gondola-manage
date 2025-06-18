@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { v4 as uuid } from 'uuid'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export function DeliveryOrdersTab ({ id }: { id: string }) {
   const [unlinkDialogOpen, setUnlinkDialogOpen] = useState<string | null>(null)
@@ -251,7 +252,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                               </div>
                               <div className='text-sm text-foreground'>
                                 Delivery:{' '}
-                                {deliveryOrder.deliveryDate?.split('T')[0]}
+                                {formatDateDMY(deliveryOrder.deliveryDate?.split('T')[0])}
                               </div>
                               <button
                                 type='button'
@@ -402,13 +403,13 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         <h4 className='text-sm font-medium text-foreground mb-1'>
                           Order Date
                         </h4>
-                        <p>{deliveryOrder?.orderDate?.split('T')[0]}</p>
+                        <p>{formatDateDMY(deliveryOrder?.orderDate?.split('T')[0])}</p>
                       </div>
                       <div>
                         <h4 className='text-sm font-medium text-foreground mb-1'>
                           Delivery Date
                         </h4>
-                        <p>{deliveryOrder?.deliveryDate?.split('T')[0]}</p>
+                        <p>{formatDateDMY(deliveryOrder?.deliveryDate?.split('T')[0])}</p>
                       </div>
                       <div>
                         <h4 className='text-sm font-medium text-foreground mb-1'>
@@ -562,7 +563,7 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         Order Date
                       </Label>
                       <p className='mt-1'>
-                        {selectedDeliveryOrderForView.orderDate?.split('T')[0]}
+                        {formatDateDMY(selectedDeliveryOrderForView.orderDate?.split('T')[0])}
                       </p>
                     </div>
                     <div>
@@ -570,10 +571,10 @@ export function DeliveryOrdersTab ({ id }: { id: string }) {
                         Delivery Date
                       </Label>
                       <p className='mt-1'>
-                        {
+                        {formatDateDMY(
                           selectedDeliveryOrderForView.deliveryDate?.split(
                             'T'
-                          )[0]
+                          )[0])
                         }
                       </p>
                     </div>

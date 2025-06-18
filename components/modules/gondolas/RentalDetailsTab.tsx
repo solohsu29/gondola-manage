@@ -38,6 +38,7 @@ import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
 import { ExpiryStatusBadge } from '@/app/utils/statusUtils'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) {
   // --- Generate DD Dialog state and handlers ---
@@ -293,12 +294,24 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     {
       header: 'Issue Date',
       accessorKey: 'issueDate',
-      cell: info => info.getValue()
+      cell: info => {
+        const value = info.getValue() as string | undefined | null;
+        if (!value) return '-';
+        const dateStr = value.split('T')[0];
+        const [y, m, d] = dateStr.split('-');
+        return y && m && d ? `${d}/${m}/${y}` : dateStr;
+      }
     },
     {
       header: 'Expiry Date',
       accessorKey: 'expiryDate',
-      cell: info => info.getValue()
+      cell: info => {
+        const value = info.getValue() as string | undefined | null;
+        if (!value) return '-';
+        const dateStr = value.split('T')[0];
+        const [y, m, d] = dateStr.split('-');
+        return y && m && d ? `${d}/${m}/${y}` : dateStr;
+      }
     },
     {
       header: 'Status',
@@ -709,9 +722,8 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
                       Rental Start Date
                     </p>
                     <p className='font-medium text-gray-900'>
-                      {project.startDate
-                        ? project.startDate.split('T')[0]
-                        : '-'}
+                      
+                         {formatDateDMY(project.startDate)}
                     </p>
                   </div>
                   <div>
@@ -719,7 +731,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
                       Rental End Date
                     </p>
                     <p className='font-medium text-gray-900'>
-                      {project.endDate ? project.endDate.split('T')[0] : '-'}
+                      {formatDateDMY(project.endDate)}
                     </p>
                   </div>
                   {/* Add more project/rental fields as needed */}

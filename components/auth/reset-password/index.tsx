@@ -99,6 +99,7 @@ export default function ResetPassword () {
                     type='password'
                     value={field.value}
                     onChange={field.onChange}
+                    placeholder='Enter New Password'
                   />
                 </FormControl>
                 <FormMessage />
@@ -116,6 +117,7 @@ export default function ResetPassword () {
                     type='password'
                     value={field.value}
                     onChange={field.onChange}
+                    placeholder='Confirm New Password'
                   />
                 </FormControl>
                 <FormMessage />

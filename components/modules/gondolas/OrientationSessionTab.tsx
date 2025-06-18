@@ -93,6 +93,8 @@ export default function OrientationSessionTab ({
   const [isEditSessionDialogOpen, setIsEditSessionDialogOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<any>(null)
   const [editData, setEditData] = useState<any>({})
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const {
     orientationSessions,
@@ -305,14 +307,27 @@ export default function OrientationSessionTab ({
               View
             </Button>
             {!isCompleted && (
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => handleEditSessionClick(session)}
-              >
-                Edit
-              </Button>
+              <>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => handleEditSessionClick(session)}
+                >
+                  Edit
+                </Button>
+               
+              </>
             )}
+             <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    setSelectedSession(session);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
           </div>
         )
       }
@@ -320,46 +335,60 @@ export default function OrientationSessionTab ({
   ]
 
 
-  const handleEditSession = ()=>{
-    
-      setIsViewSessionDialogOpen(false)
-      if (selectedSession) {
-        setEditData({
-          session_type:
-            selectedSession.type ||
-            selectedSession.session_type ||
-            '',
-          date: selectedSession.date
-            ? selectedSession.date.split('T')[0]
-            : '',
-          time:
-            selectedSession.time ||
-            (selectedSession.date
-              ? (selectedSession.date.split('T')[1] || '').slice(
-                  0,
-                  5
-                )
-              : ''),
-          duration: selectedSession.duration
-            ? String(selectedSession.duration)
-            : '',
-          instructor:
-            selectedSession.instructor ||
-            selectedSession.instructor ||
-            '',
-          location: selectedSession.location || '',
-          max_participants: selectedSession.max_participants
-            ? String(selectedSession.max_participants)
-            : '',
-          notes: selectedSession.notes || ''
-        })
-      }
-      setIsEditSessionDialogOpen(true)
-    
-  }
+  // Handler for deleting a session
+  const handleDeleteSession = async () => {
+    if (!selectedSession) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/gondola/${gondolaId}/orientation-sessions/${selectedSession.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete session');
+      setDeleteDialogOpen(false);
+      setSelectedSession(null);
+      setDeleteLoading(false);
+      await fetchOrientationSessionsByGondolaId(gondolaId);
+      toast.success('Session deleted successfully!');
+    } catch (err: any) {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      setSelectedSession(null);
+      toast.error(err.message || 'Failed to delete session');
+    }
+  };
+
   return (
     <Card>
       <CardContent className='p-0'>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Orientation Session</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this orientation session? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='destructive'
+                onClick={handleDeleteSession}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className='p-6 border-b flex justify-between items-center'>
           <div>
             <h2 className='text-xl font-semibold'>Orientation Session</h2>

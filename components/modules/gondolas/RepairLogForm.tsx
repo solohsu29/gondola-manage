@@ -15,54 +15,72 @@ import { useState } from 'react'
 export default function RepairLogForm ({
   gondolaId,
   onClose,
-  onSubmit
+  onSubmit,
+  initialData
 }: {
   gondolaId: string
   onClose: any
   onSubmit: any
+  initialData?: any
 }) {
-  const [type, setType] = useState('Repair')
-  const [description, setDescription] = useState('')
-  const [partName, setPartName] = useState('')
-  const [cost, setCost] = useState('')
-  const [isChargeable, setIsChargeable] = useState(false)
-  const [technician, setTechnician] = useState('')
+  const [type, setType] = useState(initialData?.type || 'Repair')
+  const [description, setDescription] = useState(initialData?.description || '')
+  const [partName, setPartName] = useState(initialData?.partName || '')
+  const [cost, setCost] = useState(initialData?.cost !== undefined ? String(initialData.cost) : '')
+  const [isChargeable, setIsChargeable] = useState(initialData?.isChargeable || false)
+  const [technician, setTechnician] = useState(initialData?.technician || '')
+  const [repairDate, setRepairDate] = useState(
+    initialData?.date
+      ? typeof initialData.date === 'string' && initialData.date.length >= 10
+        ? initialData.date.slice(0, 10)
+        : ''
+      : new Date().toISOString().slice(0, 10)
+  );
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = () => {
-    if (!description || !cost || !technician) {
+    if (!description || !cost || !technician || !repairDate) {
       alert('Please fill in all required fields')
       return
     }
     setLoading(true)
 
-    const repairId = `RL-${new Date().getFullYear()}-${String(
+    const repairId = initialData?.id || `RL-${new Date().getFullYear()}-${String(
       Math.floor(Math.random() * 900) + 100
-    ).padStart(3, '0')}`
+    ).padStart(3, '0')}`;
     const newRepair = {
       id: repairId,
-      date: new Date().toLocaleDateString(),
+      date: repairDate,
       type,
       description,
       partName: partName || 'N/A',
       cost: Number.parseFloat(cost),
       isChargeable,
       technician,
-      status: 'completed'
-    }
-    onSubmit(newRepair)
-    setLoading(false)
-    onClose()
+      status: initialData?.status || 'completed'
+    };
+    onSubmit(newRepair);
+    setLoading(false);
+    onClose();
   }
 
   return (
     <div className='grid gap-4 py-4'>
       <div className='space-y-2'>
+        <Label htmlFor='repairDate'>Repair Date *</Label>
+        <Input
+          id='repairDate'
+          type='date'
+          value={repairDate}
+          onChange={e => setRepairDate(e.target.value)}
+        />
+      </div>
+      <div className='space-y-2'>
         <Label htmlFor='repairType'>Type *</Label>
         <Select
           name='repairType'
           onValueChange={value => setType(value)}
-          defaultValue='Repair'
+          defaultValue={type}
         >
           <SelectTrigger>
             <SelectValue placeholder='Select type' />

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import Link from 'next/link'
 import { v4 as uuid } from 'uuid'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function GondolasTab ({ gondolas }: { gondolas: any[] }) {
   const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false)
@@ -212,13 +213,13 @@ export default function GondolasTab ({ gondolas }: { gondolas: any[] }) {
                     <h4 className='text-sm font-medium text-foreground mb-1'>
                       Last Inspection
                     </h4>
-                    <p>{gondola.lastInspection?.split('T')[0]}</p>
+                    <p>{formatDateDMY(gondola.lastInspection?.split('T')[0])}</p>
                   </div>
                   <div>
                     <h4 className='text-sm font-medium text-foreground mb-1'>
                       Next Inspection
                     </h4>
-                    <p>{gondola.nextInspection?.split('T')[0]}</p>
+                    <p>{formatDateDMY(gondola.nextInspection?.split('T')[0])}</p>
                   </div>
                   <div>
                     <h4 className='text-sm font-medium text-foreground mb-1'>

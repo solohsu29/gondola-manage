@@ -12,6 +12,7 @@ import { DataTable } from '@/components/common/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Document } from '@/types/document';
 import { ExpiryStatusBadge } from "@/app/utils/statusUtils"
+import { formatDateDMY } from "@/app/utils/formatDate"
 
 
   // Define DataTable columns for documents
@@ -78,12 +79,8 @@ const [uploading, setUploading] = useState(false);
       accessorKey: 'expiry',
       cell: (info) => {
         const expiry = info.row.original.expiry;
-        if (!expiry) return 'N/A';
-        const [y, m, d] = expiry.split('-');
-        if (y && m && d){
-          return `${d}-${m}-${y}`;
-        } 
-        return expiry;
+       
+        return formatDateDMY(expiry);
       },
     },
     {
@@ -292,7 +289,7 @@ const [uploading, setUploading] = useState(false);
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="documentFile">Select File *</Label>
-                  <Input id="documentFile" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setUploadFile(e.target.files?.[0] || null)} />
+                  <Input id="documentFile" className="py-[13px]" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setUploadFile(e.target.files?.[0] || null)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="documentName">Document Name</Label>

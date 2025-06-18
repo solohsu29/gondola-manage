@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from "@/components/ui/button";
 import { Form, FormItem, FormLabel, FormControl, FormMessage, FormField } from '@/components/ui/form';
 import { useUserInfo } from "@/hooks/useUserInfo";
+import { useRouter } from "next/navigation";
+
 
 export default function SignupPage() {
   const schema = yup.object().shape({
@@ -24,6 +26,7 @@ export default function SignupPage() {
   const [success, setSuccess] = React.useState("");
   const { storeEmail, fetchUser } = useUserInfo();
 
+  const router = useRouter()
   async function onSubmit(values: { email: string; name: string; password: string }) {
     setLoading(true);
     setError("");
@@ -67,7 +70,7 @@ export default function SignupPage() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} />
+                  <Input type="email" {...field} placeholder="Enter Email"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -80,7 +83,7 @@ export default function SignupPage() {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input type="text" {...field} />
+                  <Input type="text" {...field} placeholder="Enter Name"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -93,7 +96,7 @@ export default function SignupPage() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <Input type="password" {...field} placeholder="Enter Password"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,6 +105,7 @@ export default function SignupPage() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing up..." : "Sign Up"}
           </Button>
+          <Button variant={"outline"} type="button"  onClick={()=>router.push('/login')} className="flex gap-3 items-center justify-center text-center w-full">Login</Button>
         </form>
       </Form>
     </div>

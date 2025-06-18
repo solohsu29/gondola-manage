@@ -24,6 +24,8 @@ import { useAppStore } from '@/lib/store'
 import { Textarea } from '@/components/ui/textarea'
 import Image from 'next/image'
 import type { Photo } from '@/types/photo'
+import { toast } from 'sonner'
+import { Trash } from 'lucide-react'
 
 export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
@@ -34,6 +36,9 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [deleteDialogOpen,setDeleteDialogOpen] = useState(false)
+  const [photoToDelete, setPhotoToDelete] = useState<Photo | null>(null);
+  const [deleteLoading,setDeleteLoading] = useState(false)
 
   // Fetch all photos for this gondola
   useEffect(() => {
@@ -110,6 +115,28 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
     }
   }
 
+  // Handle photo deletion
+  const handleDeletePhoto = async () => {
+    if (!photoToDelete) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/gondola/photo/${photoToDelete.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete photo');
+      setDeleteDialogOpen(false);
+      setPhotoToDelete(null);
+      setDeleteLoading(false);
+      // Refresh photos
+      const res2 = await fetch(`/api/gondola/${gondolaId}/photos`);
+      const updated = await res2.json();
+      setPhotos(updated);
+    } catch (err: any) {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      setPhotoToDelete(null);
+      toast.error(err.message || 'Failed to delete photo');
+    }
+  };
   return (
     <Card>
       <CardContent className='p-6'>
@@ -142,6 +169,7 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
                     type='file'
                     accept='image/*'
                     multiple
+                    className="py-[13px]"
                     onChange={e => setSelectedFiles(e.target.files)}
                   />
                   {selectedFiles && selectedFiles.length > 0 && (
@@ -200,11 +228,28 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
             </DialogContent>
           </Dialog>
         </div>
-
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Delete Photo</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{photoToDelete?.fileName}</span>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleteLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeletePhoto} disabled={deleteLoading}>
+              {deleteLoading ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
           {photos.length > 0 ? (
             photos.map(photo => (
-              <div key={photo.id} className='border rounded-md overflow-hidden'>
+              <div key={photo.id} className='border rounded-md overflow-hidden relative'>
                 <Image
                   src={
                     photo.fileDataBase64
@@ -233,6 +278,18 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
                   {photo.description && (
                     <p className='text-xs text-gray-400'>{photo.description}</p>
                   )}
+                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="pr-2 absolute top-0 right-0"
+                    onClick={() => {
+                      setPhotoToDelete(photo);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash/>
+                  </Button>
+
                 </div>
               </div>
             ))

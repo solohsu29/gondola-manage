@@ -38,9 +38,9 @@ function StatusBadge ({ status }: { status: string }) {
     case 'active':
       return <Badge>Active</Badge>
     case 'completed':
-      return <Badge variant='secondary'>Completed</Badge>
-    case 'pending':
-      return <Badge variant='outline'>Pending</Badge>
+      return <Badge variant='completed'>Completed</Badge>
+    case 'cancelled':
+      return <Badge variant='destructive'>Cancelled</Badge>
     default:
       return <Badge variant='outline'>{status}</Badge>
   }

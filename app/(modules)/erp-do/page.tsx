@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import { DataTable } from '@/components/common/data-table'
 
 import { ColumnDef } from '@tanstack/react-table'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function ERPDOPage () {
   const {
@@ -394,12 +395,12 @@ const handleEditOrderSave = async () => {
     {
       header: 'Order Date',
       accessorKey: 'orderDate',
-      cell: ({ row }) => row?.original?.orderDate?.split('T')[0]
+      cell: ({ row }) =>formatDateDMY(row?.original?.orderDate?.split("T")[0])
     },
     {
       header: 'Delivery Date',
       accessorKey: 'deliveryDate',
-      cell: ({ row }) => row?.original?.deliveryDate?.split('T')[0]
+      cell: ({ row }) =>formatDateDMY(row?.original?.deliveryDate?.split("T")[0])
     },
     { header: 'PO Reference', accessorKey: 'poReference' },
     { header: 'Amount', accessorKey: 'amount' },
@@ -457,6 +458,7 @@ const handleEditOrderSave = async () => {
     }
   ]
 
+  console.log("allDeliveryOrders",allDeliveryOrders)
   return (
     <div className='p-6'>
       <div className='flex justify-between items-center mb-6'>
@@ -606,7 +608,8 @@ const handleEditOrderSave = async () => {
                     id='file'
                     type='file'
                     accept='.csv,.xlsx,.xml'
-                    className='col-span-3 '
+                    className='col-span-3 py-[13px]'
+
                     onChange={e => setErpFile(e.target.files?.[0] ?? null)}
                   />
                 </div>
@@ -785,6 +788,7 @@ const handleEditOrderSave = async () => {
                     id='manualDocuments'
                     type='file'
                     multiple
+                    className='py-[13px]'
                     accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv'
                     onChange={e =>
                       setManualEntry({
