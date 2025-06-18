@@ -19,6 +19,7 @@ export type Document = {
   expiry?: string | null // ISO date string
   status?: string | null // e.g., 'valid', 'expired', 'pending_review'
   fileUrl?: string | null // URL to view/download the document
+  notes?:string
   // projectId: string - not usually displayed in the table itself
   // fileData: Buffer - definitely not displayed
 }

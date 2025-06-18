@@ -102,3 +102,27 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
     return NextResponse.json({ error: 'Failed to update project', details: error instanceof Error ? error.message : error }, { status: 500 });
   }
 }
+
+// DELETE /api/project/[id] - delete a project by id
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
+  try {
+    // Check if project exists
+    const projectCheck = await pool.query('SELECT id FROM "Project" WHERE id = $1', [id]);
+    if (projectCheck.rowCount === 0) {
+      return NextResponse.json({ error: `Project with ID ${id} not found.` }, { status: 404 });
+    }
+    // Remove all join table links first
+    await pool.query('DELETE FROM "ProjectGondola" WHERE "projectId" = $1', [id]);
+    // Now delete the project
+    await pool.query('DELETE FROM "Project" WHERE id = $1', [id]);
+    return NextResponse.json({ message: 'Project deleted successfully', id });
+  } catch (error) {
+    let message = 'Unknown error occurred during project deletion.';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    console.error('Project delete error:', error);
+    return NextResponse.json({ error: 'Failed to delete project.', details: message }, { status: 500 });
+  }
+}

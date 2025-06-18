@@ -1,4 +1,4 @@
-import { ExpiryStatusBadge } from "@/app/utils/statusUtils";
+import { ExpiryStatusBadge } from '@/app/utils/statusUtils'
 import { DataTable } from '@/components/common/data-table'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -24,57 +24,63 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table'
 
 export type DocumentType = {
   id: string
-  name: string    
-  type: string   
-  title?: string | null   
-  category?: string | null 
+  name: string
+  type: string
+  title?: string | null
+  category?: string | null
   uploaded: string
   expiry?: string | null
-  status?: string | null 
-  fileUrl?: string | null 
-  notes?:string
+  status?: string | null
+  fileUrl?: string | null
+  notes?: string
 }
 export default function DocumentsTab ({ projectId }: { projectId: string }) {
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteDoc, setDeleteDoc] = useState<DocumentType | null>(null)
   // Edit dialog state
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editDoc, setEditDoc] = useState<DocumentType | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editDoc, setEditDoc] = useState<DocumentType | null>(null)
   const [editState, setEditState] = useState({
     title: '',
     category: '',
     expiry: '',
     notes: ''
-  });
+  })
 
   // Open the edit dialog and populate state
   const handleEditDialogOpen = (doc: DocumentType) => {
-    setEditDoc(doc);
-    let expiryValue = '';
+    setEditDoc(doc)
+    let expiryValue = ''
     if (typeof doc.expiry === 'string') {
       if (doc.expiry.length >= 10) {
-        expiryValue = doc.expiry.slice(0, 10);
+        expiryValue = doc.expiry.slice(0, 10)
       } else if (doc.expiry.length > 0) {
-        expiryValue = doc.expiry;
+        expiryValue = doc.expiry
       }
     } else if ((doc.expiry as any) instanceof Date) {
       if (doc.expiry != null) {
-        const expiryDate: Date = doc.expiry as Date;
-        expiryValue = expiryDate.toISOString().slice(0, 10);
+        const expiryDate: Date = doc.expiry as Date
+        expiryValue = expiryDate.toISOString().slice(0, 10)
       } else {
-        expiryValue = '';
+        expiryValue = ''
       }
-
     } else if (doc.expiry !== null && doc.expiry !== undefined) {
       // Unexpected type, log for debugging
       // eslint-disable-next-line no-console
-      console.warn('Document expiry is not a string or Date:', doc.expiry, typeof doc.expiry);
+      console.warn(
+        'Document expiry is not a string or Date:',
+        doc.expiry,
+        typeof doc.expiry
+      )
       try {
-        expiryValue = String(doc.expiry).slice(0, 10);
+        expiryValue = String(doc.expiry).slice(0, 10)
       } catch (e) {
-        expiryValue = '';
+        expiryValue = ''
       }
     }
     setEditState({
@@ -82,139 +88,160 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
       category: doc.category || '',
       expiry: expiryValue,
       notes: doc.notes || ''
-    });
-    setEditDialogOpen(true);
-  };
+    })
+    setEditDialogOpen(true)
+  }
 
   // Save changes to the document
   const handleEditSave = async () => {
-    if (!editDoc) return;
+    if (!editDoc) return
     try {
-      setLoading(true);
+      setLoading(true)
       const payload = {
         title: editState.title,
         category: editState.category,
         expiry: editState.expiry,
         notes: editState.notes
-      };
-      const res = await fetch(`/api/project/${projectId}/document/${editDoc.id}`,
+      }
+      const res = await fetch(
+        `/api/project/${projectId}/document/${editDoc.id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        });
+        }
+      )
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to update document');
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to update document')
       }
       toast.success('Document updated', {
         description: `${editState.title || 'Document'} updated successfully.`,
         className: 'bg-[#14A44D] text-white'
-      });
-      setEditDialogOpen(false);
-      setEditDoc(null);
-      if (projectId) fetchDocuments(projectId);
-      setLoading(false);
+      })
+      setEditDialogOpen(false)
+      setEditDoc(null)
+      if (projectId) fetchDocuments(projectId)
+      setLoading(false)
     } catch (err: any) {
       toast.error('Update failed', {
         description: err.message || 'Unknown error',
         className: 'bg-destructive text-white'
-      });
-      setLoading(false);
+      })
+      setLoading(false)
     }
-  };
+  }
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [docName, setDocName] = useState('')
   const [docType, setDocType] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [expiryDate, setExpiryDate] = useState('')
   const [status, setStatus] = useState('')
-  const [loading,setLoading] = useState(false)
-  const { fetchDocuments, documents, documentsLoading, documentsError } = useAppStore();
+  const [loading, setLoading] = useState(false)
+  const { fetchDocuments, documents, documentsLoading, documentsError } =
+    useAppStore()
 
   // Custom columns for DataTable, with edit button in actions
-  const columns : ColumnDef<DocumentType>[]  = [
+  const columns: ColumnDef<DocumentType>[] = [
     {
-      accessorKey: "id",
-     header:"Document ID",
+      accessorKey: 'id',
+      header: 'Document ID',
       cell: ({ row }) => {
-      
         // Display user-provided title, fallback to actual filename if title is not set
-        return <div className="font-medium">{row?.original?.id?.slice(0,10)}</div>
+        return (
+          <div className='font-medium'>{row?.original?.id?.slice(0, 10)}</div>
+        )
       }
     },
     {
-      accessorKey: "title", // Primarily sort/filter by title
-      header: "Document Name",
+      accessorKey: 'title', // Primarily sort/filter by title
+      header: 'Document Name',
       cell: ({ row }) => {
-        const document = row.original;
+        const document = row.original
         // Display user-provided title, fallback to actual filename if title is not set
-        return <div className="font-medium">{document.title || document.name}</div>
+        return (
+          <div className='font-medium'>{document.title || document.name}</div>
+        )
       }
     },
     {
-      accessorKey: "category", // Primarily sort/filter by category
-      header: "Type", // Keep header label as "Type"
+      accessorKey: 'category', // Primarily sort/filter by category
+      header: 'Type', // Keep header label as "Type"
       cell: ({ row }) => {
-        const document = row.original;
+        const document = row.original
         // Display user-provided category, fallback to actual MIME type if category is not set
-        return <div className="font-medium">{document.category || document.type}</div>
+        return (
+          <div className='font-medium'>
+            {document.category || document.type}
+          </div>
+        )
       }
     },
     {
-      accessorKey: "uploaded",
-      header: "Uploaded Date",
+      accessorKey: 'uploaded',
+      header: 'Uploaded Date',
       cell: ({ row }) => {
-        const date = new Date(row.getValue("uploaded"))
-        return <div className="font-medium">{date.toLocaleDateString()}</div>
-      },
+        const date = new Date(row.getValue('uploaded'))
+        return <div className='font-medium'>{date.toLocaleDateString()}</div>
+      }
     },
     {
-      accessorKey: "expiry",
-      header: "Expiry Date",
+      accessorKey: 'expiry',
+      header: 'Expiry Date',
       cell: ({ row }) => {
-        const expiryDate = row.getValue("expiry") as string | undefined | null;
-        if (!expiryDate) return <div className="text-foreground">N/A</div>;
-        const date = new Date(expiryDate);
-        return <div className="font-medium">{date.toLocaleDateString()}</div>;
-      },
+        const expiryDate = row.getValue('expiry') as string | undefined | null
+        if (!expiryDate) return <div className='text-foreground'>N/A</div>
+        const date = new Date(expiryDate)
+        return <div className='font-medium'>{date.toLocaleDateString()}</div>
+      }
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
       cell: ({ row }) => {
-        const expiry = row.getValue("expiry") as string | undefined | null;
-        return <ExpiryStatusBadge expiry={expiry} />;
-      },
+        const expiry = row.getValue('expiry') as string | undefined | null
+        return <ExpiryStatusBadge expiry={expiry} />
+      }
     },
-   
+
     {
       id: 'actions',
       cell: ({ row }: { row: any }) => {
-        const doc = row.original;
-        const documentUrl = (doc as any).fileUrl || `/api/document/${doc.id}/serve`;
+        const doc = row.original
+        const documentUrl =
+          (doc as any).fileUrl || `/api/document/${doc.id}/serve`
         return (
-          <div className="flex gap-2">
+          <div className='flex gap-2'>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               onClick={() => window.open(documentUrl, '_blank')}
             >
               View
             </Button>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               onClick={() => handleEditDialogOpen(doc)}
             >
               Edit
             </Button>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                setDeleteDoc(doc)
+                setDeleteDialogOpen(true)
+              }}
+            >
+              Delete
+            </Button>
           </div>
-        );
-      },
-    },
-  ];
- 
+        )
+      }
+    }
+  ]
+
   useEffect(() => {
     if (projectId) {
       // Ensure projectId is available
@@ -255,7 +282,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
     formData.append('file', selectedFile)
     if (expiryDate) formData.append('expiryDate', expiryDate)
     if (status) formData.append('status', status)
-setLoading(true)
+    setLoading(true)
     try {
       const res = await fetch(`/api/project/${projectId}/document`, {
         method: 'POST',
@@ -266,7 +293,7 @@ setLoading(true)
         const errorData = await res
           .json()
           .catch(() => ({ error: 'Failed to upload document.' }))
-          setLoading(false)
+        setLoading(false)
         throw new Error(errorData.error || 'Server error during upload.')
       }
 
@@ -288,9 +315,40 @@ setLoading(true)
     }
   }
 
+  const handleDeleteProjectDoc = async () => {
+    if (!deleteDoc) return
+    try {
+      setLoading(true)
+      const res = await fetch(
+        `/api/project/${projectId}/document/${deleteDoc.id}`,
+        {
+          method: 'DELETE'
+        }
+      )
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to delete document')
+      }
+      toast.success('Document deleted', {
+        description: `${
+          deleteDoc.title || deleteDoc.name
+        } deleted successfully.`,
+        className: 'bg-[#14AA4d] text-white'
+      })
+      setDeleteDialogOpen(false)
+      setDeleteDoc(null)
+      if (projectId) fetchDocuments(projectId)
+    } catch (err: any) {
+      toast.error('Delete failed', {
+        description: err.message || 'Unknown error',
+        className: 'bg-destructive text-white'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <Card>
-      
       <CardContent className='p-6'>
         <div className='flex justify-between items-center mb-6'>
           <h2 className='text-xl font-semibold'>Deployment Documents</h2>
@@ -420,43 +478,101 @@ setLoading(true)
         )}
       </CardContent>
 
-        {/* Edit Document Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      {/* Edit Document Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className='sm:max-w-[500px]'>
           <DialogHeader>
             <DialogTitle>Edit Document</DialogTitle>
             <DialogDescription>Edit document details</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editDocTitle">Document Name</Label>
-              <Input id="editDocTitle" value={editState.title ?? ''} onChange={e => setEditState(s => ({ ...s, title: e.target.value ?? '' }))} />
+          <div className='grid gap-4 py-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='editDocTitle'>Document Name</Label>
+              <Input
+                id='editDocTitle'
+                value={editState.title ?? ''}
+                onChange={e =>
+                  setEditState(s => ({ ...s, title: e.target.value ?? '' }))
+                }
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="editDocType">Document Type</Label>
-              <Input id="editDocType" value={editState.category ?? ''} onChange={e => setEditState(s => ({ ...s, category: e.target.value ?? '' }))} />
+            <div className='space-y-2'>
+              <Label htmlFor='editDocType'>Document Type</Label>
+              <Input
+                id='editDocType'
+                value={editState.category ?? ''}
+                onChange={e =>
+                  setEditState(s => ({ ...s, category: e.target.value ?? '' }))
+                }
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="editDocExpiry">Expiry Date</Label>
-              <Input id="editDocExpiry" type="date" value={editState.expiry ?? ''} onChange={e => setEditState(s => ({ ...s, expiry: e.target.value ?? '' }))} />
+            <div className='space-y-2'>
+              <Label htmlFor='editDocExpiry'>Expiry Date</Label>
+              <Input
+                id='editDocExpiry'
+                type='date'
+                value={editState.expiry ?? ''}
+                onChange={e =>
+                  setEditState(s => ({ ...s, expiry: e.target.value ?? '' }))
+                }
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="editDocNotes">Notes</Label>
-              <Input id="editDocNotes" value={editState.notes ?? ''} onChange={e => setEditState(s => ({ ...s, notes: e.target.value ?? '' }))} />
+            <div className='space-y-2'>
+              <Label htmlFor='editDocNotes'>Notes</Label>
+              <Input
+                id='editDocNotes'
+                value={editState.notes ?? ''}
+                onChange={e =>
+                  setEditState(s => ({ ...s, notes: e.target.value ?? '' }))
+                }
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => setEditDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" onClick={handleEditSave} disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
+            <Button type='submit' onClick={handleEditSave} disabled={loading}>
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Document Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className='sm:max-w-[400px]'>
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{' '}
+              <span className='font-semibold'>
+                {deleteDoc?.title || deleteDoc?.name}
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant='destructive'
+              onClick={handleDeleteProjectDoc}
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
-
-    
   )
 }

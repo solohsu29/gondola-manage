@@ -117,10 +117,10 @@ export default function GondolaDetailPage () {
                   {gondola?.gondola?.location || '-'}
                 </p>
               </div>
-              <div>
+              {/* <div>
                 <p className='text-sm text-foreground'>Elevation</p>
                 <p className='font-medium text-foreground'>North</p>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>

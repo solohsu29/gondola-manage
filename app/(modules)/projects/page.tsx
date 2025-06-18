@@ -46,80 +46,13 @@ function StatusBadge ({ status }: { status: string }) {
   }
 }
 
-const projectColumns: ColumnDef<Project>[] = [
-  {
-    accessorKey: 'id',
-    header: 'Project ID',
-    cell: ({ row }) => (
-      <a
-        href={`/projects/${row.original.id}`}
-        className='text-blue-600 hover:underline'
-      >
-        {row.original.id?.slice(0, 10)}
-      </a>
-    )
-  },
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => row.original.projectName || '-'
-  },
-  {
-    accessorKey: 'client',
-    header: 'Client',
-    cell: ({ row }) => row.original.client || '-'
-  },
-  {
-    accessorKey: 'site',
-    header: 'Site',
-    cell: ({ row }) => row.original.site || '-'
-  },
-  {
-    accessorKey: 'gondolas',
-    header: 'Gondolas',
-    cell: ({ row }) =>
-      Array.isArray(row.original.gondolas) ? row.original.gondolas.length : 0
-  },
-  {
-    accessorKey: 'created',
-    header: 'Created',
-    cell: ({ row }) =>
-      row.original.created
-        ? new Date(row.original.created).toLocaleDateString()
-        : '-'
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => {
-      return <StatusBadge status={row.original.status} />
-    }
-  },
-  {
-    accessorKey: 'endDate',
-    header: 'End Date',
-    cell: ({ row }) =>
-      row.original.endDate
-        ? new Date(row.original.endDate).toLocaleDateString()
-        : '-'
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <div className='flex gap-2'>
-        <Button variant='outline' size='sm' asChild>
-          <Link href={`/projects/${row.original.id}`}>View</Link>
-        </Button>
-        <Button variant='outline' size='sm' asChild>
-          <Link href={`/projects/${row.original.id}/edit`}>Edit</Link>
-        </Button>
-      </div>
-    )
-  }
-]
+
+
 
 export default function ProjectsPage () {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
+
   const { projects, updateProject, fetchProjects, projectsLoading } =
     useAppStore()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -135,7 +68,84 @@ export default function ProjectsPage () {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(false)
-
+  const projectColumns: ColumnDef<Project>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Project ID',
+      cell: ({ row }) => (
+        <a
+          href={`/projects/${row.original.id}`}
+          className='text-blue-600 hover:underline'
+        >
+          {row.original.id?.slice(0, 10)}
+        </a>
+      )
+    },
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => row.original.projectName || '-'
+    },
+    {
+      accessorKey: 'client',
+      header: 'Client',
+      cell: ({ row }) => row.original.client || '-'
+    },
+    {
+      accessorKey: 'site',
+      header: 'Site',
+      cell: ({ row }) => row.original.site || '-'
+    },
+    {
+      accessorKey: 'gondolas',
+      header: 'Gondolas',
+      cell: ({ row }) =>
+        Array.isArray(row.original.gondolas) ? row.original.gondolas.length : 0
+    },
+    {
+      accessorKey: 'created',
+      header: 'Created',
+      cell: ({ row }) =>
+        row.original.created
+          ? new Date(row.original.created).toLocaleDateString()
+          : '-'
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        return <StatusBadge status={row.original.status} />
+      }
+    },
+    {
+      accessorKey: 'endDate',
+      header: 'End Date',
+      cell: ({ row }) =>
+        row.original.endDate
+          ? new Date(row.original.endDate).toLocaleDateString()
+          : '-'
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className='flex gap-2'>
+          {/* <Button variant='outline' size='sm' asChild>
+            <Link href={`/projects/${row.original.id}`}>View</Link>
+          </Button> */}
+          <Button variant='outline' size='sm' asChild>
+            <Link href={`/projects/${row.original.id}/edit`}>Edit</Link>
+          </Button>
+          <Button variant='outline' size='sm' onClick={() => {
+            setDeleteDialogOpen(true);
+            setProjectToDelete(row.original);
+          }}>
+            Delete
+          </Button>
+        </div>
+      )
+    }
+  ]
   useEffect(() => {
     fetchProjects()
   }, [])
@@ -185,7 +195,33 @@ export default function ProjectsPage () {
     // "all" tab
     return true
   })
-
+const handleDeleteProject = async () => {
+  if (!projectToDelete) return;
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/project/${projectToDelete.id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to delete project');
+    }
+    toast.success('Project deleted', {
+      description: `${projectToDelete.projectName || projectToDelete.id} deleted successfully.`,
+      className: 'bg-[#14AA4d] text-white',
+    });
+    setDeleteDialogOpen(false);
+    setProjectToDelete(null);
+    fetchProjects();
+  } catch (err: any) {
+    toast.error('Delete failed', {
+      description: err.message || 'Unknown error',
+      className: 'bg-destructive text-white',
+    });
+  } finally {
+    setLoading(false);
+  }
+}
   return (
     <div className='p-6'>
       <div className='flex justify-between items-center mb-6'>
@@ -202,6 +238,36 @@ export default function ProjectsPage () {
 
       <Card>
         <CardContent className='p-0'>
+          {/* Delete Project Confirmation Dialog */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent className='sm:max-w-[400px]'>
+              <DialogHeader>
+                <DialogTitle>Delete Project</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete{' '}
+                  <span className='font-semibold'>{projectToDelete?.projectName || projectToDelete?.id}</span>?
+                  This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant='outline'
+                  onClick={() => setDeleteDialogOpen(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant='destructive'
+                  onClick={handleDeleteProject}
+                  disabled={loading}
+                >
+                  {loading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <div className='p-4 flex flex-col sm:flex-row gap-4 border-b'>
             <div className='relative flex-1'>
               <Search className='absolute left-3 top-5 h-4 w-4 text-gray-400' />

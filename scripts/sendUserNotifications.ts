@@ -2,6 +2,12 @@ import 'dotenv/config';
 import pool from '../lib/db';
 import nodemailer from 'nodemailer';
 
+// Log script start for debugging
+function logWithTimestamp(message: string) {
+  console.log(`[${new Date().toISOString()}] ${message}`);
+}
+logWithTimestamp('Script started');
+
 // Notification keys and defaults
 const NOTIFICATION_KEYS = [
   'emailNotifications',
@@ -23,10 +29,6 @@ const defaultNotificationValues: Record<string, boolean> = {
   projectReminders: true,
   projectStatusUpdates: true
 };
-
-function logWithTimestamp(message: string) {
-  console.log(`[${new Date().toISOString()}] ${message}`);
-}
 
 async function main() {
   // 1. Fetch all users and their notification preferences

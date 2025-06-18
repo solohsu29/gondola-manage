@@ -18,6 +18,9 @@ import { ExpiryStatusBadge } from "@/app/utils/statusUtils"
  
 
 function DocumentsTab({ gondolaId }: { gondolaId: string }) {
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDoc, setDeleteDoc] = useState<Document | null>(null);
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editDoc, setEditDoc] = useState<Document | null>(null);
@@ -114,6 +117,16 @@ const [uploading, setUploading] = useState(false);
             >
               Edit
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDeleteDoc(doc);
+                setDeleteDialogOpen(true);
+              }}
+            >
+              Delete
+            </Button>
           </div>
         );
       },
@@ -160,6 +173,34 @@ const [uploading, setUploading] = useState(false);
     }
   };
 
+
+  const handleDeleteGondolaDoc = async () => {
+    if (!deleteDoc) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/gondola/${gondolaId}/documents/${deleteDoc.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to delete document');
+      }
+      toast.success('Document deleted', {
+        description: `${deleteDoc.title || deleteDoc.name} deleted successfully.`,
+        className: 'bg-[#14AA4d] text-white',
+      });
+      setDeleteDialogOpen(false);
+      setDeleteDoc(null);
+      fetchDocumentsByGondolaId(gondolaId);
+    } catch (err: any) {
+      toast.error('Delete failed', {
+        description: err.message || 'Unknown error',
+        className: 'bg-destructive text-white',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchDocumentsByGondolaId(gondolaId);
@@ -339,6 +380,33 @@ const [uploading, setUploading] = useState(false);
           </DialogContent>
         </Dialog>
       </CardContent>
+      {/* Delete Document Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{deleteDoc?.title || deleteDoc?.name}</span>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteGondolaDoc}
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
