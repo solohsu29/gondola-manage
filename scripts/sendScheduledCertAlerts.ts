@@ -31,7 +31,27 @@ async function main() {
   const today = new Date();
 
   for (const sub of subs) {
-    if (!shouldSendForFrequency(sub.frequency, today)) continue;
+    // --- Frequency and lastSent logic ---
+    const lastSent = sub.lastsent ? new Date(sub.lastsent) : null;
+    let shouldSend = false;
+    if (shouldSendForFrequency(sub.frequency, today)) {
+      if (!lastSent) {
+        shouldSend = true;
+      } else if (sub.frequency === 'daily') {
+        shouldSend = lastSent.toDateString() !== today.toDateString();
+      } else if (sub.frequency === 'weekly') {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+        startOfWeek.setHours(0,0,0,0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23,59,59,999);
+        shouldSend = lastSent < startOfWeek || lastSent > endOfWeek;
+      } else if (sub.frequency === 'monthly') {
+        shouldSend = lastSent.getFullYear() !== today.getFullYear() || lastSent.getMonth() !== today.getMonth();
+      }
+    }
+    if (!shouldSend) continue;
     // Fetch gondola details and documents
     const gondolaRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/gondola/${sub.gondolaId}`);
     if (!gondolaRes.ok) continue;
@@ -42,10 +62,10 @@ async function main() {
     if (!docsRes.ok) continue;
     const docsDataRaw = await docsRes.json();
     const docsData = Array.isArray(docsDataRaw) ? docsDataRaw : [];
-
+    console.log("docsData",docsData)
     const soonExpiringDocs = getSoonExpiringDocs(docsData, sub.threshold, today);
     if (soonExpiringDocs.length === 0) continue;
-
+console.log('soon',soonExpiringDocs)
     // Compose email
     const docList = soonExpiringDocs.map((doc: any) => `- ${doc.type || doc.name || 'Document'}: Expires on ${doc.expiry}`).join('\n');
     const htmlDocList = '<ul>' + soonExpiringDocs.map((doc: any) => `<li><b>${doc.type || doc.name || 'Document'}:</b> Expires on ${doc.expiry}</li>`).join('') + '</ul>';
@@ -70,6 +90,11 @@ async function main() {
         html: emailHtml,
       });
       logWithTimestamp(`Alert sent to ${sub.email} for gondola ${sub.gondolaId}`);
+      // Update lastSent in DB
+      const sentTime = new Date();
+      logWithTimestamp(`[CertAlertSubscription] lastSent before update: ${sub.lastsent}`);
+      await pool.query('UPDATE "CertAlertSubscription" SET "lastSent" = $1 WHERE id = $2', [sentTime, sub.id]);
+      logWithTimestamp(`[CertAlertSubscription] lastSent updated to: ${sentTime}`);
     } catch (err) {
       logWithTimestamp('Failed to send email: ' + err);
     }

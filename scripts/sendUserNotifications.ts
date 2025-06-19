@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import pool from '../lib/db';
-import nodemailer from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 
 // Log script start for debugging
 function logWithTimestamp(message: string) {
@@ -30,7 +30,43 @@ const defaultNotificationValues: Record<string, boolean> = {
   projectStatusUpdates: true
 };
 
+async function ensureUserNotificationLogTable() {
+  // Create the table if it doesn't exist
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "UserNotificationLog" (
+      "id" SERIAL PRIMARY KEY,
+      "userId" INTEGER NOT NULL,
+      "notificationType" TEXT NOT NULL,
+      "lastSent" TIMESTAMPTZ,
+      UNIQUE ("userId", "notificationType")
+    );
+  `);
+}
+
+async function getLastSent(userId: number, notificationType: string): Promise<Date | null> {
+  const { rows } = await pool.query(
+    'SELECT "lastSent" FROM "UserNotificationLog" WHERE "userId" = $1 AND "notificationType" = $2',
+    [userId, notificationType]
+  );
+  if (rows.length > 0 && rows[0].lastSent) return new Date(rows[0].lastSent);
+  return null;
+}
+
+async function updateLastSent(userId: number, notificationType: string, date: Date) {
+  await pool.query(
+    'INSERT INTO "UserNotificationLog" ("userId", "notificationType", "lastSent") VALUES ($1, $2, $3)\n      ON CONFLICT ("userId", "notificationType") DO UPDATE SET "lastSent" = EXCLUDED."lastSent"',
+    [userId, notificationType, date]
+  );
+}
+
+function shouldSendEveryFiveMinutes(lastSent: Date | null, now: Date): boolean {
+  if (!lastSent) return true;
+  // 5 minutes = 300000 ms
+  return (now.getTime() - lastSent.getTime()) >= 5 * 60 * 1000;
+}
+
 async function main() {
+  await ensureUserNotificationLogTable();
   // 1. Fetch all users and their notification preferences
   const { rows: users } = await pool.query(
     'SELECT u.id, u.email, u.name, p."notificationPreferences" FROM "User" u JOIN "Profile" p ON u.id = p."userId" WHERE u.email IS NOT NULL'
@@ -59,83 +95,111 @@ async function main() {
     let emailSections: string[] = [];
     // 2. Certificate Expiry
     if (prefs.certificateExpiry) {
-      const { rows: docs } = await pool.query(
-        `SELECT d.title, d.expiry, g."serialNumber" FROM "Document" d LEFT JOIN "Gondola" g ON d."gondolaId"=g.id WHERE (
-          d.category ILIKE '%Certificate%' OR d.type ILIKE '%Certificate%' OR d.title ILIKE '%Certificate%') AND d.expiry IS NOT NULL AND d.expiry::date BETWEEN NOW()::date AND (NOW() + INTERVAL '30 days')::date`
-      );
-      if (docs.length > 0) {
-        emailSections.push('<h3>Certificate Expiry Reminders</h3><ul>' + docs.map((doc: any) => `<li>${doc.title} for ${doc.serialNumber || ''} expires on ${doc.expiry}</li>`).join('') + '</ul>');
+      const lastSent = await getLastSent(user.id, 'certificateExpiry');
+      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+        const { rows: docs } = await pool.query(
+          `SELECT d.title, d.expiry, g."serialNumber" FROM "Document" d LEFT JOIN "Gondola" g ON d."gondolaId"=g.id WHERE (
+            d.category ILIKE '%Certificate%' OR d.type ILIKE '%Certificate%' OR d.title ILIKE '%Certificate%') AND d.expiry IS NOT NULL AND d.expiry::date BETWEEN NOW()::date AND (NOW() + INTERVAL '30 days')::date`
+        );
+        if (docs.length > 0) {
+          emailSections.push('<h3>Certificate Expiry Reminders</h3><ul>' + docs.map((doc: any) => `<li>${doc.title} for ${doc.serialNumber || ''} expires on ${doc.expiry}</li>`).join('') + '</ul>');
+        }
+        const sentTime = new Date();
+        logWithTimestamp(`[certificateExpiry] lastSent before update: ${lastSent}`);
+        await updateLastSent(user.id, 'certificateExpiry', sentTime);
+        logWithTimestamp(`[certificateExpiry] lastSent updated to: ${sentTime}`);
       }
     }
     // 3. Project Reminders
     if (prefs.projectReminders) {
-      // Notify about projects ending in the next 7 days
-      const { rows: projectsDue } = await pool.query(`
-        SELECT "projectName", "client", "site", "endDate"
-        FROM "Project"
-        WHERE "endDate" IS NOT NULL
-          AND "endDate"::date BETWEEN NOW()::date AND (NOW() + INTERVAL '7 days')::date
-        ORDER BY "endDate" ASC
-      `);
-      if (projectsDue.length > 0) {
-        emailSections.push(
-          '<h3>Project Reminders</h3><ul>' +
-          projectsDue.map((p: any) => {
-            let endDateStr = '';
-            if (typeof p.endDate === 'string') {
-              endDateStr = p.endDate.split('T')[0];
-            } else if (p.endDate instanceof Date) {
-              endDateStr = p.endDate.toISOString().split('T')[0];
-            } else if (p.endDate) {
-              endDateStr = String(p.endDate).split('T')[0];
-            }
-            return `<li>Project <b>${p.projectName || p.client}</b> at <b>${p.site}</b> is ending on ${endDateStr}</li>`;
-          }).join('') + '</ul>'
-        );
+      const lastSent = await getLastSent(user.id, 'projectReminders');
+      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+        // Notify about projects ending in the next 7 days
+        const { rows: projectsDue } = await pool.query(`
+          SELECT "projectName", "client", "site", "endDate"
+          FROM "Project"
+          WHERE "endDate" IS NOT NULL
+            AND "endDate"::date BETWEEN NOW()::date AND (NOW() + INTERVAL '7 days')::date
+          ORDER BY "endDate" ASC
+        `);
+        if (projectsDue.length > 0) {
+          emailSections.push(
+            '<h3>Project Reminders</h3><ul>' +
+            projectsDue.map((p: any) => {
+              let endDateStr = '';
+              if (typeof p.endDate === 'string') {
+                endDateStr = p.endDate.split('T')[0];
+              } else if (p.endDate instanceof Date) {
+                endDateStr = p.endDate.toISOString().split('T')[0];
+              } else if (p.endDate) {
+                endDateStr = String(p.endDate).split('T')[0];
+              }
+              return `<li>Project <b>${p.projectName || p.client}</b> at <b>${p.site}</b> is ending on ${endDateStr}</li>`;
+            }).join('') + '</ul>'
+          );
+        }
+        const sentTime = new Date();
+        logWithTimestamp(`[projectReminders] lastSent before update: ${lastSent}`);
+        await updateLastSent(user.id, 'projectReminders', sentTime);
+        logWithTimestamp(`[projectReminders] lastSent updated to: ${sentTime}`);
       }
     }
     // 4. Project Updates
     if (prefs.projectUpdates) {
-      const { rows: changedProjects } = await pool.query(`
-        SELECT projectName, updatedAt, status
-        FROM "Project"
-        WHERE updatedAt >= NOW() - INTERVAL '7 days'
-        ORDER BY updatedAt DESC
-      `);
-      if (changedProjects.length > 0) {
-        emailSections.push(
-          '<h3>Project Updates</h3><ul>' +
-          changedProjects.map((p: any) =>
-            `<li>Project <b>${p.projectName}</b> was updated on ${p.updatedAt} (Current status: ${p.status})</li>`
-          ).join('') + '</ul>'
-        );
+      const lastSent = await getLastSent(user.id, 'projectUpdates');
+      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+        const { rows: changedProjects } = await pool.query(`
+          SELECT "projectName", "updatedAt", "status"
+          FROM "Project"
+          WHERE "updatedAt" >= NOW() - INTERVAL '7 days'
+          ORDER BY "updatedAt" DESC
+        `);
+        if (changedProjects.length > 0) {
+          emailSections.push(
+            '<h3>Project Updates</h3><ul>' +
+            changedProjects.map((p: any) =>
+              `<li>Project <b>${p.projectName}</b> was updated on ${p.updatedAt} (Current status: ${p.status})</li>`
+            ).join('') + '</ul>'
+          );
+        }
+        const sentTime = new Date();
+        logWithTimestamp(`[projectUpdates] lastSent before update: ${lastSent}`);
+        await updateLastSent(user.id, 'projectUpdates', sentTime);
+        logWithTimestamp(`[projectUpdates] lastSent updated to: ${sentTime}`);
       }
     }
     // 5. Weekly Reports
     if (prefs.weeklyReports) {
-      // Active Gondolas
-      const { rows: gondolas } = await pool.query(`SELECT * FROM "Gondola"`);
-      const activeGondolas = gondolas.filter((g: any) => typeof g.status === 'string' && g.status.toLowerCase() === 'deployed');
-      // Expiring Certificates
-      const { rows: certificates } = await pool.query(`SELECT * FROM "Document" WHERE (category ILIKE '%Certificate%' OR type ILIKE '%Certificate%' OR title ILIKE '%Certificate%')`);
-      const expiringCertificates = certificates.filter((cert: any) => typeof cert.status === 'string' && cert.status.toLowerCase().includes('expire'));
-      // Pending Inspections (stub: count all docs with status 'pending inspection')
-      const pendingInspectionsCount = certificates.filter((cert: any) => typeof cert.status === 'string' && cert.status.toLowerCase().includes('pending inspection')).length;
-      // Total Projects
-      const { rows: projects } = await pool.query(`SELECT * FROM "Project"`);
-      // Compose summary
-      let summary = '<h3>Weekly Report</h3>';
-      summary += `<p><b>Active Gondolas:</b> ${activeGondolas.length}<br/>`;
-      summary += `<b>Expiring Certificates:</b> ${expiringCertificates.length}<br/>`;
-      summary += `<b>Pending Inspections:</b> ${pendingInspectionsCount}<br/>`;
-      summary += `<b>Total Projects:</b> ${projects.length}</p>`;
-      // Projects Overview
-      summary += '<h4>Projects Overview</h4><ul>';
-      projects.slice(0, 5).forEach((project: any, idx: number) => {
-        summary += `<li>${idx + 1}. ${project.client} (${project.site}) - Status: ${project.status}</li>`;
-      });
-      summary += '</ul>';
-      emailSections.push(summary);
+      const lastSent = await getLastSent(user.id, 'weeklyReports');
+      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+        // Active Gondolas
+        const { rows: gondolas } = await pool.query(`SELECT * FROM "Gondola"`);
+        const activeGondolas = gondolas.filter((g: any) => typeof g.status === 'string' && g.status.toLowerCase() === 'deployed');
+        // Expiring Certificates
+        const { rows: certificates } = await pool.query(`SELECT * FROM "Document" WHERE (category ILIKE '%Certificate%' OR type ILIKE '%Certificate%' OR title ILIKE '%Certificate%')`);
+        const expiringCertificates = certificates.filter((cert: any) => typeof cert.status === 'string' && cert.status.toLowerCase().includes('expire'));
+        // Pending Inspections (stub: count all docs with status 'pending inspection')
+        const pendingInspectionsCount = certificates.filter((cert: any) => typeof cert.status === 'string' && cert.status.toLowerCase().includes('pending inspection')).length;
+        // Total Projects
+        const { rows: projects } = await pool.query(`SELECT * FROM "Project"`);
+        // Compose summary
+        let summary = '<h3>Weekly Report</h3>';
+        summary += `<p><b>Active Gondolas:</b> ${activeGondolas.length}<br/>`;
+        summary += `<b>Expiring Certificates:</b> ${expiringCertificates.length}<br/>`;
+        summary += `<b>Pending Inspections:</b> ${pendingInspectionsCount}<br/>`;
+        summary += `<b>Total Projects:</b> ${projects.length}</p>`;
+        // Projects Overview
+        summary += '<h4>Projects Overview</h4><ul>';
+        projects.slice(0, 5).forEach((project: any, idx: number) => {
+          summary += `<li>${idx + 1}. ${project.client} (${project.site}) - Status: ${project.status}</li>`;
+        });
+        summary += '</ul>';
+        emailSections.push(summary);
+        const sentTime = new Date();
+        logWithTimestamp(`[weeklyReports] lastSent before update: ${lastSent}`);
+        await updateLastSent(user.id, 'weeklyReports', sentTime);
+        logWithTimestamp(`[weeklyReports] lastSent updated to: ${sentTime}`);
+      }
     }
     if (emailSections.length === 0) continue;
 
@@ -151,7 +215,7 @@ async function main() {
         }
       });
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@example.com',
+        from: process.env.SMTP_FROM || process.env.ADMIN_EMAIL || 'admin@example.com',
         to: email,
         subject: 'Your Notifications',
         html: `<h2>Notification Summary</h2>${emailSections.join('<hr/>')}`

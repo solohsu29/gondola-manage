@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-
+import pool from '@/lib/db';
 import nodemailer from 'nodemailer';
+
+function shouldSendForFrequency(frequency: string, lastSent: Date | null, now: Date): boolean {
+  if (frequency === 'daily') {
+    return !lastSent || lastSent.toDateString() !== now.toDateString();
+  } else if (frequency === 'weekly') {
+    // Only send on Monday and if not sent this week
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+    startOfWeek.setHours(0,0,0,0);
+    return now.getDay() === 1 && (!lastSent || lastSent < startOfWeek);
+  } else if (frequency === 'monthly') {
+    // Only send on 1st of month and if not sent this month
+    return now.getDate() === 1 && (!lastSent || lastSent.getMonth() !== now.getMonth() || lastSent.getFullYear() !== now.getFullYear());
+  }
+  return true; // fallback
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { gondolaId, email, frequency, threshold } = await req.json();
+    const { gondolaId, email, frequency, threshold, subscriptionId } = await req.json();
+    // Fetch CertAlertSubscription for lastSent
+    let lastSent: Date | null = null;
+    let subId = subscriptionId;
+    if (!subId && gondolaId && email) {
+      // Try to find the subscription
+      const { rows } = await pool.query('SELECT id, "lastSent" FROM "CertAlertSubscription" WHERE "gondolaId" = $1 AND email = $2', [gondolaId, email]);
+      if (rows.length > 0) {
+        subId = rows[0].id;
+        lastSent = rows[0].lastSent ? new Date(rows[0].lastSent) : null;
+      }
+    }
+    const now = new Date();
+    const canSend = shouldSendForFrequency(frequency, lastSent, now);
+    if (!canSend) {
+      return NextResponse.json({ success: false, message: 'Not time to send based on frequency/lastSent.' });
+    }
     // Fetch gondola details
     const gondolaRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/gondola/${gondolaId}`);
     if (!gondolaRes.ok) throw new Error('Failed to fetch gondola details');
@@ -92,6 +124,12 @@ export async function POST(req: NextRequest) {
         html: emailHtml,
       });
       success = true;
+      // Update lastSent in CertAlertSubscription
+      if (subId) {
+        const sentTime = new Date();
+        await pool.query('UPDATE "CertAlertSubscription" SET "lastSent" = $1 WHERE id = $2', [sentTime, subId]);
+        console.log(`[CertAlertSubscription] lastSent updated to:`, sentTime, 'for id', subId);
+      }
     } catch (err: any) {
       errorMsg = err.message;
       console.error('Failed to send email:', err);

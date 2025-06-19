@@ -265,6 +265,7 @@ model CertAlertSubscription {
   email      String
   threshold  Int
   frequency  String
+  lastSent   DateTime?   // Added for tracking last alert sent
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
