@@ -1,8 +1,8 @@
 name: Scheduled User Notifications
-
+# Scheduler debug: force update
 on:
   schedule:
-    - cron: '*/2 * * * *'  # every 10 minutes UTC
+    - cron: '*/1 * * * *'  # every 1 minutes UTC
   workflow_dispatch:
 
 jobs:
