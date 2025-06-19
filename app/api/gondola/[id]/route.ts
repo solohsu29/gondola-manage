@@ -84,8 +84,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Gondola not found' }, { status: 404 });
     }
     return NextResponse.json(result.rows[0]);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to update gondola:', error, '\nRequest body:', JSON.stringify(body));
+    // Handle unique constraint violation (duplicate serial number)
+    if (error.code === '23505' && error.detail && error.detail.includes('Gondola_serialNumber_key')) {
+      return NextResponse.json({ error: 'A gondola with this serial number already exists.' }, { status: 409 });
+    }
     return NextResponse.json({ error: 'Failed to update gondola', details: error instanceof Error ? error.message : error }, { status: 500 });
   }
 }
@@ -109,8 +113,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: 'Gondola not found' }, { status: 404 });
     }
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to delete gondola:', error);
+    if (error.code === '23503') { // Foreign key violation (shouldn't happen due to manual deletes, but just in case)
+      return NextResponse.json({ error: 'Cannot delete gondola due to related records.' }, { status: 409 });
+    }
     const errMsg = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: 'Failed to delete gondola', details: errMsg }, { status: 500 });
   }

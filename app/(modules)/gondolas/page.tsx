@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { GondolasDataTable } from '../../../components/modules/gondolas/GondolasDataTable'
 import { Input } from '@/components/ui/input'
 import { Filter, Download, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -58,10 +58,16 @@ export default function GondolasPage () {
       !newGondola.location ||
       !newGondola.status
     ) {
-      alert(
-        'Please fill in all required fields (Serial Number, Location, and Status)'
-      )
+      toast.error('Please fill in all required fields (Serial Number, Location, and Status)',{className:"bg-destructive text-white"})
       return
+    }
+    // Uniqueness check for serialNumber (case-insensitive)
+    if (gondolas.some(g => g.serialNumber.toLowerCase() === newGondola.serialNumber.toLowerCase())) {
+      toast.error('A gondola with this serial number already exists.', {
+        description: 'Please use a unique serial number.',
+        className: 'bg-destructive text-white'
+      });
+      return;
     }
     const formData = new FormData()
     formData.append('serialNumber', newGondola.serialNumber)
@@ -80,7 +86,19 @@ export default function GondolasPage () {
         method: 'POST',
         body: formData
       })
-      if (!res.ok) throw new Error('Failed to create gondola')
+      if (!res.ok) {
+        let errMsg = 'Failed to create gondola';
+        try {
+          const data = await res.json();
+          errMsg = data?.error || errMsg;
+        } catch {}
+        toast.error('Create gondola failed', {
+          description: errMsg,
+          className: 'bg-destructive text-white'
+        });
+        setCreateLoading(false);
+        return;
+      }
       setIsNewGondolaDialogOpen(false)
       setNewGondola({
         serialNumber: '',
@@ -107,7 +125,7 @@ export default function GondolasPage () {
 
   // Export handler separated from button
   const handleExport = async () => {
-    await fetchGondolas() // Ensure latest data
+  //  await fetchGondolas() // Ensure latest data
     const header = [
       'ID',
       'Serial Number',
@@ -159,6 +177,8 @@ export default function GondolasPage () {
         .some(field => field?.toLowerCase().includes(query))
     return statusMatch && searchMatch
   })
+
+
   return (
     <div className='p-6'>
       <h1 className='text-2xl font-bold mb-6'>Gondolas</h1>
@@ -401,7 +421,7 @@ export default function GondolasPage () {
 
         <div className='overflow-x-auto'>
           {/* DataTable for gondolas */}
-          <GondolasDataTable refresh={refresh} gondolas={filteredData} />
+          <GondolasDataTable refresh={refresh} gondolas={filteredData}/>
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { GondolasStatus } from '@/types'
 import { formatDateDMY } from '@/app/utils/formatDate'
-
+import {v4 as uuid} from 'uuid'
 function StatusBadge ({ status }: { status: string }) {
   switch (status) {
     case 'deployed':
@@ -61,7 +61,7 @@ function StatusBadge ({ status }: { status: string }) {
 }
 export function GondolasDataTable ({
   refresh,
-  gondolas: gondolasProp
+  gondolas: gondolasProp,
 }: {
   refresh: string
   gondolas?: any[]
@@ -197,10 +197,6 @@ export function GondolasDataTable ({
       )
     }
   ]
-  useEffect(() => {
-    fetchGondolas()
-  }, [refresh])
-
 
   const handleEditClick = (rowData: any) => {
     setEditData(rowData)
@@ -219,18 +215,59 @@ export function GondolasDataTable ({
       editFields?.location &&
       editFields?.status
     ) {
+      // Frontend duplicate serial number check (excluding self)
+      if (
+        gondolas.some(
+          g =>
+            g.serialNumber.toLowerCase() === editFields.serialNumber.toLowerCase() &&
+            g.id !== editFields.id
+        )
+      ) {
+        toast.error('A gondola with this serial number already exists.', {
+          description: 'Please use a unique serial number.',
+          className: 'bg-destructive text-white'
+        });
+        return;
+      }
       setLoading(true)
-      await updateGondolaAsync(editFields?.id, {
-        serialNumber: editFields.serialNumber,
-        location: editFields.location,
-        locationDetail: editFields.locationDetail,
-        status: editFields.status,
-        lastInspection: editFields.lastInspection,
-        nextInspection: editFields.nextInspection
-        //       ...(editFields.photoName ? { photoName: editFields.photoName } : {}),
-        // ...(editFields.photoData ? { photoData: editFields.photoData } : {}),
-      })
-      setIsEditDialogOpen(false)
+      try {
+        const res = await fetch(`/api/gondola/${editFields.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serialNumber: editFields.serialNumber,
+            location: editFields.location,
+            locationDetail: editFields.locationDetail,
+            status: editFields.status,
+            lastInspection: editFields.lastInspection,
+            nextInspection: editFields.nextInspection
+          })
+        });
+        if (!res.ok) {
+          let errMsg = 'Failed to update gondola';
+          try {
+            const data = await res.json();
+            errMsg = data?.error || errMsg;
+          } catch {}
+          let userMsg = errMsg;
+          if (errMsg && errMsg.toLowerCase().includes('serial number')) {
+            userMsg = 'Failed to update gondola: Serial number already exists.';
+          }
+          toast.error('Update gondola failed', {
+            description: userMsg,
+            className: 'bg-destructive text-white'
+          });
+          setLoading(false);
+          return;
+        }
+        setIsEditDialogOpen(false);
+        fetchGondolas()
+      } catch (err: any) {
+        toast.error('Update gondola failed', {
+          description: err?.message || 'Unknown error',
+          className: 'bg-destructive text-white'
+        });
+      }
       setLoading(false)
     } else {
       toast.error('Please fill in all required fields')

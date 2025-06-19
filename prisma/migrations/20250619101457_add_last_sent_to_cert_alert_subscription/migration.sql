@@ -1,3 +1,3 @@
 -- Add lastSent column to CertAlertSubscription
 ALTER TABLE "CertAlertSubscription"
-ADD COLUMN "lastSent" TIMESTAMPTZ;
+-- ADD COLUMN "lastSent" TIMESTAMPTZ;

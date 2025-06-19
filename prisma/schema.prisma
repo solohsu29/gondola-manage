@@ -75,7 +75,7 @@ model Project {
 
 model Gondola {
   id                  String               @id @default(uuid())
-  serialNumber        String
+  serialNumber        String   @unique
   location            String
   locationDetail      String
   lastInspection      DateTime
