@@ -69,6 +69,12 @@ export default function ProjectsPage () {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+
   const projectColumns: ColumnDef<Project>[] = [
     {
       accessorKey: 'id',
@@ -108,7 +114,7 @@ export default function ProjectsPage () {
       header: 'Created',
       cell: ({ row }) =>
         row.original.created
-          ? formatDateDMY(new Date(row.original.created).toLocaleDateString())
+          ? formatDateDMY(row.original.created)
           : '-'
     },
     {
@@ -123,7 +129,7 @@ export default function ProjectsPage () {
       header: 'End Date',
       cell: ({ row }) =>
         row.original.endDate
-          ? formatDateDMY(new Date(row.original.endDate).toLocaleDateString())
+          ? formatDateDMY(row.original.endDate)
           : '-'
     },
     {
@@ -147,9 +153,7 @@ export default function ProjectsPage () {
       )
     }
   ]
-  useEffect(() => {
-    fetchProjects()
-  }, [])
+
 
   const handleSaveEdit = async (projectId: string | null) => {
     setLoading(true)
@@ -223,9 +227,11 @@ const handleDeleteProject = async () => {
     setLoading(false);
   }
 }
+
+console.log('projects loading',projectsLoading)
   return (
     <div className='p-6'>
-      <div className='flex justify-between items-center mb-6'>
+      <div className='flex flex-col md:flex-row justify-between md:items-center mb-6'>
         <h1 className='text-2xl font-bold'>Projects</h1>
         <div className='flex gap-2'>
           <Button className='flex items-center gap-2' asChild>
@@ -294,7 +300,7 @@ const handleDeleteProject = async () => {
 
           <Tabs defaultValue='all' onValueChange={setActiveTab}>
             <div className='px-4 pt-4'>
-              <TabsList>
+              <TabsList className='flex flex-col md:flex-row items-start justify-start h-fit md:h-10'>
                 <TabsTrigger value='all'>All Projects</TabsTrigger>
                 <TabsTrigger value='active'>Active</TabsTrigger>
                 <TabsTrigger value='completed'>Completed</TabsTrigger>

@@ -170,10 +170,10 @@ export default function Dashboard () {
   const activeGondolas = gondolas.filter(
     (g: any) => g.status?.toLowerCase() === 'deployed'
   ).length
-console.log('certif',certificates)
+
   return (
     <div className='p-6'>
-      <div className='flex justify-between items-center mb-6'>
+      <div className='flex flex-col md:flex-row justify-between md:items-center mb-6'>
         <h1 className='text-2xl font-bold'>Dashboard</h1>
         <div className='flex gap-2'>
           <Button variant='outline' onClick={() => setReportDialogOpen(true)}>

@@ -41,9 +41,9 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     ddId: `DD-${new Date().getFullYear()}-${String(
       Math.floor(Math.random() * 900) + 100
     ).padStart(3, '0')}`,
-    deploymentDate: new Date().toISOString().split('T')[0],
-    projectSiteName: 'Marina Bay Tower',
-    clientCompany: 'Apex Construction',
+    deploymentDate: " ",
+    projectSiteName: '',
+    clientCompany: '',
     leadTechnicianName: '',
     leadTechnicianId: '',
     siteAddress: '',
@@ -329,7 +329,6 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
     }
   ]
 
- 
   return (
     <Card>
       <CardContent className='p-0'>
@@ -541,6 +540,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
                           setSelectedFiles(e.target.files)
                         }
                       }}
+                      className="py-[13px]"
                     />
                     {selectedFiles && selectedFiles.length > 0 ? (
                       <p className='text-sm text-foreground'>

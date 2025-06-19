@@ -472,7 +472,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
       if (!res.ok) throw new Error('Failed to add project');
       const savedProject = await res.json();
-      set((state) => ({ projects: [...state.projects, savedProject] }));
+     // set((state) => ({ projects: [...state.projects, savedProject] }));
       set({projectsLoading:false})
     } catch (err) {
       // Optionally: set error state or show error

@@ -524,7 +524,7 @@ export default function ProfilePage () {
 
                 <Separator />
 
-                <div className='space-y-4'>
+                {/* <div className='space-y-4'>
                   <h3 className='text-lg font-medium'>Session Management</h3>
                   <div className='space-y-2'>
                     <p className='text-sm text-gray-600'>
@@ -537,7 +537,7 @@ export default function ProfilePage () {
                     </p>
                   </div>
                   <Button variant='outline'>Sign out of all devices</Button>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </TabsContent>
@@ -607,7 +607,7 @@ export default function ProfilePage () {
                             }
                           />
                         </div>
-                        <div className='flex items-center justify-between'>
+                        {/* <div className='flex items-center justify-between'>
                           <div>
                             <p className='font-medium'>Project Status Updates</p>
                             <p className='text-sm text-foreground'>
@@ -623,7 +623,7 @@ export default function ProfilePage () {
                               })
                             }
                           />
-                        </div>
+                        </div> */}
                         <div className='flex items-center justify-between'>
                           <div>
                             <p className='font-medium'>Weekly Reports</p>
@@ -643,7 +643,7 @@ export default function ProfilePage () {
                         </div>
                       </div>
                     </div>
-                    <div className='flex items-center justify-between'>
+                    {/* <div className='flex items-center justify-between'>
                       <div>
                         <p className='font-medium'>Push Notifications</p>
                         <p className='text-sm text-foreground'>
@@ -659,7 +659,7 @@ export default function ProfilePage () {
                           })
                         }
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -685,7 +685,7 @@ export default function ProfilePage () {
                         }
                       />
                     </div>
-                    <div className='flex items-center justify-between'>
+                    {/* <div className='flex items-center justify-between'>
                       <div>
                         <p className='font-medium'>Maintenance Reminders</p>
                         <p className='text-sm text-foreground'>
@@ -701,8 +701,8 @@ export default function ProfilePage () {
                           })
                         }
                       />
-                    </div>
-                    <div className='flex items-center justify-between'>
+                    </div> */}
+                    {/* <div className='flex items-center justify-between'>
                       <div>
                         <p className='font-medium'>Project Updates</p>
                         <p className='text-sm text-foreground'>
@@ -735,7 +735,7 @@ export default function ProfilePage () {
                           })
                         }
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

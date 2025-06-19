@@ -101,6 +101,7 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
               accept="image/*"
               onChange={handleFileChange}
               disabled={uploading}
+              className="py-[13px]"
             />
             {selectedFile && previewUrl && (
   <div className="flex flex-col items-center">

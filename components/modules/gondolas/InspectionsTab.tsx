@@ -144,7 +144,7 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
       accessorKey: 'date',
       cell: ({ row }) =>
         row.original.date
-          ? formatDateDMY(new Date(row.original.date).toLocaleDateString())
+          ? formatDateDMY(row.original.date)
           : ''
     },
     {

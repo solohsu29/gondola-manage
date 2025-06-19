@@ -182,8 +182,8 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
       accessorKey: 'uploaded',
       header: 'Uploaded Date',
       cell: ({ row }) => {
-        const date = new Date(row.getValue('uploaded'))
-        return <div className='font-medium'>{formatDateDMY(date.toLocaleDateString())}</div>
+        const date = row.getValue('uploaded')
+        return <div className='font-medium'>{formatDateDMY(row?.getValue('uploaded'))}</div>
       }
     },
     {
@@ -192,8 +192,8 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
       cell: ({ row }) => {
         const expiryDate = row.getValue('expiry') as string | undefined | null
         if (!expiryDate) return <div className='text-foreground'>N/A</div>
-        const date = new Date(expiryDate)
-        return <div className='font-medium'>{formatDateDMY(date.toLocaleDateString())}</div>
+        const date =expiryDate
+        return <div className='font-medium'>{formatDateDMY(date)}</div>
       }
     },
     {
