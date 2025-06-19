@@ -26,6 +26,7 @@ import Image from 'next/image'
 import type { Photo } from '@/types/photo'
 import { toast } from 'sonner'
 import { Trash } from 'lucide-react'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
@@ -267,7 +268,7 @@ export default function PhotosTab ({ gondolaId }: { gondolaId: string }) {
                   <p className='text-sm font-medium'>{photo.fileName}</p>
                   {photo.uploaded && (
                     <p className='text-xs text-foreground'>
-                      Uploaded: {new Date(photo.uploaded).toLocaleDateString()}
+                      Uploaded: {formatDateDMY(new Date(photo.uploaded).toLocaleDateString())}
                     </p>
                   )}
                   {photo.category && (

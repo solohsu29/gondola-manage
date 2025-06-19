@@ -83,8 +83,8 @@ export default function ShiftHistoryTab ({ gondolaId }: { gondolaId: string }) {
                       <div>
                         <h3 className='font-medium'>Location Shift</h3>
                         <p className='text-sm text-foreground'>
-                          {new Date(shift.createdAt).toLocaleDateString()} at{' '}
-                          {new Date(shift.createdAt).toLocaleTimeString()}
+                          {formatDateDMY(new Date(shift.createdAt).toLocaleDateString())} at{' '}
+                          {formatDateDMY(new Date(shift.createdAt).toLocaleTimeString())}
                         </p>
                       </div>
                     </div>

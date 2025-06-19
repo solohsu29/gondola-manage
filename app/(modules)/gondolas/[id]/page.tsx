@@ -22,6 +22,7 @@ import OrientationSessionTab from '@/components/modules/gondolas/OrientationSess
 import ShiftHistoryTab from '@/components/modules/gondolas/ShiftHistoryTab'
 
 import React, { useEffect, useState } from 'react'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function GondolaDetailPage () {
   const params = useParams()
@@ -140,7 +141,7 @@ export default function GondolaDetailPage () {
                 <p className='text-sm text-foreground'>Deployed Date</p>
                 <p className='font-semibold text-gray-900'>
                   {gondola?.gondola?.createdAt
-                    ? new Date(gondola.createdAt).toLocaleDateString()
+                    ?formatDateDMY(new Date(gondola.createdAt).toLocaleDateString())
                     : '-'}
                 </p>
               </div>
@@ -176,9 +177,9 @@ export default function GondolaDetailPage () {
                 <p className='text-sm text-foreground'>Completed</p>
                 <p className='font-semibold text-gray-900'>
                   {gondola?.gondola?.lastInspection
-                    ? new Date(
+                    ?formatDateDMY(new Date(
                         gondola.gondola.lastInspection
-                      ).toLocaleDateString()
+                      ).toLocaleDateString())
                     : '-'}
                 </p>
               </div>
@@ -208,9 +209,9 @@ export default function GondolaDetailPage () {
                 <p className='text-sm text-foreground'>Due Date</p>
                 <p className='font-semibold text-gray-900'>
                   {gondola?.gondola?.nextInspection
-                    ? new Date(
+                    ?formatDateDMY(new Date(
                         gondola.gondola.nextInspection
-                      ).toLocaleDateString()
+                      ).toLocaleDateString())
                     : '-'}
                 </p>
               </div>

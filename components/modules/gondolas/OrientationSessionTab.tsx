@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function OrientationSessionTab ({
   gondolaId
@@ -666,7 +667,7 @@ export default function OrientationSessionTab ({
                       Date
                     </Label>
                     <p className='font-medium'>
-                      {selectedSession.date?.split('T')[0]}
+                      {formatDateDMY(selectedSession.date?.split('T')[0])}
                     </p>
                   </div>
                   <div className='space-y-2'>

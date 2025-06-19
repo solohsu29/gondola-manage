@@ -982,7 +982,7 @@ const handleEditOrderSave = async () => {
                     Order Date
                   </Label>
                   <p className='text-sm'>
-                    {selectedOrder.orderDate?.split('T')[0]}
+                    {formatDateDMY(selectedOrder.orderDate?.split('T')[0])}
                   </p>
                 </div>
                 <div className='grid gap-2'>
@@ -990,7 +990,7 @@ const handleEditOrderSave = async () => {
                     Delivery Date
                   </Label>
                   <p className='text-sm'>
-                    {selectedOrder.deliveryDate?.split('T')[0]}
+                    {formatDateDMY(selectedOrder.deliveryDate?.split('T')[0])}
                   </p>
                 </div>
               </div>

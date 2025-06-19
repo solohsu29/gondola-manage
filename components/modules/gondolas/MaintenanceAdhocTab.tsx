@@ -363,7 +363,7 @@ export default function MaintenanceAdhocTab ({ gondolaId }: { gondolaId: string 
                     <Label className='text-sm font-medium text-foreground'>
                       Date
                     </Label>
-                    <p className='font-medium'>{selectedRepairLog.date}</p>
+                    <p className='font-medium'>{formatDateDMY(selectedRepairLog.date)}</p>
                   </div>
                   <div className='space-y-2'>
                     <Label className='text-sm font-medium text-foreground'>

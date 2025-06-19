@@ -27,6 +27,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { GondolasStatus } from '@/types'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 function StatusBadge ({ status }: { status: string }) {
   switch (status) {
@@ -131,12 +132,12 @@ export function GondolasDataTable ({
     {
       accessorKey: 'lastInspection',
       header: 'Last Inspection',
-      cell: ({ row }) => row.original.lastInspection?.split('T')[0] || '-'
+      cell: ({ row }) => formatDateDMY(row.original.lastInspection?.split('T')[0]) || '-'
     },
     {
       accessorKey: 'nextInspection',
       header: 'Next Inspection',
-      cell: ({ row }) => row.original.nextInspection?.split('T')[0] || '-'
+      cell: ({ row }) => formatDateDMY(row.original.nextInspection?.split('T')[0]) || '-'
     },
     {
       accessorKey: 'status',

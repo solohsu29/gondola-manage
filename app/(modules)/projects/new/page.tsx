@@ -72,6 +72,7 @@ export default function NewProjectPage () {
     projectManagers,
     gondolas,
     fetchGondolas,
+    fetchProjects,
     fetchDeliveryOrders,
     deliveryOrders,
     fetchProjectManagers,
@@ -182,6 +183,7 @@ export default function NewProjectPage () {
       primaryDOId: primaryDOId || undefined
     }
     addProject(newProject)
+    fetchProjects()
     router.push('/projects')
   }
 

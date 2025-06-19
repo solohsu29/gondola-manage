@@ -25,6 +25,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { ColumnDef } from '@tanstack/react-table'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export type DocumentType = {
   id: string
@@ -182,7 +183,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
       header: 'Uploaded Date',
       cell: ({ row }) => {
         const date = new Date(row.getValue('uploaded'))
-        return <div className='font-medium'>{date.toLocaleDateString()}</div>
+        return <div className='font-medium'>{formatDateDMY(date.toLocaleDateString())}</div>
       }
     },
     {
@@ -192,7 +193,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
         const expiryDate = row.getValue('expiry') as string | undefined | null
         if (!expiryDate) return <div className='text-foreground'>N/A</div>
         const date = new Date(expiryDate)
-        return <div className='font-medium'>{date.toLocaleDateString()}</div>
+        return <div className='font-medium'>{formatDateDMY(date.toLocaleDateString())}</div>
       }
     },
     {
@@ -411,7 +412,7 @@ export default function DocumentsTab ({ projectId }: { projectId: string }) {
                     onChange={e =>
                       setSelectedFile(e.target.files ? e.target.files[0] : null)
                     }
-                    className='col-span-3'
+                    className='col-span-3 py-[13px]'
                   />
                 </div>
                 <div className='flex flex-col md:flex-row md:items-center gap-4'>

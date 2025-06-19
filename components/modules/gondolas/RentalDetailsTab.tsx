@@ -2,15 +2,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable } from '@/components/common/data-table'
 import type { ColumnDef } from '@tanstack/react-table'
-
-// ...rest of imports
-
 import {
-  CheckCircle,
-  XCircle,
-  Clock,
+
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  Phone
 } from 'lucide-react'
 import {
   Dialog,
@@ -30,7 +26,6 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { v4 as uuid } from 'uuid'
@@ -297,9 +292,8 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
       cell: info => {
         const value = info.getValue() as string | undefined | null;
         if (!value) return '-';
-        const dateStr = value.split('T')[0];
-        const [y, m, d] = dateStr.split('-');
-        return y && m && d ? `${d}/${m}/${y}` : dateStr;
+       
+        return formatDateDMY(value)
       }
     },
     {
@@ -308,9 +302,8 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
       cell: info => {
         const value = info.getValue() as string | undefined | null;
         if (!value) return '-';
-        const dateStr = value.split('T')[0];
-        const [y, m, d] = dateStr.split('-');
-        return y && m && d ? `${d}/${m}/${y}` : dateStr;
+      
+        return formatDateDMY(value)
       }
     },
     {
@@ -479,6 +472,7 @@ export default function RentalDetailsTab ({ gondolaId }: { gondolaId: string }) 
                       id='certificates'
                       type='file'
                       multiple
+                      className="py-[13px]"
                       accept='.pdf,.doc,.docx,.jpg,.jpeg,.png'
                       onChange={handleDdFormChange}
                     />

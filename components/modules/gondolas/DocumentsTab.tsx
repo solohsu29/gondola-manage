@@ -72,7 +72,7 @@ const [uploading, setUploading] = useState(false);
     {
       header: 'Uploaded',
       accessorKey: 'uploaded',
-      cell: (info) => info.row.original.uploaded ? new Date(info.row.original.uploaded).toLocaleDateString() : '-',
+      cell: (info) => info.row.original.uploaded ? formatDateDMY(new Date(info.row.original.uploaded).toLocaleDateString()) : '-',
     },
     {
       header: 'Expiry',
@@ -150,8 +150,9 @@ const [uploading, setUploading] = useState(false);
       });
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || 'Failed to update document');
         setLoading(false)
+        throw new Error(error.error || 'Failed to update document');
+      
       }
       toast.success('Document updated', {
         description: `${editState.title || 'Document'} updated successfully.`,

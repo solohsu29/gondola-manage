@@ -24,6 +24,7 @@ import type { Inspection } from '@/types/inspection'
 import { toast } from 'sonner'
 import { DataTable } from '@/components/common/data-table'
 import { ColumnDef } from '@tanstack/react-table'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
 
@@ -143,7 +144,7 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
       accessorKey: 'date',
       cell: ({ row }) =>
         row.original.date
-          ? new Date(row.original.date).toLocaleDateString()
+          ? formatDateDMY(new Date(row.original.date).toLocaleDateString())
           : ''
     },
     {
@@ -660,7 +661,7 @@ export default function InspectionsTab ({ gondolaId }: { gondolaId: string }) {
                       Scheduled Date
                     </Label>
                     <p className='font-medium'>
-                      {viewInspection.date?.split('T')[0]}
+                      {formatDateDMY(viewInspection.date?.split('T')[0])}
                     </p>
                   </div>
                   <div className='space-y-2'>
