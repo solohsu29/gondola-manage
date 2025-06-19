@@ -1,0 +1,24 @@
+name: Scheduled User Notifications
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # every 5 minutes UTC
+
+jobs:
+  send-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npx ts-node scripts/sendUserNotifications.ts
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
