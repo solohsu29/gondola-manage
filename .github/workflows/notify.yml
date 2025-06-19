@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npx ts-node scripts/sendUserNotifications.ts
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
