@@ -336,9 +336,14 @@ export default function OrientationSessionTab ({
   ]
 
 
-  // Handler for deleting a session
+
   const handleDeleteSession = async () => {
-    if (!selectedSession) return;
+    console.log('Attempting to delete session:', { gondolaId, selectedSession });
+    if (!gondolaId || !selectedSession?.id) {
+      toast.error('Missing gondola or session ID');
+      setDeleteLoading(false);
+      return;
+    }
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/gondola/${gondolaId}/orientation-sessions/${selectedSession.id}`, {

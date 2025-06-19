@@ -365,6 +365,7 @@ export default function GondolasPage () {
                         id='gondolaImage'
                         type='file'
                         accept='image/*'
+                        className='py-[13px]'
                         onChange={e =>
                           setNewGondola({
                             ...newGondola,
