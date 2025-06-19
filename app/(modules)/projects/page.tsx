@@ -200,6 +200,7 @@ export default function ProjectsPage () {
     // "all" tab
     return true
   })
+
 const handleDeleteProject = async () => {
   if (!projectToDelete) return;
   setLoading(true);
@@ -228,7 +229,7 @@ const handleDeleteProject = async () => {
   }
 }
 
-console.log('projects loading',projectsLoading)
+
   return (
     <div className='p-6'>
       <div className='flex flex-col md:flex-row justify-between md:items-center mb-6'>

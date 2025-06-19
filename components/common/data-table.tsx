@@ -65,8 +65,11 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10,
           ))}
         </TableHeader>
         <TableBody>
-
-          {table?.getRowModel()?.rows?.length > 0 ?table.getRowModel().rows.map(row => (
+          {loading ? <TableRow>
+    <TableCell className="text-center" colSpan={columns?.length}>
+      Loading ...
+    </TableCell>
+  </TableRow> : table?.getRowModel()?.rows?.length > 0 ? table.getRowModel().rows.map(row => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id}>
@@ -74,12 +77,7 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10,
                 </TableCell>
               ))}
             </TableRow>
-          )) : loading ? <TableRow>
-           
-          <TableCell className="text-center" colSpan={columns?.length}>
-         Loading ...
-          </TableCell>
-          </TableRow> : table?.getRowModel().rows.length === 0 && (
+          ))  : table?.getRowModel().rows.length === 0 && (
             <TableRow>
            
               <TableCell className="text-center" colSpan={columns?.length}>
@@ -87,7 +85,8 @@ export function DataTable<TData extends RowData>({ columns, data, pageSize = 10,
               </TableCell>
               </TableRow>
             )}
-         
+
+       
         </TableBody>
         <TableFooter>
           <TableRow>
