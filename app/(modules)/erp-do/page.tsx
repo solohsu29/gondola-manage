@@ -69,6 +69,13 @@ const [editOrderState, setEditOrderState] = useState<any>(null)
       })
       return
     }
+    const duplicate = allDeliveryOrders.some(order => order.number?.toLowerCase() === manualEntry.number.toLowerCase());
+    if (duplicate) {
+      toast.error('A delivery order with this number already exists.', {
+        className: 'bg-destructive text-white'
+      })
+      return;
+    }
     setImporting(true)
     const formData = new FormData()
     formData.append('file', erpFile)
@@ -95,11 +102,13 @@ const [editOrderState, setEditOrderState] = useState<any>(null)
         })
         setErpFile(null)
         fetchDeliveryOrders()
+        setImporting(false)
       } else {
         const errMsg = await res.text()
         toast.error(`Backend error: ${errMsg}`, {
           className: 'bg-destructive text-white'
         })
+        setImporting(false)
       }
     } catch (err: any) {
       toast.error('Failed to upload to backend.', {
@@ -148,18 +157,26 @@ const [editOrderState, setEditOrderState] = useState<any>(null)
     orderId: string,
     closeDialog: () => void
   ) {
+    setLoading(true)
     try {
       const res = await fetch(`/api/delivery-order/${orderId}`, {
         method: 'DELETE'
       })
-      if (!res.ok) throw new Error('Failed to delete')
+      if (!res.ok){
+        setLoading(false)
+        closeDialog()
+        throw new Error('Failed to delete')
+      } 
       await fetchDeliveryOrders()
       toast.success('Order deleted', { className: 'bg-[#14AA4d] text-white' })
       closeDialog()
+      setLoading(false)
     } catch (err) {
       toast.error('Failed to delete order', {
         className: 'bg-destructive text-white'
       })
+      closeDialog()
+      setLoading(false)
     }
   }
 
@@ -279,6 +296,14 @@ const handleEditOrderSave = async () => {
     })
     return
   }
+  // Check for duplicate DO number (case-insensitive, excluding self)
+  const duplicate = allDeliveryOrders.some(order => order.number?.toLowerCase() === number.toLowerCase() && order.id !== selectedOrder.id)
+  if (duplicate) {
+    toast.error('A delivery order with this number already exists.', {
+      className: 'bg-destructive text-white'
+    })
+    return
+  }
   try {
     const payload = {
       number,
@@ -318,6 +343,14 @@ const handleEditOrderSave = async () => {
       !manualEntry.poReference
     ) {
       toast.error('Please fill in all required fields (marked with *)', {
+        className: 'bg-destructive text-white'
+      })
+      return
+    }
+    // Check for duplicate DO number (case-insensitive)
+    const duplicate = allDeliveryOrders.some(order => order.number?.toLowerCase() === manualEntry.number.toLowerCase())
+    if (duplicate) {
+      toast.error('A delivery order with this number already exists.', {
         className: 'bg-destructive text-white'
       })
       return
@@ -622,8 +655,8 @@ const handleEditOrderSave = async () => {
                 >
                   Cancel
                 </Button>
-                <Button type='button' onClick={handleImportFromERP}>
-                  Import
+                <Button type='button' onClick={handleImportFromERP} disabled={importing}>
+                 {importing ? "Importing" : "Import"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -841,11 +874,12 @@ const handleEditOrderSave = async () => {
             <Button
               type='button'
               variant='destructive'
+              disabled={loading}
               onClick={() =>
                 handleDeleteOrderConfirm(deletedOrder?.id, () => setOpen(false))
               }
             >
-              Delete
+            {loading? "Deleting":"Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

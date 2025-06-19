@@ -87,6 +87,10 @@ export async function POST(req: NextRequest) {
       }
     });
   } catch (error: any) {
+    // Handle unique constraint violation for DeliveryOrder.number
+    if (error.code === '23505' && error.detail && error.detail.includes('DeliveryOrder_number_key')) {
+      return NextResponse.json({ error: 'A delivery order with this number already exists.' }, { status: 409 });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

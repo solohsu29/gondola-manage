@@ -53,7 +53,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Delivery order not found' }, { status: 404 });
     }
     return NextResponse.json(result.rows[0]);
-  } catch (error) {
+  } catch (error: any) {
+    // Handle unique constraint violation for DeliveryOrder.number
+    if (error.code === '23505' && error.detail && error.detail.includes('DeliveryOrder_number_key')) {
+      return NextResponse.json({ error: 'A delivery order with this number already exists.' }, { status: 409 });
+    }
     return NextResponse.json({ error: 'Failed to update delivery order', details: error instanceof Error ? error.message : error }, { status: 500 });
   }
 }
