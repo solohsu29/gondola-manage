@@ -32,6 +32,7 @@ import { DataTable } from '@/components/common/data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'sonner'
 import exportToCSV from '@/components/modules/projects/exportToCSV'
+import { formatDateDMY } from '@/app/utils/formatDate'
 
 function StatusBadge ({ status }: { status: string }) {
   switch (status) {
@@ -107,7 +108,7 @@ export default function ProjectsPage () {
       header: 'Created',
       cell: ({ row }) =>
         row.original.created
-          ? new Date(row.original.created).toLocaleDateString()
+          ? formatDateDMY(new Date(row.original.created).toLocaleDateString())
           : '-'
     },
     {
@@ -122,7 +123,7 @@ export default function ProjectsPage () {
       header: 'End Date',
       cell: ({ row }) =>
         row.original.endDate
-          ? new Date(row.original.endDate).toLocaleDateString()
+          ? formatDateDMY(new Date(row.original.endDate).toLocaleDateString())
           : '-'
     },
     {

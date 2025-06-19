@@ -20,7 +20,7 @@ export default function LoginPage() {
   });
 
   const form = useForm({
-    defaultValues: { email: '', password: '', rememberMe: false },
+    defaultValues: { email: 'admin@gmail.com', password: 'admin123***', rememberMe: false },
     resolver: yupResolver(schema),
   });
 
