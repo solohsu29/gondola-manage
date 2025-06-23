@@ -48,6 +48,9 @@ export default function GondolasPage () {
     image: null as File | null
   })
 
+  useEffect(()=>{
+    fetchGondolas()
+  },[])
   // Handler for create gondola
   const handleCreateGondolaSubmit = async (
     e: React.FormEvent<HTMLFormElement>
