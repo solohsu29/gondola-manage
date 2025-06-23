@@ -59,10 +59,10 @@ async function updateLastSent(userId: number, notificationType: string, date: Da
   );
 }
 
-function shouldSendEveryFiveMinutes(lastSent: Date | null, now: Date): boolean {
+function shouldSendDaily(lastSent: Date | null, now: Date): boolean {
   if (!lastSent) return true;
-  // 5 minutes = 300000 ms
-  return (now.getTime() - lastSent.getTime()) >= 5 * 60 * 1000;
+  // Send if lastSent is not today
+  return lastSent.toDateString() !== now.toDateString();
 }
 
 async function main() {
@@ -96,7 +96,7 @@ async function main() {
     // 2. Certificate Expiry
     if (prefs.certificateExpiry) {
       const lastSent = await getLastSent(user.id, 'certificateExpiry');
-      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+      if (shouldSendDaily(lastSent, today)) {
         const { rows: docs } = await pool.query(
           `SELECT d.title, d.expiry, g."serialNumber" FROM "Document" d LEFT JOIN "Gondola" g ON d."gondolaId"=g.id WHERE (
             d.category ILIKE '%Certificate%' OR d.type ILIKE '%Certificate%' OR d.title ILIKE '%Certificate%') AND d.expiry IS NOT NULL AND d.expiry::date BETWEEN NOW()::date AND (NOW() + INTERVAL '30 days')::date`
@@ -113,7 +113,7 @@ async function main() {
     // 3. Project Reminders
     if (prefs.projectReminders) {
       const lastSent = await getLastSent(user.id, 'projectReminders');
-      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+      if (shouldSendDaily(lastSent, today)) {
         // Notify about projects ending in the next 7 days
         const { rows: projectsDue } = await pool.query(`
           SELECT "projectName", "client", "site", "endDate"
@@ -147,7 +147,7 @@ async function main() {
     // 4. Project Updates
     if (prefs.projectUpdates) {
       const lastSent = await getLastSent(user.id, 'projectUpdates');
-      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+      if (shouldSendDaily(lastSent, today)) {
         const { rows: changedProjects } = await pool.query(`
           SELECT "projectName", "updatedAt", "status"
           FROM "Project"
@@ -171,7 +171,7 @@ async function main() {
     // 5. Weekly Reports
     if (prefs.weeklyReports) {
       const lastSent = await getLastSent(user.id, 'weeklyReports');
-      if (shouldSendEveryFiveMinutes(lastSent, today)) {
+      if (shouldSendDaily(lastSent, today)) {
         // Active Gondolas
         const { rows: gondolas } = await pool.query(`SELECT * FROM "Gondola"`);
         const activeGondolas = gondolas.filter((g: any) => typeof g.status === 'string' && g.status.toLowerCase() === 'deployed');
