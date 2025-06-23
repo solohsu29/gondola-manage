@@ -50,7 +50,7 @@ export default function GondolasPage () {
 
   useEffect(()=>{
     fetchGondolas()
-  },[])
+  },[refresh])
   // Handler for create gondola
   const handleCreateGondolaSubmit = async (
     e: React.FormEvent<HTMLFormElement>
