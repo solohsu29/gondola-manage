@@ -120,19 +120,29 @@ export default function Header () {
 
   // Sign out function: clear all data, remove cookie, redirect
   const handleSignOut = async () => {
-    removeAllData()
-    // Remove auth cookies by expiring them (client-side, for non-HttpOnly cookies)
+    removeAllData();
+    // Call backend to clear HttpOnly cookies
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (err) {
+      // Optionally log error or show toast
+      console.error('Logout API error:', err);
+    }
+    // Remove client-side cookies (for non-HttpOnly cookies, if any)
     if (typeof document !== 'undefined') {
       document.cookie =
-        'token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;'
+        'token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
       document.cookie =
-        'next-auth.session-token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;'
+        'next-auth.session-token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
     }
     // Redirect to login
     if (router) {
-      router.push('/login')
+      router.push('/login');
     } else if (typeof window !== 'undefined') {
-      window.location.href = '/login'
+      window.location.href = '/login';
     }
   }
 

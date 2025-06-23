@@ -20,7 +20,7 @@ export default function LoginPage() {
   });
 
   const form = useForm({
-    defaultValues: { email: 'admin@gmail.com', password: 'admin123***', rememberMe: false },
+    defaultValues: { email: '', password: '', rememberMe: false },
     resolver: yupResolver(schema),
   });
 
@@ -112,6 +112,13 @@ const router = useRouter()
               </div>
             )}
           />
+          <div className="rounded-lg bg-green-100 p-3 text-foreground my-2">
+            <h3 className="mb-2 font-medium">Demo Credentials:</h3>
+            <div className="text-sm">
+              <p>Email: admin@gmail.com</p>
+              <p>password: admin123***</p>
+            </div>
+          </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </Button>
